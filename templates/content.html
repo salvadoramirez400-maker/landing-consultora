@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Contenido - CRM</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #f0f8ff; }
+        .header { background: linear-gradient(135deg, #1e7cd6 0%, #16a34a 100%); color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { font-size: 24px; font-weight: 600; }
+        .header a { background: rgba(255,255,255,0.2); color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; font-size: 14px; }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .sidebar { background: white; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .sidebar a { display: block; padding: 10px; margin: 5px 0; border-radius: 6px; text-decoration: none; color: #333; transition: background 0.3s; }
+        .sidebar a:hover, .sidebar a.active { background: #e8f2fa; color: #1e7cd6; }
+        .content-box { background: white; border-radius: 12px; padding: 30px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; color: #1e3a5f; font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #d0e1f0; border-radius: 6px; font-size: 14px; }
+        textarea { min-height: 100px; resize: vertical; }
+        .btn-save { background: #1e7cd6; color: white; padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; }
+        .btn-save:hover { background: #38a1f2; }
+        .item-row { display: flex; gap: 10px; margin-bottom: 10px; align-items: flex-start; }
+        .item-row input { flex: 1; }
+        .btn-remove { background: #dc2626; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; }
+        .btn-add { background: #16a34a; color: white; border: none; padding: 10px 15px; border-radius: 6px; cursor: pointer; margin-top: 10px; }
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    </style>
+    <script>
+        function addItem(section) {
+            const container = document.getElementById(section + '-items');
+            const row = document.createElement('div');
+            row.className = 'item-row';
+            
+            if (section === 'services' || section === 'benefits') {
+                row.innerHTML = `
+                    <input type="text" name="service_title[]" placeholder="Título" value="">
+                    <input type="text" name="service_desc[]" placeholder="Descripción" value="">
+                    <button type="button" class="btn-remove" onclick="this.parentElement.remove()">X</button>
+                `;
+            } else if (section === 'stats') {
+                row.innerHTML = `
+                    <input type="text" name="stat_number[]" placeholder="Número" value="">
+                    <input type="text" name="stat_label[]" placeholder="Etiqueta" value="">
+                    <button type="button" class="btn-remove" onclick="this.parentElement.remove()">X</button>
+                `;
+            } else if (section === 'faq') {
+                row.innerHTML = `
+                    <input type="text" name="faq_q[]" placeholder="Pregunta" value="">
+                    <input type="text" name="faq_a[]" placeholder="Respuesta" value="">
+                    <button type="button" class="btn-remove" onclick="this.parentElement.remove()">X</button>
+                `;
+            } else {
+                row.innerHTML = `
+                    <input type="text" name="items[]" value="">
+                    <button type="button" class="btn-remove" onclick="this.parentElement.remove()">X</button>
+                `;
+            }
+            
+            container.appendChild(row);
+        }
+    </script>
+</head>
+<body>
+    <div class="header">
+        <h1>Gestión de Contenido</h1>
+        <a href="/admin">Volver al CRM</a>
+    </div>
+    
+    <div class="container" style="display: grid; grid-template-columns: 200px 1fr; gap: 20px;">
+        <div class="sidebar">
+            <a href="?section=hero" class="{% if section == 'hero' %}active{% endif %}">Hero</a>
+            <a href="?section=problem" class="{% if section == 'problem' %}active{% endif %}">Problema</a>
+            <a href="?section=solution" class="{% if section == 'solution' %}active{% endif %}">Solución</a>
+            <a href="?section=services" class="{% if section == 'services' %}active{% endif %}">Servicios</a>
+            <a href="?section=stats" class="{% if section == 'stats' %}active{% endif %}">Estadísticas</a>
+            <a href="?section=benefits" class="{% if section == 'benefits' %}active{% endif %}">Beneficios</a>
+            <a href="?section=faq" class="{% if section == 'faq' %}active{% endif %}">FAQ</a>
+            <a href="?section=cta" class="{% if section == 'cta' %}active{% endif %}">CTA</a>
+            <a href="?section=footer" class="{% if section == 'footer' %}active{% endif %}">Footer</a>
+        </div>
+        
+        <div class="content-box">
+            <form method="POST">
+                <input type="hidden" name="section" value="{{ section }}">
+                
+                {% if section == 'hero' %}
+                    <h2>Hero Section</h2>
+                    <div class="form-group">
+                        <label>Badge</label>
+                        <input type="text" name="badge" value="{{ content.hero.badge }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Título</label>
+                        <input type="text" name="title" value="{{ content.hero.title }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Subtítulo</label>
+                        <textarea name="subtitle">{{ content.hero.subtitle }}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Botón Principal</label>
+                        <input type="text" name="button_primary" value="{{ content.hero.button_primary }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Botón Secundario</label>
+                        <input type="text" name="button_secondary" value="{{ content.hero.button_secondary }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Nota</label>
+                        <input type="text" name="note" value="{{ content.hero.note }}">
+                    </div>
+                
+                {% elif section in ['problem', 'solution'] %}
+                    <h2>{{ section|title }} Section</h2>
+                    <div class="form-group">
+                        <label>Label</label>
+                        <input type="text" name="label" value="{{ content[section].label }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Título</label>
+                        <input type="text" name="title" value="{{ content[section].title }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Items</label>
+                        <div id="{{ section }}-items">
+                            {% for item in content[section]["items"] %}
+                                <div class="item-row">
+                                    <input type="text" name="items[]" value="{{ item }}">
+                                    <button type="button" class="btn-remove" onclick="this.parentElement.remove()">X</button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <button type="button" class="btn-add" onclick="addItem('{{ section }}')">+ Agregar Item</button>
+                    </div>
+                
+                {% elif section == 'services' %}
+                    <h2>Servicios</h2>
+                    <div class="form-group">
+                        <label>Label</label>
+                        <input type="text" name="label" value="{{ content.services.label }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Título</label>
+                        <input type="text" name="title" value="{{ content.services.title }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Servicios</label>
+                        <div id="services-items">
+                            {% for item in content.services["items"] %}
+                                <div class="item-row">
+                                    <input type="text" name="service_title[]" placeholder="Título" value="{{ item.title }}">
+                                    <input type="text" name="service_desc[]" placeholder="Descripción" value="{{ item.desc }}">
+                                    <button type="button" class="btn-remove" onclick="this.parentElement.remove()">X</button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <button type="button" class="btn-add" onclick="addItem('services')">+ Agregar Servicio</button>
+                    </div>
+                
+                {% elif section == 'stats' %}
+                    <h2>Estadísticas</h2>
+                    <div class="form-group">
+                        <label>Label</label>
+                        <input type="text" name="label" value="{{ content.stats.label }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Título</label>
+                        <input type="text" name="title" value="{{ content.stats.title }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Stats</label>
+                        <div id="stats-items">
+                            {% for item in content.stats["items"] %}
+                                <div class="item-row">
+                                    <input type="text" name="stat_number[]" placeholder="Número" value="{{ item.number }}">
+                                    <input type="text" name="stat_label[]" placeholder="Etiqueta" value="{{ item.label }}">
+                                    <button type="button" class="btn-remove" onclick="this.parentElement.remove()">X</button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <button type="button" class="btn-add" onclick="addItem('stats')">+ Agregar Stat</button>
+                    </div>
+                
+                {% elif section == 'benefits' %}
+                    <h2>Beneficios</h2>
+                    <div class="form-group">
+                        <label>Label</label>
+                        <input type="text" name="label" value="{{ content.benefits.label }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Título</label>
+                        <input type="text" name="title" value="{{ content.benefits.title }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Beneficios</label>
+                        <div id="benefits-items">
+                            {% for item in content.benefits["items"] %}
+                                <div class="item-row">
+                                    <input type="text" name="benefit_number[]" placeholder="Número" value="{{ item.number }}">
+                                    <input type="text" name="benefit_title[]" placeholder="Título" value="{{ item.title }}">
+                                    <input type="text" name="benefit_desc[]" placeholder="Descripción" value="{{ item.desc }}">
+                                    <button type="button" class="btn-remove" onclick="this.parentElement.remove()">X</button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <button type="button" class="btn-add" onclick="addItem('benefits')">+ Agregar Beneficio</button>
+                    </div>
+                
+                {% elif section == 'faq' %}
+                    <h2>FAQ</h2>
+                    <div class="form-group">
+                        <label>Label</label>
+                        <input type="text" name="label" value="{{ content.faq.label }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Título</label>
+                        <input type="text" name="title" value="{{ content.faq.title }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Preguntas Frecuentes</label>
+                        <div id="faq-items">
+                            {% for item in content.faq["items"] %}
+                                <div class="item-row">
+                                    <input type="text" name="faq_q[]" placeholder="Pregunta" value="{{ item.q }}">
+                                    <input type="text" name="faq_a[]" placeholder="Respuesta" value="{{ item.a }}">
+                                    <button type="button" class="btn-remove" onclick="this.parentElement.remove()">X</button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <button type="button" class="btn-add" onclick="addItem('faq')">+ Agregar FAQ</button>
+                    </div>
+                
+                {% elif section == 'cta' %}
+                    <h2>Call to Action</h2>
+                    <div class="form-group">
+                        <label>Badge</label>
+                        <input type="text" name="badge" value="{{ content.cta.badge }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Título</label>
+                        <input type="text" name="title" value="{{ content.cta.title }}">
+                    </div>
+                    <div class="form-group">
+                        <label>Texto</label>
+                        <textarea name="text">{{ content.cta.text }}</textarea>
+                    </div>
+                    <div class="two-col">
+                        <div class="form-group">
+                            <label>Botón Principal</label>
+                            <input type="text" name="button_primary" value="{{ content.cta.button_primary }}">
+                        </div>
+                        <div class="form-group">
+                            <label>Botón Secundario</label>
+                            <input type="text" name="button_secondary" value="{{ content.cta.button_secondary }}">
+                        </div>
+                    </div>
+                
+                {% elif section == 'footer' %}
+                    <h2>Footer</h2>
+                    <div class="form-group">
+                        <label>Texto</label>
+                        <textarea name="text">{{ content.footer.text }}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>RUT</label>
+                        <input type="text" name="rut" value="{{ content.footer.rut }}">
+                    </div>
+                {% endif %}
+                
+                <button type="submit" class="btn-save">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

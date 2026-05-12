@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configuración - CRM</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #f0f8ff; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .config-box { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 24px rgba(30, 60, 95, 0.08); width: 100%; max-width: 500px; border: 1px solid #d0e1f0; }
+        .header { text-align: center; margin-bottom: 30px; }
+        .header h1 { color: #1e3a5f; font-size: 24px; margin-bottom: 8px; font-family: 'Playfair Display', Georgia, serif; }
+        .header p { color: #5a6275; font-size: 14px; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; color: #1e3a5f; font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+        input { width: 100%; padding: 12px; border: 1px solid #d0e1f0; border-radius: 8px; font-size: 14px; transition: border-color 0.3s; background: #f0f8ff; }
+        input:focus { outline: none; border-color: #22c55e; background: white; }
+        .btn-group { display: flex; gap: 12px; margin-top: 30px; }
+        button { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; }
+        .btn-save { background: #1e7cd6; color: white; }
+        .btn-save:hover { background: #38a1f2; }
+        .btn-cancel { background: #e8f2fa; color: #5a6275; text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center; }
+        .btn-cancel:hover { background: #d0e1f0; }
+    </style>
+</head>
+<body>
+    <div class="config-box">
+        <div class="header">
+            <h1>Configuración del Sitio</h1>
+            <p>Personaliza el nombre de tu consultora</p>
+        </div>
+        
+        <form method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label>Nombre de la Empresa</label>
+                <input type="text" name="business_name" value="{{ config.business_name }}" required>
+            </div>
+            <div class="form-group">
+                <label>Logo (PNG)</label>
+                {% if config.logo %}
+                    <div style="margin-bottom: 8px;">
+                        <img src="{{ config.logo }}" alt="Logo actual" style="max-height: 60px;">
+                    </div>
+                {% endif %}
+                <input type="file" name="logo" accept=".png,.jpg,.jpeg,.svg">
+            </div>
+            <div class="btn-group">
+                <button type="submit" class="btn-save">Guardar Cambios</button>
+                <a href="/admin" class="btn-cancel">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</body>
+</html>

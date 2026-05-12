@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Política de Privacidad · {{ config.business_name }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .privacy-section { padding: 120px 0 60px; max-width: 800px; margin: 0 auto; }
+    .privacy-section h1 { font-size: 2rem; margin-bottom: 8px; }
+    .privacy-section .date { color: var(--gray-600); font-size: 0.9rem; margin-bottom: 32px; }
+    .privacy-section h2 { font-size: 1.3rem; margin: 32px 0 12px; color: var(--trust-blue); }
+    .privacy-section p, .privacy-section li { font-size: 0.95rem; line-height: 1.7; color: var(--gray-600); margin-bottom: 12px; }
+    .privacy-section ul { padding-left: 24px; list-style: disc; }
+    .privacy-section a { color: var(--trust-blue); text-decoration: underline; }
+    .privacy-section .back-link { display: inline-block; margin-bottom: 32px; font-weight: 500; }
+  </style>
+</head>
+<body>
+  <nav class="nav" id="nav">
+    <div class="nav-inner">
+      <a href="/" class="logo">{{ config.business_name }}</a>
+      <a href="/" class="btn btn-sm btn-outline">Volver al inicio</a>
+    </div>
+  </nav>
+
+  <section class="privacy-section">
+    <div class="container">
+      <a href="/" class="back-link">&larr; Volver al inicio</a>
+      <h1>Política de Privacidad</h1>
+      <p class="date">Última actualización: mayo 2026</p>
+
+      <p>Esta Política de Privacidad regula el tratamiento de los datos personales que usted nos proporcione a través del sitio web de {{ config.business_name }}, en cumplimiento con lo dispuesto en la <strong>Ley N° 19.628 sobre Protección de la Vida Privada</strong> de la República de Chile y sus modificaciones posteriores (Ley N° 21.719).</p>
+
+      <h2>1. Identificación del Responsable</h2>
+      <p>{{ config.business_name }}<br>{{ content.footer.rut }}<br>Contacto: <a href="mailto:hola@consultoriaclinica.cl">hola@consultoriaclinica.cl</a></p>
+
+      <h2>2. Datos que recolectamos</h2>
+      <p>Recolectamos los siguientes datos personales proporcionados voluntariamente por los usuarios a través de nuestros formularios de contacto y captura:</p>
+      <ul>
+        <li>Nombre completo</li>
+        <li>Número de teléfono</li>
+        <li>Correo electrónico</li>
+        <li>Horario de preferencia para contacto</li>
+      </ul>
+      <p>Adicionalmente, podemos recolectar datos de navegación de forma anónima a través de cookies y píxeles de seguimiento (Meta Pixel) para fines de medición y publicidad. Usted puede gestionar sus preferencias de cookies desde la configuración de su navegador.</p>
+
+      <h2>3. Finalidad del tratamiento</h2>
+      <p>Sus datos personales serán utilizados para las siguientes finalidades:</p>
+      <ul>
+        <li>Contactarlo para coordinar asesorías y entregar información sobre nuestros servicios</li>
+        <li>Enviar comunicaciones comerciales relacionadas con la apertura y gestión de clínicas estéticas</li>
+        <li>Mejorar nuestros servicios y personalizar su experiencia en el sitio web</li>
+        <li>Medición de audiencia y efectividad de campañas publicitarias (Meta Ads)</li>
+      </ul>
+
+      <h2>4. Base legal del tratamiento</h2>
+      <p>El tratamiento de sus datos se fundamenta en su consentimiento expreso, manifestado al completar y enviar nuestros formularios de captura, así como en el interés legítimo de {{ config.business_name }} para desarrollar su actividad comercial, todo ello conforme al artículo 4° de la Ley N° 19.628.</p>
+
+      <h2>5. Almacenamiento y seguridad</h2>
+      <p>Sus datos personales serán almacenados en servidores seguros y adoptamos las medidas técnicas y organizativas necesarias para garantizar su confidencialidad e integridad, de acuerdo con el artículo 11 de la Ley N° 19.628. Sin embargo, ningún sistema de transmisión o almacenamiento electrónico es completamente seguro, por lo que no podemos garantizar una seguridad absoluta.</p>
+
+      <h2>6. Plazo de conservación</h2>
+      <p>Conservaremos sus datos personales mientras se mantenga la relación comercial o durante el plazo necesario para cumplir con las finalidades descritas. Una vez que ya no sean necesarios, serán eliminados de forma segura, salvo que exista una obligación legal que exija su conservación.</p>
+
+      <h2>7. Transferencia de datos</h2>
+      <p>No compartimos sus datos personales con terceros no relacionados, salvo que sea necesario para cumplir con obligaciones legales o cuando hayamos contratado servicios de terceros que actúan como encargados de tratamiento (plataformas de mensajería, servicios de hosting, herramientas de publicidad), quienes están sujetos a obligaciones contractuales de confidencialidad.</p>
+
+      <h2>8. Derechos del titular (ARCO)</h2>
+      <p>De conformidad con la Ley N° 19.628, usted tiene derecho a solicitar en cualquier momento:</p>
+      <ul>
+        <li><strong>Acceso:</strong> conocer los datos personales que tenemos sobre usted</li>
+        <li><strong>Rectificación:</strong> solicitar la corrección de datos inexactos o desactualizados</li>
+        <li><strong>Cancelación:</strong> solicitar la eliminación de sus datos cuando ya no sean necesarios</li>
+        <li><strong>Oposición:</strong> oponerse al tratamiento de sus datos para fines específicos</li>
+      </ul>
+      <p>Para ejercer estos derechos, debe enviar una solicitud escrita al correo o WhatsApp de contacto indicado en esta política, acompañando una copia de su cédula de identidad. Responderemos su solicitud dentro del plazo máximo de 10 días hábiles.</p>
+
+      <h2>9. Modificaciones</h2>
+      <p>Nos reservamos el derecho a modificar la presente Política de Privacidad en cualquier momento. Las modificaciones serán publicadas en esta misma página y, cuando corresponda, se notificarán a los usuarios a través de los canales de contacto habituales.</p>
+
+      <h2>10. Legislación aplicable</h2>
+      <p>Esta Política de Privacidad se rige por la legislación chilena, en particular por la Ley N° 19.628 sobre Protección de la Vida Privada. Cualquier controversia derivada de su aplicación será sometida a los tribunales ordinarios de justicia de Santiago de Chile.</p>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom">
+        <p>&copy; 2026 {{ config.business_name }}. Todos los derechos reservados.</p>
+        <p>{{ content.footer.rut }}</p>
+        <a href="/privacidad" class="footer-link">Política de privacidad</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

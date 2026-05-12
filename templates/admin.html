@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRM - Consultorías Clínicas</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #f0f8ff; }
+        .header { background: linear-gradient(135deg, #1e7cd6 0%, #16a34a 100%); color: white; padding: 20px 40px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(30, 60, 95, 0.1); }
+        .header h1 { font-size: 24px; font-weight: 600; font-family: 'Playfair Display', Georgia, serif; }
+        .logout-btn { background: rgba(255,255,255,0.2); color: white; padding: 8px 16px; border-radius: 8px; text-decoration: none; transition: background 0.3s; font-size: 14px; font-weight: 500; }
+        .logout-btn:hover { background: rgba(255,255,255,0.3); }
+        .container { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .stat-card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 24px rgba(30, 60, 95, 0.08); border: 1px solid #d0e1f0; }
+        .stat-card h3 { color: #1e7cd6; font-size: 32px; margin-bottom: 5px; font-family: 'Playfair Display', Georgia, serif; }
+        .stat-card p { color: #5a6275; font-size: 14px; }
+        .table-container { background: white; border-radius: 12px; box-shadow: 0 4px 24px rgba(30, 60, 95, 0.08); overflow: hidden; border: 1px solid #d0e1f0; }
+        table { width: 100%; border-collapse: collapse; }
+        thead { background: #e8f2fa; }
+        th { padding: 16px; text-align: left; color: #1e3a5f; font-weight: 600; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
+        td { padding: 16px; border-top: 1px solid #e8f2fa; color: #5a6275; }
+        tr:hover { background: #f0f8ff; }
+        .actions { display: flex; gap: 8px; }
+        .btn { padding: 6px 12px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: 500; transition: all 0.3s; border: none; cursor: pointer; }
+        .btn-edit { background: #1e7cd6; color: white; }
+        .btn-edit:hover { background: #38a1f2; }
+        .btn-delete { background: #22c55e; color: white; }
+        .btn-delete:hover { background: #16a34a; }
+        .empty { text-align: center; padding: 60px; color: #8fa4b8; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>CRM {{ config.business_name }}</h1>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <a href="/admin/config" class="logout-btn" style="background: rgba(255,255,255,0.3);">Configuración</a>
+            <a href="/logout" class="logout-btn">Cerrar Sesión</a>
+        </div>
+    </div>
+    
+    <div class="container">
+        <div class="stats">
+            <div class="stat-card">
+                <h3>{{ leads|length }}</h3>
+                <p>Total Leads</p>
+            </div>
+            <div class="stat-card">
+                <h3>{{ leads|selectattr('email', 'defined')|list|length }}</h3>
+                <p>Con Email</p>
+            </div>
+            <div class="stat-card">
+                <h3>{{ leads|selectattr('telefono', 'defined')|list|length }}</h3>
+                <p>Con Teléfono</p>
+            </div>
+        </div>
+        
+        <div class="table-container">
+            {% if leads %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Teléfono</th>
+                            <th>Email</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lead in leads %}
+                            <tr>
+                                <td><strong>{{ lead.nombre }}</strong></td>
+                                <td>{{ lead.telefono }}</td>
+                                <td>{{ lead.email }}</td>
+                                <td>{{ lead.fecha }}</td>
+                                <td>
+                                    <div class="actions">
+                                        <a href="/admin/edit/{{ loop.index0 }}" class="btn btn-edit">Editar</a>
+                                        <a href="/admin/delete/{{ loop.index0 }}" class="btn btn-delete" onclick="return confirm('¿Eliminar este lead?')">Eliminar</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="empty">
+                    <p>No hay leads capturados aún</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

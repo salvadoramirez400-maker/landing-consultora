@@ -1,0 +1,23 @@
+Eres un experto en desarrollo web frontend y UX/UI para landings de alto ticket en el mercado chileno. Voy a darte el HTML completo de una landing page y quiero que la mejores aplicando los siguientes cambios, en orden de prioridad:
+Críticos:
+
+Los links internos deben usar rutas relativas limpias.
+Agrega un bloque hero con imagen: incluye un <div class="hero-visual"> con un <img> placeholder (https://placehold.co/960x500/0B1C3F/FFFFFF?text=Clínica+Goyenechea) que ocupe el ancho completo debajo del copy del hero, con border-radius: 12px y margin-top: 32px.
+Unifica los dos puntos de captura (agenda interactiva + formulario de contacto) en un solo flujo: formulario de 3 campos (Nombre, Teléfono, Horario preferido — un select con las mismas opciones de la agenda) + botón que construya el mensaje de WhatsApp con los datos y redirija a https://wa.me/56930175070. Elimina la sección de agenda separada y el formulario POST original.
+
+Importantes:
+4. Haz el navbar sticky con comportamiento scroll-aware: al superar 80px de scroll, agrega clase scrolled al <nav> que aplique background: #ffffff, box-shadow: 0 1px 8px rgba(0,0,0,0.08) y backdrop-filter: blur(8px) vía JS. El nav parte transparente sobre el hero.
+5. Expande las secciones "El problema" y "La solución" con 4 bullets cada una. Para el problema: dolores concretos de un profesional de salud que intenta abrir su primera clínica en Chile (trámites sanitarios, ubicación errónea, primeros meses sin pacientes, inversión perdida). Para la solución: los 4 beneficios diferenciadores del servicio en formato check-list visual.
+6. Agrega un testimonio real estructurado en la sección de social proof: tarjeta con avatar de iniciales, nombre ficticio creíble (ej. "Dra. Valentina Morales"), especialidad, ciudad y una cita directa con métrica específica ("Abrimos en 74 días y tuve 38 pacientes el primer mes").
+7. Agrega en el footer el nombre legal placeholder: Consultoría SpA · RUT 76.XXX.XXX-X · Santiago, Chile y un link placeholder a política de privacidad.
+Mejoras:
+8. Agrega justo antes del CTA final un contador de urgencia: <p class="urgency-note">Quedan <strong>2 cupos disponibles</strong> para acompañamiento en mayo 2026.</p> con estilo destacado (fondo amber claro, texto amber oscuro, border-radius, padding).
+9. Agrega en el <head> el snippet base del Meta Pixel con ID placeholder XXXXXXXXXXXXXXXXXX y un comentario indicando dónde disparar el evento Lead.
+10. Agrega position: sticky; top: 0; z-index: 100 al nav desde el CSS inline del elemento.
+Restricciones:
+
+Mantén el diseño, paleta de colores y tipografías existentes (Inter + Playfair Display).
+No uses frameworks externos nuevos, solo HTML/CSS/JS vanilla.
+El CSS externo /static/style.css se mantiene referenciado pero agrega los nuevos estilos en un <style> interno al final del <head>.
+El resultado debe ser un único archivo HTML autocontenido y funcional.
+No elimines ninguna sección existente, solo expándelas o modifícalas según lo indicado.
