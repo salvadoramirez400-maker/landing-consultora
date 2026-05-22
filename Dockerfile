@@ -16,4 +16,4 @@ RUN mkdir -p /app/static/uploads
 
 EXPOSE 5001
 
-CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:5001", "--workers", "2", "--access-logfile", "-"]
+CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:5001", "--workers", "1", "--threads", "4", "--access-logfile", "-"]
