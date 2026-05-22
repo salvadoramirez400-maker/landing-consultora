@@ -96,46 +96,32 @@
 
   </div><!-- /page-top -->
 
-  <!-- TRUSTED LOGOS -->
-  <section class="section-logos">
+  <!-- META ADS -->
+  <section class="section-meta-ads" id="experiencia">
     <div class="container">
-      <p class="logos-label">Trusted by Top-tier product companies</p>
-      <div class="logos-row">
-        <!-- Logo 1 -->
-        <div class="logo-item">
-          <svg viewBox="0 0 140 40" xmlns="http://www.w3.org/2000/svg" aria-label="Empresa A">
-            <rect x="2" y="8" width="26" height="24" rx="5"/>
-            <text x="36" y="27" font-size="15" font-family="Fustat, Inter, sans-serif" font-weight="700">ClinicPro</text>
-          </svg>
+      <div class="meta-ads-block reveal">
+        <span class="eyebrow">Experiencia comprobada</span>
+        <div class="meta-ads-stat">
+          <span class="meta-ads-prefix">Más de</span>
+          <span class="meta-ads-number">$150.000.000</span>
+          <span class="meta-ads-suffix">invertidos en Meta Ads</span>
         </div>
-        <!-- Logo 2 -->
-        <div class="logo-item">
-          <svg viewBox="0 0 130 40" xmlns="http://www.w3.org/2000/svg" aria-label="Empresa B">
-            <circle cx="18" cy="20" r="14"/>
-            <text x="38" y="27" font-size="15" font-family="Fustat, Inter, sans-serif" font-weight="700">MedCore</text>
-          </svg>
+        <p>Gestionamos presupuestos reales en Facebook e Instagram Ads para clínicas estéticas. Sabemos qué funciona y qué no.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESULTADOS -->
+  <section class="section-meta-ads section-meta-ads--stacked" id="resultados">
+    <div class="container">
+      <div class="meta-ads-block reveal">
+        <span class="eyebrow">Resultados reales</span>
+        <div class="meta-ads-stat">
+          <span class="meta-ads-prefix">Más de</span>
+          <span class="meta-ads-number">$4.000.000.000</span>
+          <span class="meta-ads-suffix">generados por nuestras consultorías y gestión</span>
         </div>
-        <!-- Logo 3 -->
-        <div class="logo-item">
-          <svg viewBox="0 0 140 40" xmlns="http://www.w3.org/2000/svg" aria-label="Empresa C">
-            <polygon points="18,4 32,36 4,36"/>
-            <text x="40" y="27" font-size="15" font-family="Fustat, Inter, sans-serif" font-weight="700">AestheX</text>
-          </svg>
-        </div>
-        <!-- Logo 4 -->
-        <div class="logo-item">
-          <svg viewBox="0 0 140 40" xmlns="http://www.w3.org/2000/svg" aria-label="Empresa D">
-            <rect x="2" y="6" width="28" height="28" rx="8"/>
-            <text x="38" y="27" font-size="15" font-family="Fustat, Inter, sans-serif" font-weight="700">Salud360</text>
-          </svg>
-        </div>
-        <!-- Logo 5 -->
-        <div class="logo-item">
-          <svg viewBox="0 0 130 40" xmlns="http://www.w3.org/2000/svg" aria-label="Empresa E">
-            <path d="M18 4 L32 20 L18 36 L4 20 Z"/>
-            <text x="40" y="27" font-size="15" font-family="Fustat, Inter, sans-serif" font-weight="700">VitaHub</text>
-          </svg>
-        </div>
+        <p>Cada peso invertido se traduce en facturación real para nuestros clientes. Sabemos escalar clínicas estéticas porque ya lo hicimos.</p>
       </div>
     </div>
   </section>
@@ -314,9 +300,10 @@
       </div>
       <div class="video-scroll reveal">
         {% for video in content.videos["items"] %}
+        {% set vsrc = video.file if video.file.startswith('http') else url_for('static', filename='images/73727364/' + video.file) %}
         <div class="video-item">
           <video controls preload="metadata">
-            <source src="{{ url_for('static', filename='images/73727364/' + video.file) }}" type="video/mp4">
+            <source src="{{ vsrc }}" type="video/mp4">
           </video>
           <div class="video-item-info">
             <h3>{{ video.title }}</h3>
@@ -342,8 +329,9 @@
         </button>
         <div class="gallery-slider" id="gallerySlider">
           {% for image in content.gallery.images %}
+          {% set isrc = image if image.startswith('http') else url_for('static', filename='images/73727364/' + image) %}
           <div class="gallery-slide">
-            <img src="{{ url_for('static', filename='images/73727364/' + image) }}" alt="Imagen {{ loop.index }}" loading="lazy">
+            <img src="{{ isrc }}" alt="Imagen {{ loop.index }}" loading="lazy">
           </div>
           {% endfor %}
         </div>
@@ -352,22 +340,6 @@
         </button>
       </div>
       <div class="slider-dots" id="galleryDots"></div>
-    </div>
-  </section>
-
-  <!-- META ADS -->
-  <section class="section-meta-ads">
-    <div class="container">
-      <div class="meta-ads-block reveal">
-        <div class="meta-ads-icon-wrap">
-          <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
-        </div>
-        <div>
-          <span class="eyebrow">Experiencia comprobada</span>
-          <h2>Más de $150.000.000 invertidos en Meta Ads</h2>
-          <p>Gestionamos presupuestos reales en Facebook e Instagram Ads para clínicas estéticas. Sabemos qué funciona y qué no.</p>
-        </div>
-      </div>
     </div>
   </section>
 
@@ -552,7 +524,6 @@
       </div>
       <div class="footer-bottom">
         <span>&copy; 2026 {{ config.business_name }}. Todos los derechos reservados.</span>
-        <span>{{ content.footer.rut }}</span>
         <a href="/privacidad" class="footer-link">Política de privacidad</a>
       </div>
     </div>
