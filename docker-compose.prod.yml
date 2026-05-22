@@ -1,0 +1,60 @@
+# Overlay de producción: añade Traefik v3 con Let's Encrypt (HTTP-01 challenge)
+# delante del servicio `web`, y oculta los puertos del `web` y la `db` del host
+# (todo el tráfico entra por Traefik en 80/443).
+#
+# Uso en EC2:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# Requisitos antes de levantar:
+#   1. Que el DNS A de consultoriaclinica.cl (y www) apunte a la IP pública de EC2.
+#   2. Que los puertos 80 y 443 estén abiertos en el security group.
+#   3. Variables en .env: ACME_EMAIL, POSTGRES_PASSWORD, FLASK_SECRET_KEY, ADMIN_USERS.
+
+services:
+  traefik:
+    image: traefik:v3.2
+    command:
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      # Redirect global HTTP -> HTTPS
+      - --entrypoints.web.http.redirections.entrypoint.to=websecure
+      - --entrypoints.web.http.redirections.entrypoint.scheme=https
+      - --entrypoints.web.http.redirections.entrypoint.permanent=true
+      # ACME / Let's Encrypt (HTTP-01)
+      - --certificatesresolvers.le.acme.email=${ACME_EMAIL:?set ACME_EMAIL in .env}
+      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.le.acme.httpchallenge=true
+      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
+      # Para pruebas iniciales sin gastar el rate limit de Let's Encrypt prod,
+      # descomentar la siguiente línea y volver a levantar con --force-recreate.
+      # Luego comentarla y borrar el volumen acme_data para emitir certs reales.
+      # - --certificatesresolvers.le.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
+      - --log.level=INFO
+      - --accesslog=true
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - acme_data:/letsencrypt
+    restart: unless-stopped
+
+  web:
+    # En prod no exponemos 5001 al host; el tráfico entra por Traefik.
+    ports: !reset []
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.web.rule=Host(`consultoriaclinica.cl`) || Host(`www.consultoriaclinica.cl`)
+      - traefik.http.routers.web.entrypoints=websecure
+      - traefik.http.routers.web.tls=true
+      - traefik.http.routers.web.tls.certresolver=le
+      - traefik.http.services.web.loadbalancer.server.port=5001
+
+  db:
+    # En prod no exponemos 5432 al host; la base solo es accesible desde la red interna.
+    ports: !reset []
+
+volumes:
+  acme_data:

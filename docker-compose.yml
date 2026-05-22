@@ -1,0 +1,37 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: landing_consultora
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./migrations/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d landing_consultora"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  web:
+    build: .
+    environment:
+      POSTGRES_URL: postgres://app:${POSTGRES_PASSWORD}@db:5432/landing_consultora
+      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:?set FLASK_SECRET_KEY in .env}
+      ADMIN_USERS: ${ADMIN_USERS:?set ADMIN_USERS in .env}
+      PORT: "5001"
+    volumes:
+      - ./static/uploads:/app/static/uploads
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "5001:5001"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
