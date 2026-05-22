@@ -1,5 +1,39 @@
+# Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 .env
 venv/
+.venv/
+env/
+
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+
+# Claude Code / skills
+.agents/
+skills-lock.json
+.claude/
+
+# Archivos de notas / borradores
+a.txt
+hola.txt
+x.txt
+z.txt
+
+# Screenshots y archivos sueltos en la raíz
+/*.png
+*.jpg.bak
+
+# Logs
+*.log
+
+# Editor
+.vscode/
+.idea/
+
+# Producción / deploy
+*.sock

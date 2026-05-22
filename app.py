@@ -24,7 +24,7 @@ site_config = {
 # Contenido del sitio
 site_content = {
     "hero": {
-        "badge": "Consultoría especializada en clínicas estéticas",
+        "badge": "Valorado 4.9/5 por más de 100 clientes",
         "title": "Creamos tu clínica rentable en Chile",
         "subtitle": "Te ayudamos desde la idea hasta tener pacientes y facturación real.",
         "button_primary": "Agendar asesoría",
@@ -84,7 +84,8 @@ site_content = {
             "IMG-20260506-WA0033.jpg",
             "IMG-20260506-WA0024.jpg",
             "IMG-20260506-WA0063.jpg",
-            "IMG-20260506-WA0077.jpg"
+            "IMG-20260506-WA0077.jpg",
+            "IMG-20260506-WA0021.jpg"
         ]
     },
     "videos": {
