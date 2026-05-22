@@ -1,21 +1,17 @@
-"""Wrapper sobre Vercel Blob.
+"""Almacenamiento local de archivos subidos.
 
-El SDK lee BLOB_READ_WRITE_TOKEN del entorno automáticamente.
+Guarda en `static/uploads/` y devuelve una URL relativa servida por Flask.
 """
 import os
 import uuid
+from pathlib import Path
 
-import vercel_blob
+UPLOAD_DIR = Path(__file__).parent / "static" / "uploads"
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def upload(filename: str, data: bytes) -> str:
-    """Sube `data` a Vercel Blob con un nombre único derivado de `filename`.
-
-    Devuelve la URL pública.
-    """
-    if not os.environ.get("BLOB_READ_WRITE_TOKEN"):
-        raise RuntimeError("BLOB_READ_WRITE_TOKEN no está configurado")
     safe = os.path.basename(filename).replace(" ", "_")
     key = f"{uuid.uuid4().hex}-{safe}"
-    result = vercel_blob.put(key, data, {"access": "public"})
-    return result["url"]
+    (UPLOAD_DIR / key).write_bytes(data)
+    return f"/static/uploads/{key}"

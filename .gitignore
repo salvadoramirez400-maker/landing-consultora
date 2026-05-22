@@ -37,5 +37,7 @@ z.txt
 
 # Producción / deploy
 *.sock
-.vercel/
 .env.local
+
+# Uploads locales (no versionar)
+static/uploads/
