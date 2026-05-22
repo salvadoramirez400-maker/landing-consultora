@@ -77,8 +77,8 @@
                                 <td>{{ lead.fecha }}</td>
                                 <td>
                                     <div class="actions">
-                                        <a href="/admin/edit/{{ loop.index0 }}" class="btn btn-edit">Editar</a>
-                                        <a href="/admin/delete/{{ loop.index0 }}" class="btn btn-delete" onclick="return confirm('¿Eliminar este lead?')">Eliminar</a>
+                                        <a href="/admin/edit/{{ lead.id }}" class="btn btn-edit">Editar</a>
+                                        <a href="/admin/delete/{{ lead.id }}" class="btn btn-delete" onclick="return confirm('¿Eliminar este lead?')">Eliminar</a>
                                     </div>
                                 </td>
                             </tr>

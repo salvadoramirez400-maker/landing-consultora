@@ -37,3 +37,5 @@ z.txt
 
 # Producción / deploy
 *.sock
+.vercel/
+.env.local
