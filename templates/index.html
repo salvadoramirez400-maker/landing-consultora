@@ -1,14 +1,7 @@
 {% macro picture(filename, alt, sizes='100vw', loading='lazy') -%}
   {%- set srcset = filename|webp_srcset -%}
-  {%- set jpeg_src = url_for('static', filename=filename) -%}
-  {%- if srcset -%}
-  <picture>
-    <source type="image/webp" srcset="{{ srcset }}" sizes="{{ sizes }}">
-    <img src="{{ jpeg_src }}" alt="{{ alt }}" loading="{{ loading }}" decoding="async">
-  </picture>
-  {%- else -%}
-  <img src="{{ jpeg_src }}" alt="{{ alt }}" loading="{{ loading }}" decoding="async">
-  {%- endif -%}
+  {%- set src = filename|webp_src or url_for('static', filename=filename) -%}
+  <img src="{{ src }}"{% if srcset %} srcset="{{ srcset }}" sizes="{{ sizes }}"{% endif %} alt="{{ alt }}" loading="{{ loading }}" decoding="async">
 {%- endmacro %}
 <!DOCTYPE html>
 <html lang="es">

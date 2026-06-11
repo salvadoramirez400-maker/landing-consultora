@@ -28,23 +28,32 @@ def video_poster(filename: str) -> str:
     return ""
 
 
+def _webp_variants(filename: str) -> list[tuple[int, str]]:
+    """Devuelve (ancho, ruta-relativa) para cada variante -<w>.webp existente."""
+    if not filename or filename.startswith(("http://", "https://")):
+        return []
+    base = _STATIC_DIR / filename
+    out = []
+    for w in _WEBP_WIDTHS:
+        variant = base.with_name(f"{base.stem}-{w}.webp")
+        if variant.is_file():
+            out.append((w, str(variant.relative_to(_STATIC_DIR))))
+    return out
+
+
 @app.template_filter("webp_srcset")
 def webp_srcset(filename: str) -> str:
-    """Devuelve un srcset con las variantes -<w>.webp que existen para `filename`.
+    """srcset con las variantes -<w>.webp que existen para `filename`."""
+    return ", ".join(f"{url_for('static', filename=p)} {w}w" for w, p in _webp_variants(filename))
 
-    `filename` es relativo a /static (e.g. "images/foo.jpg"). Si no existe ninguna
-    variante webp, devuelve string vacío y el template debe caer al <img src>.
-    """
-    if not filename or filename.startswith(("http://", "https://")):
+
+@app.template_filter("webp_src")
+def webp_src(filename: str) -> str:
+    """URL de la variante WebP más grande para usar como `<img src>` fallback."""
+    variants = _webp_variants(filename)
+    if not variants:
         return ""
-    base = _STATIC_DIR / filename
-    stem = base.stem
-    parts = []
-    for w in _WEBP_WIDTHS:
-        variant = base.with_name(f"{stem}-{w}.webp")
-        if variant.is_file():
-            parts.append(f"{url_for('static', filename=str(variant.relative_to(_STATIC_DIR)))} {w}w")
-    return ", ".join(parts)
+    return url_for("static", filename=variants[-1][1])
 
 
 def _load_admins() -> dict[str, str]:
