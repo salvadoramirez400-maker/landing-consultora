@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 
@@ -7,6 +8,28 @@ import blob
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-key-change-in-production")
+
+_STATIC_DIR = Path(app.static_folder)
+_WEBP_WIDTHS = (400, 800, 1200)
+
+
+@app.template_filter("webp_srcset")
+def webp_srcset(filename: str) -> str:
+    """Devuelve un srcset con las variantes -<w>.webp que existen para `filename`.
+
+    `filename` es relativo a /static (e.g. "images/foo.jpg"). Si no existe ninguna
+    variante webp, devuelve string vacío y el template debe caer al <img src>.
+    """
+    if not filename or filename.startswith(("http://", "https://")):
+        return ""
+    base = _STATIC_DIR / filename
+    stem = base.stem
+    parts = []
+    for w in _WEBP_WIDTHS:
+        variant = base.with_name(f"{stem}-{w}.webp")
+        if variant.is_file():
+            parts.append(f"{url_for('static', filename=str(variant.relative_to(_STATIC_DIR)))} {w}w")
+    return ", ".join(parts)
 
 
 def _load_admins() -> dict[str, str]:

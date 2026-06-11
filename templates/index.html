@@ -1,3 +1,15 @@
+{% macro picture(filename, alt, sizes='100vw', loading='lazy') -%}
+  {%- set srcset = filename|webp_srcset -%}
+  {%- set jpeg_src = url_for('static', filename=filename) -%}
+  {%- if srcset -%}
+  <picture>
+    <source type="image/webp" srcset="{{ srcset }}" sizes="{{ sizes }}">
+    <img src="{{ jpeg_src }}" alt="{{ alt }}" loading="{{ loading }}" decoding="async">
+  </picture>
+  {%- else -%}
+  <img src="{{ jpeg_src }}" alt="{{ alt }}" loading="{{ loading }}" decoding="async">
+  {%- endif -%}
+{%- endmacro %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -215,52 +227,40 @@
       </div>
 
       <!-- WhatsApp photo gallery — clinic spaces -->
+      {% set clinic_sizes = '(max-width: 768px) 50vw, 25vw' %}
+      {% set clinic_strip_1 = [
+        'WhatsApp Image 2026-05-20 at 11.56.30.jpeg',
+        'WhatsApp_Image_2026-05-20.jpeg',
+        'WhatsApp Image 2026-05-20 at 11.56.32.jpeg',
+        'WhatsApp Image 2026-05-20 at 11.56.32 (1).jpeg',
+        'WhatsApp Image 2026-05-20 at 11.56.32 (2).jpeg',
+        'WhatsApp Image 2026-05-20 at 11.56.32 (3).jpeg',
+        'WhatsApp Image 2026-05-20 at 11.56.32 (4).jpeg',
+        'WhatsApp Image 2026-05-20 at 11.56.33.jpeg',
+      ] %}
+      {% set clinic_strip_2 = [
+        'WhatsApp Image 2026-05-20 at 11.56.33 (1).jpeg',
+        'WhatsApp Image 2026-05-20 at 11.56.33 (2).jpeg',
+        'WhatsApp Image 2026-05-20 at 11.56.33 (3).jpeg',
+        'WhatsApp Image 2026-05-20 at 11.56.33 (4).jpeg',
+      ] %}
+      {% set clinic_strip_3 = ['WhatsApp Image 2026-05-20 at 11.56.33 (5).jpeg'] %}
       <div class="clinic-photos-section reveal">
         <p class="clinic-photos-label">Nuestros proyectos</p>
         <div class="clinic-photos-strip">
-          <div class="clinic-photo-item">
-            <img src="{{ url_for('static', filename='images/WhatsApp Image 2026-05-20 at 11.56.30.jpeg') }}" alt="Clínica proyecto 1" loading="lazy">
-          </div>
-          <div class="clinic-photo-item">
-            <img src="{{ url_for('static', filename='images/WhatsApp_Image_2026-05-20.jpeg') }}" alt="Clínica proyecto 2" loading="lazy">
-          </div>
-          <div class="clinic-photo-item">
-            <img src="{{ url_for('static', filename='images/WhatsApp Image 2026-05-20 at 11.56.32.jpeg') }}" alt="Clínica proyecto 3" loading="lazy">
-          </div>
-          <div class="clinic-photo-item">
-            <img src="{{ url_for('static', filename='images/WhatsApp Image 2026-05-20 at 11.56.32 (1).jpeg') }}" alt="Clínica proyecto 4" loading="lazy">
-          </div>
-          <div class="clinic-photo-item">
-            <img src="{{ url_for('static', filename='images/WhatsApp Image 2026-05-20 at 11.56.32 (2).jpeg') }}" alt="Clínica proyecto 5" loading="lazy">
-          </div>
-          <div class="clinic-photo-item">
-            <img src="{{ url_for('static', filename='images/WhatsApp Image 2026-05-20 at 11.56.32 (3).jpeg') }}" alt="Clínica proyecto 6" loading="lazy">
-          </div>
-          <div class="clinic-photo-item">
-            <img src="{{ url_for('static', filename='images/WhatsApp Image 2026-05-20 at 11.56.32 (4).jpeg') }}" alt="Clínica proyecto 7" loading="lazy">
-          </div>
-          <div class="clinic-photo-item">
-            <img src="{{ url_for('static', filename='images/WhatsApp Image 2026-05-20 at 11.56.33.jpeg') }}" alt="Clínica proyecto 8" loading="lazy">
-          </div>
+          {% for f in clinic_strip_1 %}
+          <div class="clinic-photo-item">{{ picture('images/' + f, 'Clínica proyecto ' ~ loop.index, clinic_sizes) }}</div>
+          {% endfor %}
         </div>
         <div class="clinic-photos-strip">
-          <div class="clinic-photo-item">
-            <img src="{{ url_for('static', filename='images/WhatsApp Image 2026-05-20 at 11.56.33 (1).jpeg') }}" alt="Clínica proyecto 9" loading="lazy">
-          </div>
-          <div class="clinic-photo-item">
-            <img src="{{ url_for('static', filename='images/WhatsApp Image 2026-05-20 at 11.56.33 (2).jpeg') }}" alt="Clínica proyecto 10" loading="lazy">
-          </div>
-          <div class="clinic-photo-item">
-            <img src="{{ url_for('static', filename='images/WhatsApp Image 2026-05-20 at 11.56.33 (3).jpeg') }}" alt="Clínica proyecto 11" loading="lazy">
-          </div>
-          <div class="clinic-photo-item">
-            <img src="{{ url_for('static', filename='images/WhatsApp Image 2026-05-20 at 11.56.33 (4).jpeg') }}" alt="Clínica proyecto 12" loading="lazy">
-          </div>
+          {% for f in clinic_strip_2 %}
+          <div class="clinic-photo-item">{{ picture('images/' + f, 'Clínica proyecto ' ~ (loop.index + 8), clinic_sizes) }}</div>
+          {% endfor %}
         </div>
         <div class="clinic-photos-strip-2">
-          <div class="clinic-photo-item">
-            <img src="{{ url_for('static', filename='images/WhatsApp Image 2026-05-20 at 11.56.33 (5).jpeg') }}" alt="Clínica proyecto 13" loading="lazy">
-          </div>
+          {% for f in clinic_strip_3 %}
+          <div class="clinic-photo-item">{{ picture('images/' + f, 'Clínica proyecto 13', clinic_sizes) }}</div>
+          {% endfor %}
         </div>
       </div>
 
@@ -329,9 +329,12 @@
         </button>
         <div class="gallery-slider" id="gallerySlider">
           {% for image in content.gallery.images %}
-          {% set isrc = image if image.startswith('http') else url_for('static', filename='images/73727364/' + image) %}
           <div class="gallery-slide">
-            <img src="{{ isrc }}" alt="Imagen {{ loop.index }}" loading="lazy">
+            {% if image.startswith('http') %}
+              <img src="{{ image }}" alt="Imagen {{ loop.index }}" loading="lazy" decoding="async">
+            {% else %}
+              {{ picture('images/73727364/' + image, 'Imagen ' ~ loop.index, '(max-width: 768px) 100vw, 800px') }}
+            {% endif %}
           </div>
           {% endfor %}
         </div>
