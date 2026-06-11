@@ -46,10 +46,23 @@ services:
     ports: !reset []
     labels:
       - traefik.enable=true
+      # Middlewares: compresión global + cache de 1 año para /static.
+      - traefik.http.middlewares.compress.compress=true
+      - traefik.http.middlewares.static-cache.headers.customResponseHeaders.Cache-Control=public, max-age=31536000, immutable
+      # Router principal: todo el tráfico HTML/API, con compresión.
       - traefik.http.routers.web.rule=Host(`consultoriaclinica.cl`) || Host(`www.consultoriaclinica.cl`)
       - traefik.http.routers.web.entrypoints=websecure
       - traefik.http.routers.web.tls=true
       - traefik.http.routers.web.tls.certresolver=le
+      - traefik.http.routers.web.middlewares=compress@docker
+      # Router /static: misma app, pero suma cache-control immutable. Prioridad
+      # mayor para que matchee antes que el router web.
+      - traefik.http.routers.static.rule=(Host(`consultoriaclinica.cl`) || Host(`www.consultoriaclinica.cl`)) && PathPrefix(`/static`)
+      - traefik.http.routers.static.entrypoints=websecure
+      - traefik.http.routers.static.tls=true
+      - traefik.http.routers.static.tls.certresolver=le
+      - traefik.http.routers.static.priority=100
+      - traefik.http.routers.static.middlewares=compress@docker,static-cache@docker
       - traefik.http.services.web.loadbalancer.server.port=5001
 
   db:
