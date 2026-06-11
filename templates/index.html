@@ -21,11 +21,17 @@
   <meta property="og:description" content="{{ content.hero.subtitle }}">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="es_CL">
+  <!-- Meta Pixel: pegar el ID real en FB_PIXEL_ID y descomentar el bloque para activar.
+       Mantener comentado evita requests rotos a connect.facebook.net y bloqueo del head.
   <script>
-    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init','XXXXXXXXXXXXXXXXXX');fbq('track','PageView');
+    (function(){
+      var FB_PIXEL_ID = '';
+      if (!FB_PIXEL_ID) return;
+      !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', FB_PIXEL_ID); fbq('track','PageView');
+    })();
   </script>
-  <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=XXXXXXXXXXXXXXXXXX&ev=PageView&noscript=1"/></noscript>
+  -->
   <!-- Disparar evento Lead al enviar formulario: fbq('track','Lead'); -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
