@@ -307,8 +307,9 @@
       <div class="video-scroll reveal">
         {% for video in content.videos["items"] %}
         {% set vsrc = video.file if video.file.startswith('http') else url_for('static', filename='images/73727364/' + video.file) %}
+        {% set vposter = ('images/73727364/' + video.file)|video_poster if not video.file.startswith('http') else '' %}
         <div class="video-item">
-          <video controls preload="metadata">
+          <video controls preload="none"{% if vposter %} poster="{{ vposter }}"{% endif %}>
             <source src="{{ vsrc }}" type="video/mp4">
           </video>
           <div class="video-item-info">

@@ -13,6 +13,21 @@ _STATIC_DIR = Path(app.static_folder)
 _WEBP_WIDTHS = (400, 800, 1200)
 
 
+@app.template_filter("video_poster")
+def video_poster(filename: str) -> str:
+    """Devuelve la URL del poster -<name>-poster.webp si existe, o "".
+
+    `filename` es relativo a /static (e.g. "images/73727364/foo.mp4").
+    """
+    if not filename or filename.startswith(("http://", "https://")):
+        return ""
+    base = _STATIC_DIR / filename
+    poster = base.with_name(f"{base.stem}-poster.webp")
+    if poster.is_file():
+        return url_for("static", filename=str(poster.relative_to(_STATIC_DIR)))
+    return ""
+
+
 @app.template_filter("webp_srcset")
 def webp_srcset(filename: str) -> str:
     """Devuelve un srcset con las variantes -<w>.webp que existen para `filename`.
