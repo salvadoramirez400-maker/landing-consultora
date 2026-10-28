@@ -1,5 +1,8 @@
+import calendar
 import os
+from datetime import date, datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 
@@ -79,6 +82,22 @@ def _authenticate(username: str, password: str) -> bool:
 @app.route("/")
 def index():
     return render_template("index.html", config=db.load_config(), content=db.load_content())
+
+
+_MESES = ("enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto",
+          "septiembre", "octubre", "noviembre", "diciembre")
+
+
+def _oferta_hasta(hoy: date | None = None) -> str:
+    """Fin de la oferta de marcas: el 15 o el último día del mes, lo que venga primero (se renueva sola)."""
+    hoy = hoy or datetime.now(ZoneInfo("America/Santiago")).date()
+    dia = 15 if hoy.day <= 15 else calendar.monthrange(hoy.year, hoy.month)[1]
+    return f"{dia} de {_MESES[hoy.month - 1]}"
+
+
+@app.route("/marcas")
+def marcas():
+    return render_template("marcas.html", config=db.load_config(), oferta_hasta=_oferta_hasta())
 
 
 @app.route("/privacidad")
