@@ -100,3 +100,31 @@ def update_lead(lead_id: int, nombre: str, telefono: str, email: str) -> None:
 def delete_lead(lead_id: int) -> None:
     with get_conn() as conn, conn.cursor() as cur:
         cur.execute("DELETE FROM leads WHERE id = %s", (lead_id,))
+
+
+# --- Marcas: datos del titular (formulario /marcas/datos) ---
+
+_TITULAR_CAMPOS = ("marca", "titular_tipo", "nombre", "rut", "razon_social", "rut_empresa", "cargo",
+                   "domicilio", "comuna", "correo", "telefono", "productos", "autoriza")
+
+
+def insert_titular(datos: dict) -> int:
+    columnas = ", ".join(_TITULAR_CAMPOS)
+    huecos = ", ".join(["%s"] * len(_TITULAR_CAMPOS))
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(f"INSERT INTO marcas_titulares ({columnas}) VALUES ({huecos}) RETURNING id",
+                    tuple(datos[c] for c in _TITULAR_CAMPOS))
+        return cur.fetchone()["id"]
+
+
+def list_titulares(solo_pendientes: bool = False) -> list[dict]:
+    where = "WHERE NOT procesado" if solo_pendientes else ""
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(f"SELECT *, to_char(fecha AT TIME ZONE 'America/Santiago', 'YYYY-MM-DD HH24:MI') AS fecha_txt "
+                    f"FROM marcas_titulares {where} ORDER BY fecha DESC")
+        return cur.fetchall()
+
+
+def marcar_titular_procesado(titular_id: int) -> None:
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute("UPDATE marcas_titulares SET procesado = TRUE WHERE id = %s", (titular_id,))

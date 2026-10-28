@@ -91,6 +91,33 @@
                 </div>
             {% endif %}
         </div>
+
+        <h2 style="margin:40px 0 12px">Marcas · datos del titular</h2>
+        <div class="table-container">
+            {% if titulares %}
+                <table>
+                    <thead>
+                        <tr><th>Fecha</th><th>Marca</th><th>Titular</th><th>RUT</th><th>Empresa</th><th>Dirección</th><th>Contacto</th><th>Estado</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for t in titulares %}
+                            <tr>
+                                <td>{{ t.fecha_txt }}</td>
+                                <td><strong>{{ t.marca }}</strong></td>
+                                <td>{{ t.nombre }}<br><small>{{ 'Empresa' if t.titular_tipo == 'empresa' else 'Persona' }}{% if t.cargo %} · {{ t.cargo }}{% endif %}</small></td>
+                                <td>{{ t.rut }}</td>
+                                <td>{% if t.titular_tipo == 'empresa' %}{{ t.razon_social }}<br><small>{{ t.rut_empresa }}</small>{% else %}—{% endif %}</td>
+                                <td>{{ t.domicilio }}, {{ t.comuna }}</td>
+                                <td>{{ t.correo }}<br>{{ t.telefono }}</td>
+                                <td>{{ 'Presentada' if t.procesado else 'Pendiente' }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="empty"><p>Todavía no llegan datos de titulares</p></div>
+            {% endif %}
+        </div>
     </div>
 </body>
 </html>

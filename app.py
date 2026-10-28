@@ -100,6 +100,79 @@ def marcas():
     return render_template("marcas.html", config=db.load_config(), oferta_hasta=_oferta_hasta())
 
 
+def _rut_valido(rut: str) -> bool:
+    """Valida el dígito verificador de un RUT chileno (acepta puntos y guion)."""
+    limpio = rut.replace(".", "").replace("-", "").replace(" ", "").upper()
+    if len(limpio) < 2 or not limpio[:-1].isdigit():
+        return False
+    cuerpo, dv = limpio[:-1], limpio[-1]
+    suma, factor = 0, 2
+    for d in reversed(cuerpo):
+        suma += int(d) * factor
+        factor = 2 if factor == 7 else factor + 1
+    esperado = 11 - suma % 11
+    return dv == {11: "0", 10: "K"}.get(esperado, str(esperado))
+
+
+@app.route("/marcas/datos", methods=["GET", "POST"])
+def marcas_datos():
+    """Datos del titular para presentar la marca en INAPI. Los recibe Salvador en /admin."""
+    if request.method == "GET":
+        return render_template("marcas_datos.html", config=db.load_config(), errores=[], datos={})
+    f = {k: request.form.get(k, "").strip() for k in (
+        "marca", "titular_tipo", "nombre", "rut", "razon_social", "rut_empresa", "cargo",
+        "domicilio", "comuna", "correo", "telefono", "productos")}
+    f["autoriza"] = request.form.get("autoriza") == "si"
+    errores = []
+    for campo, texto in (("marca", "el nombre de la marca"), ("nombre", "tu nombre completo"), ("rut", "tu RUT"),
+                         ("domicilio", "tu dirección"), ("comuna", "la comuna"), ("correo", "tu correo"),
+                         ("telefono", "tu teléfono")):
+        if not f[campo]:
+            errores.append(f"Falta {texto}.")
+    if f["titular_tipo"] not in ("persona", "empresa"):
+        errores.append("Indica si la marca queda a nombre de una persona o de una empresa.")
+    if f["rut"] and not _rut_valido(f["rut"]):
+        errores.append("El RUT no es válido: revisa el dígito verificador.")
+    if f["titular_tipo"] == "empresa":
+        if not f["razon_social"] or not f["rut_empresa"]:
+            errores.append("Para una empresa necesitamos la razón social y el RUT de la empresa.")
+        elif not _rut_valido(f["rut_empresa"]):
+            errores.append("El RUT de la empresa no es válido: revisa el dígito verificador.")
+    if not f["autoriza"]:
+        errores.append("Para presentar tu marca necesitamos tu autorización (la casilla del final).")
+    if errores:
+        return render_template("marcas_datos.html", config=db.load_config(), errores=errores, datos=f), 400
+    db.insert_titular(f)
+    return render_template("marcas_datos.html", config=db.load_config(), errores=[], datos={}, enviado=True)
+
+
+def _token_marcas_ok() -> bool:
+    esperado = os.environ.get("MARCAS_API_TOKEN", "")
+    recibido = request.headers.get("Authorization", "").removeprefix("Bearer ").strip()
+    return bool(esperado) and recibido == esperado
+
+
+@app.route("/api/marcas/titulares")
+def api_marcas_titulares():
+    """Pendientes para Claude, SIN el RUT: ese lo ve y lo escribe Salvador desde /admin."""
+    if not _token_marcas_ok():
+        return jsonify({"ok": False}), 401
+    filas = []
+    for t in db.list_titulares(solo_pendientes=True):
+        filas.append({k: t[k] for k in ("id", "fecha_txt", "marca", "titular_tipo", "nombre", "razon_social", "cargo",
+                                        "domicilio", "comuna", "correo", "telefono", "productos", "autoriza")}
+                     | {"rut_registrado": bool(t["rut"]), "rut_empresa_registrado": bool(t["rut_empresa"])})
+    return jsonify({"ok": True, "titulares": filas})
+
+
+@app.route("/api/marcas/titulares/<int:titular_id>/procesado", methods=["POST"])
+def api_marcas_titular_procesado(titular_id):
+    if not _token_marcas_ok():
+        return jsonify({"ok": False}), 401
+    db.marcar_titular_procesado(titular_id)
+    return jsonify({"ok": True})
+
+
 @app.route("/privacidad")
 def privacidad():
     return render_template("privacy.html", config=db.load_config(), content=db.load_content())
@@ -144,7 +217,7 @@ def logout():
 def admin():
     if not session.get("logged_in"):
         return redirect(url_for("login"))
-    return render_template("admin.html", leads=db.list_leads(), config=db.load_config())
+    return render_template("admin.html", leads=db.list_leads(), titulares=db.list_titulares(), config=db.load_config())
 
 
 @app.route("/admin/delete/<int:lead_id>")

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Datos para registrar tu marca · {{ config.business_name }}</title>
+  <link rel="preload" href="{{ url_for('static', filename='fonts/Fustat-800-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{{ url_for('static', filename='fonts/fonts.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    /* Formulario de datos del titular: sin píxel de Meta (lleva RUT y dirección) */
+    body { background: var(--off-white); }
+    .md-wrap { max-width: 640px; margin: 0 auto; padding: 40px max(16px, env(safe-area-inset-left, 0px)) 64px max(16px, env(safe-area-inset-right, 0px)); }
+    .md-marca { font-family: var(--font-display); font-weight: 800; color: var(--navy); font-size: 1.05rem; letter-spacing: .02em; margin-bottom: 18px; }
+    .md-wrap h1 { font-family: var(--font-display); font-size: clamp(1.6rem, 4vw, 2.1rem); line-height: 1.15; color: var(--near-black); margin: 0 0 8px; text-wrap: balance; }
+    .md-intro { color: var(--gray-700); margin: 0 0 24px; line-height: 1.55; }
+    .md-form { background: var(--white); border: 1px solid var(--gray-100); border-radius: var(--r-md); padding: 24px; display: grid; gap: 16px; }
+    .md-form fieldset { border: 0; padding: 0; margin: 0; display: grid; gap: 14px; }
+    .md-form legend { font-weight: 700; color: var(--near-black); margin-bottom: 4px; font-size: .95rem; }
+    .md-campo { display: grid; gap: 6px; }
+    .md-campo label { font-size: .9rem; color: var(--gray-700); }
+    .md-campo input, .md-campo textarea { font: inherit; padding: 11px 12px; border: 1px solid var(--gray-300); border-radius: var(--r-sm); background: var(--white); color: var(--near-black); width: 100%; }
+    .md-campo input:focus, .md-campo textarea:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: var(--accent); }
+    .md-dos { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .md-opciones { display: flex; flex-wrap: wrap; gap: 10px; }
+    .md-opciones label { display: flex; align-items: center; gap: 8px; padding: 10px 14px; border: 1px solid var(--gray-300); border-radius: var(--r-sm); cursor: pointer; }
+    .md-empresa[hidden] { display: none; }
+    .md-autoriza { display: flex; gap: 10px; align-items: flex-start; font-size: .9rem; color: var(--gray-700); line-height: 1.5; }
+    .md-autoriza input { margin-top: 4px; width: 18px; height: 18px; flex: none; }
+    .md-errores { background: #fdecea; color: #8a1f17; border-radius: var(--r-sm); padding: 12px 16px; margin: 0 0 16px; }
+    .md-errores ul { margin: 6px 0 0 18px; padding: 0; }
+    .md-ok { background: var(--white); border: 1px solid var(--gray-100); border-radius: var(--r-md); padding: 28px 24px; display: grid; gap: 10px; }
+    .md-ok h2 { margin: 0; font-family: var(--font-display); color: var(--near-black); }
+    .md-nota { font-size: .82rem; color: var(--gray-500); line-height: 1.5; }
+    @media (max-width: 520px) { .md-dos { grid-template-columns: 1fr; } .md-form { padding: 18px; } }
+  </style>
+</head>
+<body>
+  <main class="md-wrap">
+    <div class="md-marca">CONSULTORÍA CLÍNICA CHILE · Registro de marcas</div>
+    {% if enviado %}
+      <div class="md-ok">
+        <h2>Listo, recibimos tus datos</h2>
+        <p>Con esto preparamos tu solicitud y el poder simple para que lo firmes. Te lo enviamos por WhatsApp. Si nos llega todo antes de las 15:00 de un día hábil, presentamos tu marca en INAPI ese mismo día.</p>
+        <p class="md-nota">¿Dudas? Escríbenos al WhatsApp +56 9 3017 5070.</p>
+      </div>
+    {% else %}
+      <h1>Datos para registrar tu marca en INAPI</h1>
+      <p class="md-intro">Son los datos de quien quedará como dueño de la marca. Los usamos solo para presentar tu solicitud y el poder simple que nos permite tramitarla por ti.</p>
+      {% if errores %}
+        <div class="md-errores" role="alert"><strong>Revisa estos datos:</strong><ul>{% for e in errores %}<li>{{ e }}</li>{% endfor %}</ul></div>
+      {% endif %}
+      <form class="md-form" method="post" action="/marcas/datos" novalidate>
+        <div class="md-campo">
+          <label for="marca">Nombre de la marca, tal como la quieres registrar</label>
+          <input id="marca" name="marca" value="{{ datos.marca or '' }}" required maxlength="120">
+        </div>
+        <fieldset>
+          <legend>¿A nombre de quién queda la marca?</legend>
+          <div class="md-opciones">
+            <label><input type="radio" name="titular_tipo" value="persona" {% if datos.titular_tipo != 'empresa' %}checked{% endif %}> De una persona</label>
+            <label><input type="radio" name="titular_tipo" value="empresa" {% if datos.titular_tipo == 'empresa' %}checked{% endif %}> De una empresa</label>
+          </div>
+        </fieldset>
+        <div class="md-dos">
+          <div class="md-campo"><label for="nombre">Tu nombre completo</label><input id="nombre" name="nombre" value="{{ datos.nombre or '' }}" required autocomplete="name"></div>
+          <div class="md-campo"><label for="rut">Tu RUT</label><input id="rut" name="rut" value="{{ datos.rut or '' }}" required placeholder="12.345.678-9" inputmode="text"></div>
+        </div>
+        <div class="md-empresa" id="bloque-empresa" {% if datos.titular_tipo != 'empresa' %}hidden{% endif %}>
+          <div class="md-dos">
+            <div class="md-campo"><label for="razon_social">Razón social</label><input id="razon_social" name="razon_social" value="{{ datos.razon_social or '' }}" autocomplete="organization"></div>
+            <div class="md-campo"><label for="rut_empresa">RUT de la empresa</label><input id="rut_empresa" name="rut_empresa" value="{{ datos.rut_empresa or '' }}" placeholder="76.123.456-7"></div>
+          </div>
+          <div class="md-campo" style="margin-top:14px"><label for="cargo">Tu cargo en la empresa</label><input id="cargo" name="cargo" value="{{ datos.cargo or '' }}" placeholder="Representante legal"></div>
+        </div>
+        <div class="md-dos">
+          <div class="md-campo"><label for="domicilio">Dirección</label><input id="domicilio" name="domicilio" value="{{ datos.domicilio or '' }}" required autocomplete="street-address"></div>
+          <div class="md-campo"><label for="comuna">Comuna</label><input id="comuna" name="comuna" value="{{ datos.comuna or '' }}" required></div>
+        </div>
+        <div class="md-dos">
+          <div class="md-campo"><label for="correo">Correo</label><input id="correo" name="correo" type="email" value="{{ datos.correo or '' }}" required autocomplete="email"></div>
+          <div class="md-campo"><label for="telefono">Teléfono (WhatsApp)</label><input id="telefono" name="telefono" type="tel" value="{{ datos.telefono or '' }}" required autocomplete="tel" placeholder="+56 9 1234 5678"></div>
+        </div>
+        <div class="md-campo">
+          <label for="productos">Qué vendes o atiendes con la marca (si no lo conversamos antes)</label>
+          <textarea id="productos" name="productos" rows="2">{{ datos.productos or '' }}</textarea>
+        </div>
+        <label class="md-autoriza">
+          <input type="checkbox" name="autoriza" value="si" {% if datos.autoriza %}checked{% endif %}>
+          <span>Autorizo a Salvador Ramírez, de Consultoría Clínica Chile, a presentar y tramitar en INAPI el registro de esta marca a mi nombre o al de la empresa indicada, y acepto que estos datos se usen solo para ese trámite (<a href="/privacidad">política de privacidad</a>).</span>
+        </label>
+        <button type="submit" class="btn btn-primary">Enviar mis datos</button>
+        <p class="md-nota">El poder simple te lo enviamos por WhatsApp para que lo firmes. No se necesita notario (art. 15 de la Ley 19.039).</p>
+      </form>
+    {% endif %}
+  </main>
+  <script>
+    // Muestra los campos de empresa solo si la marca queda a nombre de una empresa
+    document.querySelectorAll('input[name="titular_tipo"]').forEach(function (r) {
+      r.addEventListener('change', function () {
+        document.getElementById('bloque-empresa').hidden = document.querySelector('input[name="titular_tipo"]:checked').value !== 'empresa';
+      });
+    });
+  </script>
+</body>
+</html>
