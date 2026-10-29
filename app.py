@@ -217,7 +217,12 @@ def logout():
 def admin():
     if not session.get("logged_in"):
         return redirect(url_for("login"))
-    return render_template("admin.html", leads=db.list_leads(), titulares=db.list_titulares(), config=db.load_config())
+    try:
+        titulares = db.list_titulares()
+    except Exception:  # sin la migración 002 no existe marcas_titulares: /admin igual abre con los leads
+        app.logger.warning("marcas_titulares no existe: falta correr migrations/002_marcas_titulares.sql")
+        titulares = []
+    return render_template("admin.html", leads=db.list_leads(), titulares=titulares, config=db.load_config())
 
 
 @app.route("/admin/delete/<int:lead_id>")
