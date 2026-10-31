@@ -82,10 +82,11 @@
     <section class="hero" id="inicio">
       <!-- Left: Content -->
       <div class="hero-content">
+        {% if content.hero.badge %}
         <span class="hero-badge">
-          <span class="stars">★★★★★</span>
           {{ content.hero.badge }}
         </span>
+        {% endif %}
         <h1 class="hero-title">{{ content.hero.title }}</h1>
         <p class="hero-sub">{{ content.hero.subtitle }}</p>
         <div class="hero-trust-line">
@@ -106,9 +107,6 @@
 
       <!-- Right: Glassy Orb video -->
       <div class="hero-orb">
-        <video autoplay loop muted playsinline>
-          <source src="https://future.co/images/homepage/glassy-orb/orb-purple.webm" type="video/webm">
-        </video>
       </div>
     </section>
 
@@ -129,20 +127,6 @@
     </div>
   </section>
 
-  <!-- RESULTADOS -->
-  <section class="section-meta-ads section-meta-ads--stacked" id="resultados">
-    <div class="container">
-      <div class="meta-ads-block reveal">
-        <span class="eyebrow">Resultados reales</span>
-        <div class="meta-ads-stat">
-          <span class="meta-ads-prefix">Más de</span>
-          <span class="meta-ads-number">$4.000.000.000</span>
-          <span class="meta-ads-suffix">generados por nuestras consultorías y gestión</span>
-        </div>
-        <p>Cada peso invertido se traduce en facturación real para nuestros clientes. Sabemos escalar clínicas estéticas porque ya lo hicimos.</p>
-      </div>
-    </div>
-  </section>
 
   <!-- PROBLEMA -->
   <section class="section section-white" id="problema">
@@ -223,6 +207,7 @@
         <span class="eyebrow">{{ content.stats.label }}</span>
         <h2 class="section-title">{{ content.stats.title }}</h2>
       </div>
+      {% if content.stats["items"] %}
       <div class="stats-row reveal">
         {% for stat in content.stats["items"] %}
         <div class="stat-block">
@@ -231,6 +216,7 @@
         </div>
         {% endfor %}
       </div>
+      {% endif %}
 
       <!-- WhatsApp photo gallery — clinic spaces -->
       {% set clinic_sizes = '(max-width: 768px) 50vw, 25vw' %}
@@ -280,17 +266,6 @@
           <span class="case-tag">Caso real</span>
           <h3>Residencia Teresita de Jesús</h3>
           <p>Centro de salud con enfoque integral. Acompañamiento completo hasta obtener resolución sanitaria y primeros pacientes.</p>
-        </div>
-      </div>
-      <div class="testimonial-block reveal">
-        <div class="testimonial-stars">★★★★★</div>
-        <p class="testimonial-quote">"Abrimos en 74 días y tuve 38 pacientes el primer mes. El acompañamiento en permisos y marketing fue clave."</p>
-        <div class="testimonial-author">
-          <div class="testimonial-avatar">VM</div>
-          <div class="testimonial-info">
-            <div class="testimonial-name">Dra. Valentina Morales</div>
-            <div class="testimonial-role">Médico estético · Santiago</div>
-          </div>
         </div>
       </div>
     </div>
@@ -436,9 +411,6 @@
         <span class="cta-badge">{{ content.cta.badge }}</span>
         <h2 class="section-title">{{ content.cta.title }}</h2>
         <p class="section-lead">{{ content.cta.text }}</p>
-        <div class="urgency-bar-dark">
-          Quedan <strong>2 cupos disponibles</strong> para acompañamiento en mayo 2026.
-        </div>
         <div class="cta-buttons">
           <a href="#captura" class="btn btn-primary">
             {{ content.cta.button_primary }}
