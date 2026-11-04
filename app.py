@@ -173,6 +173,19 @@ def api_marcas_titular_procesado(titular_id):
     return jsonify({"ok": True})
 
 
+_PAGOS = {
+    "reserva": "https://mpago.la/1vm2Q8g",      # reserva de marca, $49.990
+    "presentar": "https://mpago.la/1fv8Re1",    # registro de marca, 1 clase, $220.141
+    "diagnostico": "https://mpago.la/1FLwLEL",  # diagnóstico sanitario express, $49.990
+}
+
+
+@app.route("/<any(reserva, presentar, diagnostico):destino>")
+def pago(destino):
+    """Link corto con el dominio propio hacia el link de pago de Mercado Pago (302: se puede cambiar sin caché)."""
+    return redirect(_PAGOS[destino], code=302)
+
+
 @app.route("/privacidad")
 def privacidad():
     return render_template("privacy.html", config=db.load_config(), content=db.load_content())
