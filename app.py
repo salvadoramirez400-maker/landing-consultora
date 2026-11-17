@@ -88,7 +88,7 @@ def _contexto_sitio() -> dict:
         "wa_pagina": _wa_pagina("rs"),
         "autotest_publico": autotest.PUBLICO,
         "pixel": True,
-        "og_imagen": "img/og-portada.png",
+        "og_imagen": "img/og-portada.jpg",
     }
 
 
@@ -158,7 +158,7 @@ def _organizacion() -> dict:
         "description": TAGLINE,
         "url": f"{SITIO_URL}/",
         "logo": _absoluta("img/icono-512.png"),
-        "image": _absoluta("img/og-portada.png"),
+        "image": _absoluta("img/og-portada.jpg"),
         "telephone": "+" + catalogo.WHATSAPP,
         "address": {"@type": "PostalAddress", "addressCountry": "CL"},
         "areaServed": {"@type": "Country", "name": "Chile"},
@@ -345,7 +345,7 @@ def marcas():
                  "corto": "Reserva tu marca con $49.990",
                  "href": "#planes", "linea": ""},
         teaser=_teaser("marcas"),
-        og_imagen="img/og-marcas.png",
+        og_imagen="img/og-marcas.jpg",
         jsonld=_jsonld_marcas(),
     )
 

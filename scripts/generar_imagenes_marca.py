@@ -1,6 +1,6 @@
 """Genera las imágenes de marca del sitio en static/img/:
 
-- og-portada.png y og-marcas.png (1200x630): vista previa al compartir el enlace (WhatsApp, Facebook).
+- (Las imágenes para compartir ya no salen de aquí: ver scripts/generar_og.py.)
 - icono-512.png, apple-touch-icon.png (180) y favicon.ico (16, 32 y 48).
 
 Usa la línea gráfica de las piezas de Instagram de CCC (consultoria-clinica-chile/scripts/generar_post_ig.py):
@@ -56,14 +56,9 @@ CSS_ICONO = """
 .letras{font-weight:700;font-size:178px;letter-spacing:-.02em;line-height:1}
 """
 
-OG = {
-    "og-portada.png": ("RESOLUCIÓN SANITARIA · REGISTRO DE MARCA",
-                       "Resolución Sanitaria y registro de marca, de principio a fin",
-                       "Centros de salud ante la SEREMI y pymes ante INAPI. 100 % online, en todo Chile."),
-    "og-marcas.png": ("REGISTRO DE MARCA EN INAPI",
-                      "Si tu marca no está registrada, no es tuya",
-                      "Revisamos gratis si está disponible y la registramos por ti. Garantía de reintento."),
-}
+# Las imágenes para compartir (og-portada.jpg y og-marcas.jpg) las genera scripts/generar_og.py desde el 17-nov-2026,
+# con el diseño nuevo del sitio. Este script sigue generando los íconos.
+OG = {}
 
 
 def navegador() -> Path:
