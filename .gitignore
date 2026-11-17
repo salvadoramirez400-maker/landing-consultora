@@ -41,3 +41,6 @@ z.txt
 
 # Uploads locales (no versionar)
 static/uploads/
+
+# Vercel
+.vercel
