@@ -316,5 +316,60 @@ class PaginasPublicas(unittest.TestCase):
             with self.subTest(ruta=ruta):
                 self.assertIn("data-cookies-abrir", self.html[ruta])
 
+    # --- Rediseño «WOW» (17-nov-2026): banner, globo de chat, pop-up de salida y animaciones ---
+    def test_banner_globo_y_popup(self):
+        for ruta, linea in (("/", "rs"), ("/marcas", "marcas")):
+            html = self.html[ruta]
+            with self.subTest(ruta=ruta):
+                self.assertIn('id="anuncio"', html)
+                self.assertIn('class="anuncio-cerrar"', html)
+                self.assertIn('id="teaser"', html)
+                self.assertRegex(html, r'<aside class="teaser" id="teaser"[^>]*hidden>')
+                self.assertRegex(html, rf'data-modal-salida="{linea}" hidden>')
+                self.assertIn('role="dialog" aria-modal="true" aria-labelledby="modal-titulo"', html)
+                self.assertEqual(html.count('id="modal-titulo"'), 1)
+                self.assertIn(">Ahora no</button>", html)
+                self.assertRegex(html, r'<script src="/static/wow\.js\?v=[0-9a-f]+" defer></script>')
+        for ruta in ("/privacidad", "/marcas/datos"):
+            html = self.c.get(ruta).get_data(as_text=True)
+            with self.subTest(ruta=ruta):
+                self.assertNotIn("data-modal-salida", html)
+                self.assertNotIn('id="teaser"', html)
+
+    def test_formularios_que_abren_whatsapp(self):
+        """wow.js arma el mensaje con data-texto y data-whatsapp: tienen que venir en cada formulario."""
+        for form in re.findall(r"<form\b[^>]*data-caso[^>]*>", self.html["/"]):
+            self.assertIn(f'data-texto="{catalogo.WA_RS_FORMULARIO}"', unescape(form))
+            self.assertIn('data-whatsapp="https://wa.me/56930175070"', form)
+        self.assertEqual(len(re.findall(r"<form\b[^>]*data-caso", self.html["/"])), 2)
+        revisar = re.findall(r"<form\b[^>]*data-revisar[^>]*>", self.html["/marcas"])
+        self.assertEqual(len(revisar), 3)
+        for form in revisar:
+            self.assertIn(f'data-texto="{catalogo.WA_MARCAS}"', unescape(form))
+            self.assertIn('data-whatsapp="https://wa.me/56930175070"', form)
+        self.assertEqual(catalogo.revisar_texto(f"{catalogo.WA_MARCAS}: Café Aurora", "marcas"), [])
+
+    def test_ids_unicos(self):
+        for ruta, html in self.html.items():
+            ids = re.findall(r'\bid="([^"]+)"', html)
+            with self.subTest(ruta=ruta):
+                self.assertEqual(sorted(i for i in set(ids) if ids.count(i) > 1), [])
+
+    def test_css_y_js_del_rediseno(self):
+        css = (RAIZ / "static" / "style.css").read_text()
+        sin_comentarios = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+        self.assertEqual(sin_comentarios.count("{"), sin_comentarios.count("}"))
+        self.assertIn("prefers-reduced-motion: reduce", css)
+        js = (RAIZ / "static" / "wow.js").read_text()
+        for clave in ("prefers-reduced-motion", "ccc-salida", "ccc-teaser", "getContext('webgl'"):
+            self.assertIn(clave, js)
+
+    def test_cifras_animadas_tienen_el_valor_final(self):
+        """El conteo parte de 0 con JS; sin JS (y para Google) el HTML ya trae la cifra real."""
+        for ruta in ("/", "/marcas"):
+            for fin, visible in re.findall(r'data-contar="(\d+)">([^<]+)<', self.html[ruta]):
+                with self.subTest(ruta=ruta, fin=fin):
+                    self.assertEqual(int(visible.replace(".", "")), int(fin))
+
 if __name__ == "__main__":
     unittest.main()

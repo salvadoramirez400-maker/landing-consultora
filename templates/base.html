@@ -49,6 +49,23 @@
 </head>
 <body class="{% block body_class %}{% endblock %}">
   <a class="saltar" href="#contenido">Saltar al contenido</a>
+  <div class="progreso" aria-hidden="true"><i></i></div>
+
+  {% block anuncio -%}
+  {%- if anuncio %}
+  {#- Banner superior. Se puede cerrar; el script de abajo lo oculta antes de pintar si ya se cerró. -#}
+  <div class="anuncio" id="anuncio" data-anuncio="{{ anuncio.id }}">
+    <a class="anuncio-enlace" href="{{ anuncio.href }}"{% if anuncio.linea %} target="_blank" rel="noopener" data-wa="anuncio" data-linea="{{ anuncio.linea }}"{% endif %}>
+      <span class="anuncio-etiqueta">{{ anuncio.etiqueta }}</span>
+      <span class="anuncio-texto">{{ anuncio.texto }}</span>
+      <span class="anuncio-corto">{{ anuncio.corto }}</span>
+      <span class="anuncio-flecha" aria-hidden="true">→</span>
+    </a>
+    <button type="button" class="anuncio-cerrar" aria-label="Cerrar aviso">×</button>
+  </div>
+  <script>try { if (localStorage.getItem('ccc-anuncio') === '{{ anuncio.id }}') document.getElementById('anuncio').hidden = true; } catch (e) {}</script>
+  {%- endif %}
+  {%- endblock %}
 
   {% block nav -%}
   <nav class="nav" aria-label="Principal">
@@ -111,6 +128,25 @@
     {{ icono_whatsapp(26) }}<span class="whatsapp-float-texto">WhatsApp</span>
   </a>
   {%- endblock %}
+
+  {% block teaser -%}
+  {%- if teaser %}
+  {#- Globo de chat junto al botón flotante: aparece una vez por sesión, con el aviso de cookies ya resuelto. -#}
+  <aside class="teaser" id="teaser" aria-label="Escríbenos por WhatsApp" hidden>
+    <button type="button" class="teaser-cerrar" aria-label="Cerrar">×</button>
+    <div class="teaser-cabecera">{{ monograma() }}<div><b>{{ sitio.marca }}</b><span>Te respondemos por WhatsApp</span></div></div>
+    <p class="teaser-burbuja teaser-escribiendo" aria-hidden="true"><i></i><i></i><i></i></p>
+    <p class="teaser-burbuja teaser-mensaje">{{ teaser.mensaje }}</p>
+    <div class="teaser-opciones">
+      {%- for op in teaser.opciones %}
+      <a href="{{ op.href }}" target="_blank" rel="noopener" data-wa="{{ op.id }}" data-linea="{{ op.linea }}">{{ icono_whatsapp(16) }}<span>{{ op.texto }}</span></a>
+      {%- endfor %}
+    </div>
+  </aside>
+  {%- endif %}
+  {%- endblock %}
+
+  {% block modal %}{% endblock %}
 
   {% if pixel -%}
   <div class="cookie-banner" id="cookie-banner" role="region" aria-label="Aviso de cookies" hidden>
@@ -187,6 +223,7 @@
       }
     })();
   </script>
+  <script src="{{ static_v('wow.js') }}" defer></script>
   {% block scripts %}{% endblock %}
 </body>
 </html>

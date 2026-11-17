@@ -291,6 +291,17 @@ def _authenticate(username: str, password: str) -> bool:
     return password == expected
 
 
+def _teaser(linea: str) -> dict:
+    """Globo de chat junto al botón flotante (templates/base.html). Cada opción abre el bot que corresponde."""
+    rs = {"id": "teaser-rs", "linea": "rs", "texto": "Resolución sanitaria", "href": catalogo.wa_link(catalogo.WA_RS)}
+    marcas = {"id": "teaser-marcas", "linea": "marcas", "texto": "Registrar mi marca",
+              "href": catalogo.wa_link(catalogo.WA_MARCAS)}
+    if linea == "marcas":
+        return {"mensaje": "Hola. ¿Revisamos gratis si tu marca está disponible?",
+                "opciones": [dict(marcas, texto="Revisar mi marca gratis")]}
+    return {"mensaje": "Hola. ¿En qué te ayudamos?", "opciones": [rs, marcas]}
+
+
 @app.route("/")
 def index():
     """Portada. Los textos viven en catalogo.py y templates/index.html, no en la base (site_content)."""
@@ -306,6 +317,12 @@ def index():
         wa_formulario=catalogo.WA_RS_FORMULARIO,
         wa_otros=catalogo.wa_link(catalogo.WA_OTROS),
         wa_pagina=_wa_pagina("rs", con_cambio=True),
+        sumario=catalogo.servicio("sumario"),
+        anuncio={"id": "diagnostico-2026-11", "etiqueta": "Diagnóstico express",
+                 "texto": "En 48 horas hábiles sabes qué autorizaciones necesita tu local.",
+                 "corto": "Tu diagnóstico en 48 horas hábiles",
+                 "href": catalogo.servicio("diagnostico-express").whatsapp_url, "linea": "rs"},
+        teaser=_teaser("rs"),
         jsonld=_jsonld_portada(),
     )
 
@@ -320,6 +337,11 @@ def marcas():
         faq=catalogo.FAQ_MARCAS,
         wa_revisar=catalogo.WA_MARCAS,
         wa_pagina=_wa_pagina("marcas"),
+        anuncio={"id": "reserva-2026-11", "etiqueta": "Reserva tu marca",
+                 "texto": "Con $49.990 dejamos tu solicitud lista y se descuenta completa del plan.",
+                 "corto": "Reserva tu marca con $49.990",
+                 "href": "#planes", "linea": ""},
+        teaser=_teaser("marcas"),
         og_imagen="img/og-marcas.png",
         jsonld=_jsonld_marcas(),
     )

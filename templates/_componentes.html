@@ -20,7 +20,7 @@
 {#- Tarjeta de servicio. Recibe un catalogo.Servicio.
     Para sumar un producto no se toca este bloque: se agrega en catalogo.py (instrucciones al inicio). -#}
 {% macro tarjeta_servicio(s) -%}
-<article class="servicio{% if s.destacado %} servicio--destacado{% endif %}" id="servicio-{{ s.id }}">
+<article class="servicio foco{% if s.destacado %} servicio--destacado{% endif %}" id="servicio-{{ s.id }}">
   {%- if s.etiqueta %}
   <span class="servicio-etiqueta">{{ s.etiqueta }}</span>
   {%- endif %}

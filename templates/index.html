@@ -3,35 +3,66 @@
 {% block title %}Resolución Sanitaria y registro de marca | {{ sitio.marca }}{% endblock %}
 {% block body_class %}portada{% endblock %}
 {% block content %}
-  {#- Textos y precios: catalogo.py (precios solo de tarifas.json). Sin cifras ni testimonios sin respaldo. -#}
+  {#- Textos y precios: catalogo.py (precios solo de tarifas.json). Sin cifras ni testimonios sin respaldo.
+      Animaciones: static/wow.js y la sección «WOW» de style.css. Sin JS o con «reducir movimiento», todo se ve fijo. -#}
 
-  <!-- HÉROE: las dos líneas de negocio, cada una con su WhatsApp -->
+  <!-- HÉROE: fondo animado (WebGL, con degradado de respaldo) y las dos líneas de negocio, cada una con su WhatsApp -->
   <section class="hero" aria-labelledby="hero-titulo">
-    <div class="hero-content">
-      <p class="hero-badge">Consultora chilena · 100 % online en todo Chile</p>
-      <h1 class="hero-title" id="hero-titulo">Resolución Sanitaria y registro de marca, de principio a fin</h1>
-      <p class="hero-sub">Acompañamos a clínicas, centros estéticos y dentales ante la SEREMI de Salud, y a pymes de todo Chile ante INAPI. Todo por WhatsApp y por escrito.</p>
-      <ul class="hero-confianza">
-        <li>Garantías sobre lo que depende de nosotros</li>
-        <li>Precio claro antes de partir</li>
-        <li>Salvador Ramírez revisa cada diagnóstico</li>
-      </ul>
+    <canvas class="fondo-vivo" data-fondo="oscuro" aria-hidden="true"></canvas>
+    <div class="hero-velo" aria-hidden="true"></div>
+    <div class="hero-inner">
+      <div class="hero-content">
+        <p class="hero-badge entra" style="--i:0">Consultora chilena · 100 % online en todo Chile</p>
+        <h1 class="hero-title" id="hero-titulo">
+          <span class="w luz" style="--i:1">Resolución</span> <span class="w luz" style="--i:2">Sanitaria</span>
+          <span class="w" style="--i:3">y</span> <span class="w luz" style="--i:4">registro</span>
+          <span class="w luz" style="--i:5">de</span> <span class="w luz" style="--i:6">marca,</span>
+          <span class="w" style="--i:7">de</span> <span class="w" style="--i:8">principio</span>
+          <span class="w" style="--i:9">a</span> <span class="w" style="--i:10">fin</span>
+        </h1>
+        <p class="hero-sub entra" style="--i:9">Acompañamos a clínicas, centros estéticos y dentales ante la SEREMI de Salud, y a pymes de todo Chile ante INAPI. Todo por WhatsApp y por escrito.</p>
+        <ul class="hero-confianza entra" style="--i:11">
+          <li>Garantías sobre lo que depende de nosotros</li>
+          <li>Precio claro antes de partir</li>
+          <li>Salvador Ramírez revisa cada diagnóstico</li>
+        </ul>
+      </div>
+      <div class="hero-puertas">
+        <article class="puerta foco entra" style="--i:6" data-inclinar>
+          <p class="puerta-para">Para centros de salud</p>
+          <h2 class="puerta-titulo">Resolución Sanitaria</h2>
+          <p class="puerta-texto">Clínicas estéticas, centros médicos y dentales, salas de procedimientos. Partimos con un diagnóstico express de <b>{{ diagnostico.precio|clp }}</b>, que se descuenta completo si sigues.</p>
+          <a class="btn btn-luz" href="{{ diagnostico.whatsapp_url }}" target="_blank" rel="noopener" data-wa="portada-rs" data-linea="rs">{{ icono_whatsapp(18) }}<span>Partir con el diagnóstico</span></a>
+          <a class="puerta-enlace" href="#resolucion">Ver servicios y garantías</a>
+        </article>
+        <article class="puerta foco entra" style="--i:8" data-inclinar>
+          <p class="puerta-para">Para pymes y emprendedores</p>
+          <h2 class="puerta-titulo">Registro de marca en INAPI</h2>
+          <p class="puerta-texto">Revisamos gratis si tu marca está disponible y la registramos por ti. Registro Completo: <b>{{ marca.precio|clp }}</b> + tasas de INAPI, con garantía de reintento.</p>
+          <a class="btn btn-luz" href="{{ marca.whatsapp_url }}" target="_blank" rel="noopener" data-wa="portada-marcas" data-linea="marcas">{{ icono_whatsapp(18) }}<span>Revisar mi marca gratis</span></a>
+          <a class="puerta-enlace" href="/marcas">Ver planes y precios</a>
+        </article>
+      </div>
     </div>
-    <div class="hero-puertas">
-      <article class="puerta">
-        <p class="puerta-para">Para centros de salud</p>
-        <h2 class="puerta-titulo">Resolución Sanitaria</h2>
-        <p class="puerta-texto">Clínicas estéticas, centros médicos y dentales, salas de procedimientos. Partimos con un diagnóstico express de <b>{{ diagnostico.precio|clp }}</b>, que se descuenta completo si sigues.</p>
-        <a class="btn btn-primary" href="{{ diagnostico.whatsapp_url }}" target="_blank" rel="noopener" data-wa="portada-rs" data-linea="rs">{{ icono_whatsapp(18) }}<span>Partir con el diagnóstico</span></a>
-        <a class="puerta-enlace" href="#resolucion">Ver servicios y garantías</a>
-      </article>
-      <article class="puerta">
-        <p class="puerta-para">Para pymes y emprendedores</p>
-        <h2 class="puerta-titulo">Registro de marca en INAPI</h2>
-        <p class="puerta-texto">Revisamos gratis si tu marca está disponible y la registramos por ti. Registro Completo: <b>{{ marca.precio|clp }}</b> + tasas de INAPI, con garantía de reintento.</p>
-        <a class="btn btn-primary" href="{{ marca.whatsapp_url }}" target="_blank" rel="noopener" data-wa="portada-marcas" data-linea="marcas">{{ icono_whatsapp(18) }}<span>Revisar mi marca gratis</span></a>
-        <a class="puerta-enlace" href="/marcas">Ver planes y precios</a>
-      </article>
+    {#- Cinta en movimiento: decorativa (la lista real de establecimientos está en la sección de abajo). -#}
+    <div class="cinta" aria-hidden="true">
+      <div class="cinta-pista">
+        {%- for _ in range(2) %}
+        <span>Clínicas estéticas</span><span>Centros médicos</span><span>Centros dentales</span><span>Salas de procedimientos</span><span>Pabellones de cirugía menor</span><span>Estudios de tatuaje</span><span>Laboratorios</span><span>ELEAM</span><span>Registro de marcas</span>
+        {%- endfor %}
+      </div>
+    </div>
+  </section>
+
+  <!-- DATOS: plazos y condiciones reales del servicio (tarifas.json), con conteo animado -->
+  <section class="datos" aria-label="Cómo trabajamos, en cifras">
+    <div class="container">
+      <ul class="datos-lista reveal" data-escalonar>
+        <li><b><span data-contar="48">48</span> h</b><span>hábiles para entregar tu diagnóstico express</span></li>
+        <li><b><span data-contar="10">10</span> días</b><span>hábiles para ingresar tu solicitud, en la modalidad Completa</span></li>
+        <li><b><span data-contar="100">100</span> %</b><span>online: atendemos en todo Chile, por WhatsApp</span></li>
+        <li><b><span data-contar="3">3</span> pagos</b><span>atados a avances: 60%, 30% y 10%</span></li>
+      </ul>
     </div>
   </section>
 
@@ -51,11 +82,12 @@
           <li>Laboratorios, ELEAM y otros</li>
         </ul>
       </div>
-      <div class="servicios-grid">
+      <div class="servicios-grid reveal" data-escalonar>
         {%- for s in servicios_rs %}
         {{ tarjeta_servicio(s) }}
         {%- endfor %}
       </div>
+
       <p class="servicios-otros">También coordinamos arquitectura sanitaria y obras, supervisión médica, documentación legal y captación de pacientes. <a href="{{ wa_otros }}" target="_blank" rel="noopener" data-wa="otros-servicios" data-linea="rs">Consúltanos por WhatsApp</a>.</p>
     </div>
   </section>
@@ -68,7 +100,7 @@
         <h2 class="section-title">De tu primer mensaje a la resolución, en 4 pasos</h2>
         <p class="section-lead">Todo por WhatsApp y por escrito. Sabes qué pagas y qué recibes en cada etapa.</p>
       </div>
-      <ol class="pasos reveal">
+      <ol class="pasos" data-linea-tiempo>
         <li class="paso">
           <span class="paso-num">Paso 1</span>
           <h3>Nos escribes</h3>
@@ -90,11 +122,11 @@
           <p>En la modalidad Completa, si la SEREMI hace observaciones, las respondemos sin cobrar honorarios adicionales, hasta terminar el proceso.</p>
         </li>
       </ol>
-      <p class="pasos-pago">La resolución Completa se paga en 3 partes: <b>60%</b> al aceptar, <b>30%</b> al ingresar la solicitud y <b>10%</b> al obtenerla.</p>
+      <p class="pasos-pago reveal">La resolución Completa se paga en 3 partes: <b>60%</b> al aceptar, <b>30%</b> al ingresar la solicitud y <b>10%</b> al obtenerla.</p>
 
       <div class="garantias reveal">
         <h3>Nuestras garantías</h3>
-        <ul>
+        <ul data-escalonar>
           <li><span><b>Ingreso en 10 días hábiles (RS Completa).</b> Ingresamos tu solicitud a la SEREMI dentro de 10 días hábiles desde que recibimos todos los antecedentes.</span></li>
           <li><span><b>Observaciones sin costo (RS Completa).</b> Si la SEREMI hace observaciones, las respondemos sin cobrar honorarios adicionales hasta terminar el proceso.</span></li>
           <li><span><b>Diagnóstico descontable.</b> Los {{ diagnostico.precio|clp }} del diagnóstico express se descuentan completos de la resolución.</span></li>
@@ -103,16 +135,23 @@
         <p class="garantias-nota">La resolución la otorga la SEREMI y nadie puede garantizar su aprobación ni su plazo. Garantizamos lo que depende de nosotros. En la RS Asistida la solicitud la ingresas tú, así que las garantías de ingreso y de observaciones no aplican.</p>
       </div>
 
-      <div class="seccion-cta">
+      <div class="seccion-cta reveal">
         <a class="btn btn-primary" href="{{ diagnostico.whatsapp_url }}" target="_blank" rel="noopener" data-wa="como-trabajamos" data-linea="rs">{{ icono_whatsapp(18) }}<span>Partir con el diagnóstico</span></a>
       </div>
+
+      {#- Franja para casos urgentes: mismo texto de WhatsApp que la tarjeta «Tengo un sumario». -#}
+      <a class="franja reveal" href="{{ sumario.whatsapp_url }}" target="_blank" rel="noopener" data-wa="franja-sumario" data-linea="rs">
+        <span class="franja-pulso" aria-hidden="true"></span>
+        <span class="franja-texto"><b>¿Te llegó un sumario o una fiscalización?</b> Los plazos son cortos: escríbenos hoy con la fecha de notificación y revisamos tu caso con prioridad.</span>
+        <span class="franja-cta">{{ icono_whatsapp(16) }}<span>Escribir ahora</span></span>
+      </a>
     </div>
   </section>
 
   <!-- REGISTRO DE MARCA -->
   <section class="section section-white" id="marcas">
     <div class="container marcas-bloque">
-      <div class="marcas-texto reveal">
+      <div class="marcas-texto reveal" data-anim="izquierda">
         <span class="eyebrow">Registro de marca</span>
         <h2 class="section-title">Si tu marca no está registrada, no es tuya</h2>
         <p class="section-lead">En Chile, la marca se le da al primero que la pide en INAPI. Ni el dominio .cl ni tu cuenta de Instagram te dan ese derecho. Revisamos gratis si tu nombre está disponible y lo registramos por ti, para cualquier rubro.</p>
@@ -122,7 +161,16 @@
           <li>Te avisamos en cada etapa hasta que tienes el registro.</li>
         </ol>
       </div>
-      {{ tarjeta_servicio(marca) }}
+      <div class="marcas-tarjeta reveal" data-anim="derecha">
+        {#- Sello giratorio decorativo, como un adhesivo sobre la esquina de la tarjeta. -#}
+        <svg class="sello" viewBox="0 0 200 200" aria-hidden="true" focusable="false">
+          <defs><path id="sello-circulo" d="M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0"/></defs>
+          <circle cx="100" cy="100" r="97" fill="#ffffff" stroke="#e2e8f0" stroke-width="1.5"/>
+          <g class="sello-gira"><text><textPath href="#sello-circulo" textLength="482" lengthAdjust="spacing">TU NOMBRE · TU MARCA · TU NEGOCIO · TU LOGO ·</textPath></text></g>
+          <text class="sello-r" x="100" y="122" text-anchor="middle">®</text>
+        </svg>
+        {{ tarjeta_servicio(marca) }}
+      </div>
     </div>
   </section>
 
@@ -140,26 +188,32 @@
             <li>Consultora privada: no somos parte de la SEREMI ni de INAPI</li>
           </ul>
         </div>
-        <div class="proyectos reveal">
-          <article class="proyecto">
+        <div class="proyectos reveal" data-escalonar>
+          <article class="proyecto foco">
             <span class="proyecto-tag">Proyecto de nuestro equipo</span>
             <h3>Clínica Goyenechea</h3>
             <p>Clínica estética operativa con pacientes desde el mes uno. Implementación completa: ubicación, permisos, diseño y marketing.</p>
           </article>
-          <article class="proyecto">
+          <article class="proyecto foco">
             <span class="proyecto-tag">Proyecto de nuestro equipo</span>
             <h3>Residencia Teresita de Jesús</h3>
             <p>Centro de salud con enfoque integral. Acompañamiento completo hasta obtener resolución sanitaria y primeros pacientes.</p>
           </article>
         </div>
       </div>
-      <div class="fotos">
+    </div>
+    {#- Carrete de fotos: se desliza solo y se detiene al pasar el cursor. La segunda copia es decorativa. -#}
+    <div class="carrete reveal" data-carrete>
+      <div class="carrete-pista">
         {%- for archivo, alt in fotos %}
-        <figure class="foto">{{ picture('images/' + archivo, alt, '(max-width: 760px) 50vw, 380px') }}</figure>
+        <figure class="foto">{{ picture('images/' + archivo, alt, '(max-width: 760px) 70vw, 420px') }}</figure>
+        {%- endfor %}
+        {%- for archivo, alt in fotos %}
+        <figure class="foto" aria-hidden="true">{{ picture('images/' + archivo, '', '(max-width: 760px) 70vw, 420px') }}</figure>
         {%- endfor %}
       </div>
-      <p class="fotos-nota">Fotos de proyectos en los que ha trabajado nuestro equipo.</p>
     </div>
+    <p class="fotos-nota">Fotos de proyectos en los que ha trabajado nuestro equipo.</p>
   </section>
 
   <!-- PREGUNTAS FRECUENTES (mismo texto que el schema FAQPage) -->
@@ -169,7 +223,7 @@
         <span class="eyebrow">Preguntas frecuentes</span>
         <h2 class="section-title">Lo que nos preguntan antes de partir</h2>
       </div>
-      <div class="faq">
+      <div class="faq reveal" data-escalonar>
         {%- for pregunta, respuesta in faq %}
         <details class="faq-item">
           <summary>{{ pregunta }}</summary>
@@ -182,12 +236,13 @@
 
   <!-- CIERRE: el formulario arma el mensaje de WhatsApp con los 2 datos que pide Andrea -->
   <section class="section section-cta" id="contacto">
+    <div class="orbes" aria-hidden="true"><i></i><i></i><i></i></div>
     <div class="container">
-      <div class="cta-inner">
+      <div class="cta-inner reveal">
         <span class="cta-badge">Primer paso</span>
         <h2 class="section-title">Cuéntanos tu caso y te decimos por dónde partir</h2>
         <p class="section-lead">Con el tipo de establecimiento y la comuna ya podemos orientarte. Te respondemos por WhatsApp, por escrito.</p>
-        <form class="caso-form" id="caso-form" data-texto="{{ wa_formulario }}" data-whatsapp="{{ ''|wa }}">
+        <form class="caso-form" id="caso-form" data-texto="{{ wa_formulario }}" data-whatsapp="{{ ''|wa }}" data-caso="formulario-rs">
           <div class="form-field">
             <label for="caso-tipo">Tipo de establecimiento</label>
             <select id="caso-tipo" name="tipo">
@@ -201,7 +256,7 @@
             <label for="caso-comuna">Comuna</label>
             <input type="text" id="caso-comuna" name="comuna" placeholder="Ej.: Providencia" autocomplete="address-level2" maxlength="60">
           </div>
-          <button type="submit" class="btn btn-primary">{{ icono_whatsapp(18) }}<span>Seguir en WhatsApp</span></button>
+          <button type="submit" class="btn btn-luz">{{ icono_whatsapp(18) }}<span>Seguir en WhatsApp</span></button>
         </form>
         <p class="cta-alterna">¿Es por una marca? <a href="{{ marca.whatsapp_url }}" target="_blank" rel="noopener" data-wa="cierre-marcas" data-linea="marcas">Revisa tu marca gratis por WhatsApp</a></p>
       </div>
@@ -209,24 +264,36 @@
   </section>
 {% endblock %}
 
+{% block modal %}
+  {#- Pop-up de salida (escritorio: al llevar el cursor fuera de la página; móvil: tras 50 s y media página).
+      Una vez cada 7 días, y nunca si la persona ya abrió WhatsApp. Reglas en static/wow.js. -#}
+  <div class="modal" id="modal-salida" data-modal-salida="rs" hidden>
+    <div class="modal-fondo" data-cerrar></div>
+    <div class="modal-caja" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+      <button type="button" class="modal-cerrar" data-cerrar aria-label="Cerrar">×</button>
+      <span class="eyebrow">Antes de irte</span>
+      <h2 id="modal-titulo">¿Sabes qué autorizaciones necesita tu local?</h2>
+      <p>Dinos el tipo de establecimiento y la comuna, y te orientamos por WhatsApp, por escrito.</p>
+      <form class="modal-form" data-texto="{{ wa_formulario }}" data-whatsapp="{{ ''|wa }}" data-caso="popup-rs">
+        <label class="sr-only" for="modal-tipo">Tipo de establecimiento</label>
+        <select id="modal-tipo" name="tipo">
+          <option value="">Tipo de establecimiento</option>
+          {%- for visible, sigue in tipos %}
+          <option value="{{ sigue }}">{{ visible }}</option>
+          {%- endfor %}
+        </select>
+        <label class="sr-only" for="modal-comuna">Comuna</label>
+        <input type="text" id="modal-comuna" name="comuna" placeholder="Comuna" autocomplete="address-level2" maxlength="60">
+        <button type="submit" class="btn btn-primary">{{ icono_whatsapp(18) }}<span>Orientarme por WhatsApp</span></button>
+      </form>
+      <button type="button" class="modal-no" data-cerrar>Ahora no</button>
+    </div>
+  </div>
+{% endblock %}
+
 {% block scripts %}
   <script>
     (function () {
-      // Formulario «Cuéntanos tu caso»: arma el texto para Andrea (contiene «resolución sanitaria») y abre WhatsApp.
-      var form = document.getElementById('caso-form');
-      if (form) {
-        form.addEventListener('submit', function (e) {
-          e.preventDefault();
-          var texto = form.dataset.texto;
-          var tipo = form.tipo.value;
-          var comuna = form.comuna.value.trim();
-          if (tipo) texto += ' para ' + tipo;
-          if (comuna) texto += (tipo ? ' en ' : ', en ') + comuna;
-          window.open(form.dataset.whatsapp + '?text=' + encodeURIComponent(texto + '.'), '_blank', 'noopener');
-          window.cccLead('formulario-rs', 'rs');
-        });
-      }
-
       // Botón flotante: mientras se ve la sección de marcas, abre WhatsApp con el texto de marcas.
       var flotante = document.querySelector('.whatsapp-float[data-href-marcas]');
       var marcas = document.getElementById('marcas');
