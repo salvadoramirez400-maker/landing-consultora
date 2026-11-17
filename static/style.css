@@ -420,6 +420,10 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
 
 @media (max-width: 560px) {
   .hero-confianza { display: none; }  /* en móvil, el primer botón sube; las garantías están más abajo */
+  .hero { gap: 24px; padding-top: calc(var(--nav-alto) + 28px); }
+  .hero-badge { margin-bottom: 16px; }
+  .hero-title { margin-bottom: 14px; }
+  .hero-sub { margin-bottom: 0; }
   .pasos { grid-template-columns: 1fr; }
   .puerta { padding: 22px 20px 18px; }
   .seccion-cta .btn, .puerta .btn { width: 100%; }
