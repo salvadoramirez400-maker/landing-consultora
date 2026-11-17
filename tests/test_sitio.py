@@ -150,6 +150,7 @@ class PaginasPublicas(unittest.TestCase):
             with self.subTest(ruta=ruta):
                 self.assertEqual(self.c.get(ruta).status_code, codigo)
         self.assertTrue(self.c.get("/reserva").headers["Location"].startswith("https://mpago.la/"))
+        self.assertEqual(self.c.get("/diagnostico").headers["Location"], "https://mpago.la/28ZgKho")  # $79.990
 
     def test_www_redirige_al_dominio(self):
         r = self.c.get("/marcas?utm_source=x", headers={"Host": "www.consultoriaclinica.cl"})

@@ -450,9 +450,9 @@ def api_marcas_titular_procesado(titular_id):
 
 _PAGOS = {
     "reserva": "https://mpago.la/1vm2Q8g",      # reserva de marca, $49.990
-    # Diagnóstico express: desde el 17-nov-2026 cuesta $79.990 y el link antiguo (mpago.la/1FLwLEL) cobraba $49.990.
-    # Hasta que Salvador cree el link nuevo, /diagnostico lleva a WhatsApp para que nadie pague el monto viejo.
-    "diagnostico": catalogo.servicio("diagnostico-express").whatsapp_url,
+    # Diagnóstico sanitario express, $79.990 (link del 17-nov-2026, referencia CCC-RS-DIAGNOSTICO-79990;
+    # consultoria-clinica-chile/docs/ventas/mercado-pago-links.md). El anterior, mpago.la/1FLwLEL, cobraba $49.990.
+    "diagnostico": "https://mpago.la/28ZgKho",
 }
 
 
