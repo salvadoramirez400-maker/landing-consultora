@@ -2,8 +2,8 @@
 {%- from "_componentes.html" import icono_whatsapp -%}
 
 {% block title %}Autotest sanitario gratis | {{ sitio.marca }}{% endblock %}
-{% block og_title %}Autotest sanitario gratis: ¿qué permisos necesita tu centro de salud?{% endblock %}
-{% block description %}Responde 6 preguntas y descubre qué autorizaciones de la SEREMI probablemente necesita tu centro de salud. Gratis, en 2 minutos y sin dejar tus datos.{% endblock %}
+{% block og_title %}Autotest sanitario gratis: ¿tu local está expuesto a una multa o a un cierre?{% endblock %}
+{% block description %}Responde 6 preguntas y te decimos si tu local de salud está expuesto a una multa o a un cierre. Gratis, en 2 minutos y sin dejar tus datos.{% endblock %}
 {% block meta %}
   {%- if not publico %}
   <meta name="robots" content="noindex, nofollow">
@@ -19,8 +19,8 @@
   <canvas class="fondo-vivo" data-fondo="claro" aria-hidden="true"></canvas>
   <div class="at-wrap">
     <p class="eyebrow entra" style="--i:0">Autotest sanitario · gratis</p>
-    <h1><span class="w" style="--i:1">¿Qué</span> <span class="w" style="--i:2">permisos</span> <span class="w" style="--i:3">necesita</span> <span class="w" style="--i:4">tu</span> <span class="w" style="--i:5">centro</span> <span class="w" style="--i:6">de</span> <span class="w" style="--i:7">salud?</span></h1>
-    <p class="at-sub entra" style="--i:8">6 preguntas, 2 minutos. Te mostramos qué autorizaciones probablemente necesitas, los 3 riesgos más comunes en tu tipo de local y tu Mapa de permisos en PDF. Sin registrarte y sin dejar tus datos.</p>
+    <h1><span class="w" style="--i:1">¿Tu</span> <span class="w" style="--i:2">local</span> <span class="w" style="--i:3">está</span> <span class="w" style="--i:4">expuesto</span> <span class="w" style="--i:5">a</span> <span class="w" style="--i:6">una</span> <span class="w" style="--i:7">multa</span> <span class="w" style="--i:8">o</span> <span class="w" style="--i:9">a</span> <span class="w" style="--i:10">un</span> <span class="w" style="--i:11">cierre?</span></h1>
+    <p class="at-sub entra" style="--i:8">6 preguntas, 2 minutos. Te decimos lo que vemos en tu caso y te llevas tu resultado en PDF. Gratis, sin registrarte y sin dejar tus datos.</p>
   </div>
 </section>
 
@@ -46,16 +46,16 @@
       </fieldset>
 
       <fieldset class="at-paso" data-paso="2">
-        <legend>¿Qué haces en el local? <small>Marca todo lo que corresponda.</small></legend>
+        <legend>¿Qué haces en el local?</legend>
         <div class="at-opciones">
-          {%- for clave, visible in at.PROCEDIMIENTOS.items() %}
-          <label class="at-opcion"><input type="checkbox" name="proc" value="{{ clave }}"{% if clave in previas.getlist('proc') %} checked{% endif %}><span>{{ visible }}</span></label>
+          {%- for clave, visible in at.HACE.items() %}
+          <label class="at-opcion"><input type="radio" name="hace" value="{{ clave }}" required{% if previas.get('hace') == clave %} checked{% endif %}><span>{{ visible }}</span></label>
           {%- endfor %}
         </div>
       </fieldset>
 
       <fieldset class="at-paso" data-paso="3">
-        <legend>¿Qué equipos usas o vas a usar? <small>Marca todo lo que corresponda.</small></legend>
+        <legend>¿Tienes alguno de estos equipos? <small>Puedes marcar varios.</small></legend>
         <div class="at-opciones">
           {%- for clave, visible in at.EQUIPOS.items() %}
           <label class="at-opcion"><input type="checkbox" name="eq" value="{{ clave }}"{% if clave in previas.getlist('eq') %} checked{% endif %}><span>{{ visible }}</span></label>
@@ -64,9 +64,9 @@
       </fieldset>
 
       <fieldset class="at-paso" data-paso="4">
-        <legend>¿Cuántos boxes, salas o sillones tiene?</legend>
+        <legend>¿Cuántos box, salas o sillones tiene?</legend>
         <div class="at-opciones at-opciones--fila">
-          {%- for clave, visible in at.RECINTOS.items() %}
+          {%- for clave, (visible, _) in at.RECINTOS.items() %}
           <label class="at-opcion"><input type="radio" name="recintos" value="{{ clave }}" required{% if previas.get('recintos') == clave %} checked{% endif %}><span>{{ visible }}</span></label>
           {%- endfor %}
         </div>
@@ -81,7 +81,7 @@
       </fieldset>
 
       <fieldset class="at-paso" data-paso="6">
-        <legend>¿El local tiene recepción final de la DOM?</legend>
+        <legend>¿El local tiene recepción final de la Dirección de Obras?</legend>
         <div class="at-opciones">
           {%- for clave, visible in at.RECEPCION.items() %}
           <label class="at-opcion"><input type="radio" name="recepcion" value="{{ clave }}" required{% if previas.get('recepcion') == clave %} checked{% endif %}><span>{{ visible }}</span></label>
@@ -95,7 +95,7 @@
         <button type="button" class="btn btn-primary" id="at-siguiente" hidden>Siguiente</button>
         <button type="submit" class="btn btn-primary" id="at-ver">Ver mi resultado</button>
       </div>
-      <p class="at-nota">Resultado orientativo con reglas fijas a partir de la norma vigente (revisada el {{ at.REVISION_NORMATIVA }}). No es asesoría legal: tu caso lo confirma el diagnóstico.</p>
+      <p class="at-nota">Resultado orientativo según tus respuestas. No es un diagnóstico de tu local ni reemplaza la revisión de la autoridad sanitaria.</p>
     </form>
   </div>
 </section>
@@ -116,9 +116,9 @@
     var actual = 0;
     var mensajes = {
       1: 'Elige el tipo de local.',
-      2: 'Marca al menos una opción.',
-      3: 'Marca tus equipos, o «Ninguno de estos».',
-      4: 'Elige cuántos boxes o salas tiene.',
+      2: 'Elige una opción.',
+      3: 'Marca tus equipos, o «Ninguno».',
+      4: 'Elige cuántos box, salas o sillones tiene.',
       6: 'Elige una opción.'
     };
     form.classList.add('at-form--pasos');
@@ -153,7 +153,7 @@
     form.addEventListener('change', function (e) {
       if (e.target.type === 'radio' && actual < pasos.length - 1) setTimeout(avanzar, 180);
     });
-    // «Ninguno de estos» desmarca los demás equipos y al revés.
+    // «Ninguno» desmarca los demás equipos y al revés.
     form.addEventListener('change', function (e) {
       if (e.target.name !== 'eq' || !e.target.checked) return;
       form.querySelectorAll('input[name="eq"]').forEach(function (c) {

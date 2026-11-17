@@ -686,7 +686,7 @@ def _cache_de_borde(resp):
 def _autotest_query(r: autotest.Respuestas) -> str:
     """Respuestas para el link del PDF. Sin la comuna: el PDF no lleva datos personales."""
     from urllib.parse import urlencode
-    return urlencode({"tipo": r.tipo, "proc": r.procedimientos, "eq": r.equipos, "recintos": r.recintos,
+    return urlencode({"tipo": r.tipo, "hace": r.hace, "eq": r.equipos, "recintos": r.recintos,
                       "recepcion": r.recepcion}, doseq=True)
 
 
@@ -704,20 +704,23 @@ def autotest_resultado():
                                previas=request.args, publico=autotest.PUBLICO)
     res = autotest.evaluar(respuestas)
     return render_template("autotest_resultado.html", config=_config(), at=autotest, res=res,
-                           wa=catalogo.wa_link(res.whatsapp), pdf_url="/autotest/mapa.pdf?" + _autotest_query(respuestas),
+                           wa=catalogo.wa_link(res.whatsapp), pdf_url="/autotest/resultado.pdf?" + _autotest_query(respuestas),
                            diag=catalogo.servicio("diagnostico-express"))
 
 
-@app.route("/autotest/mapa.pdf")
+@app.route("/autotest/resultado.pdf")
 def autotest_pdf():
     respuestas, errores = autotest.leer(request.args)
     if errores:
         return redirect("/autotest")
-    import mapa_pdf  # reportlab solo se carga cuando alguien pide el PDF
+    resultado = autotest.evaluar(respuestas)
+    if resultado.caso_a_caso:   # tipo «Otro»: no hay resultado que descargar
+        return redirect("/autotest")
+    import resultado_pdf  # reportlab solo se carga cuando alguien pide el PDF
 
-    pdf = mapa_pdf.generar(autotest.evaluar(respuestas))
+    pdf = resultado_pdf.generar(resultado)
     return Response(pdf, mimetype="application/pdf", headers={
-        "Content-Disposition": 'attachment; filename="Mapa de permisos - Consultoria Clinica Chile.pdf"',
+        "Content-Disposition": 'attachment; filename="Resultado de tu Autotest - Consultoria Clinica Chile.pdf"',
         "X-Robots-Tag": "noindex",
         "Cache-Control": "public, max-age=3600",
     })

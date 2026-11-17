@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{%- from "_componentes.html" import icono_whatsapp -%}
+{%- from "_componentes.html" import icono_whatsapp, icono_tarjeta -%}
 
 {% block title %}Tu resultado del autotest sanitario · {{ sitio.marca }}{% endblock %}
 {% block meta %}
@@ -7,68 +7,75 @@
 {% endblock %}
 {% block body_class %}pagina-autotest{% endblock %}
 
+{#- Criterio (Salvador, 17-nov-2026): el Autotest no enseña. Muestra el veredicto, lo que se arriesga, lo que el test
+    no puede decir y un solo cierre: el diagnóstico. Sin lista de permisos, sin normas, sin trámites. -#}
 {% block content %}
 <section class="at-hero at-hero--resultado">
   <canvas class="fondo-vivo" data-fondo="claro" aria-hidden="true"></canvas>
   <div class="at-wrap">
     <p class="eyebrow entra" style="--i:0">Autotest sanitario · tu resultado</p>
-    <h1>{{ at.TIPOS[res.respuestas.tipo][0] }}{% if res.respuestas.comuna %} en {{ res.respuestas.comuna }}{% endif %}</h1>
-    <ol class="at-lineas entra" style="--i:3">
-      {%- for linea in res.lineas %}
-      <li>{{ linea }}</li>
-      {%- endfor %}
-    </ol>
+    {%- if res.caso_a_caso %}
+    <h1 class="entra" style="--i:2">Tu caso lo revisamos contigo</h1>
+    <p class="at-sub entra" style="--i:4">{{ res.lineas[0] }}</p>
     <div class="at-cta-arriba entra" style="--i:6">
-      <a class="btn btn-primary" href="{{ wa }}" target="_blank" rel="noopener" data-wa="autotest" data-linea="rs">{{ icono_whatsapp(18) }}<span>Quiero el diagnóstico de mi caso</span></a>
-      <a class="btn btn-outline-navy" href="{{ pdf_url }}" data-pdf>Descargar mi Mapa de permisos (PDF)</a>
+      <a class="btn btn-primary" href="{{ wa }}" target="_blank" rel="noopener" data-wa="autotest-otro" data-linea="rs">{{ icono_whatsapp(18) }}<span>Contarles mi caso por WhatsApp</span></a>
+      <a class="btn btn-outline-navy" href="/autotest">Volver a hacer el autotest</a>
     </div>
+    {%- else %}
+    <h1 class="entra" style="--i:2">{{ at.TIPOS[res.respuestas.tipo][0] }}{% if res.respuestas.comuna %} en {{ res.respuestas.comuna }}{% endif %}</h1>
+    <div class="at-veredicto at-veredicto--{{ res.nivel }} entra" style="--i:3">
+      <span class="at-veredicto-et">Esto es lo que vemos en tu caso</span>
+      <p class="at-veredicto-grande">{{ res.lineas[0] }}</p>
+      <ul>
+        <li>{{ res.lineas[1] }}</li>
+        <li>{{ res.lineas[2] }}</li>
+      </ul>
+    </div>
+    <div class="at-cta-arriba entra" style="--i:6">
+      <a class="btn btn-primary" href="{{ wa }}" target="_blank" rel="noopener" data-wa="autotest" data-linea="rs">{{ icono_whatsapp(18) }}<span>Quiero el diagnóstico de mi local</span></a>
+      <a class="btn btn-outline-navy" href="{{ pdf_url }}" data-pdf>Descargar mi resultado (PDF)</a>
+    </div>
+    {%- endif %}
   </div>
 </section>
 
+{%- if not res.caso_a_caso %}
 <section class="at-sec">
   <div class="at-wrap">
-    <h2 class="at-h2">Tu Mapa de permisos</h2>
-    <p class="at-intro">Lo que probablemente te pedirá la SEREMI y lo que conviene tener listo antes de ingresar la solicitud.</p>
-    <ul class="at-permisos reveal" data-escalonar>
-      {%- for p in res.permisos %}
-      <li class="at-permiso at-permiso--{{ p.estado|replace(' ', '-') }}">
-        <div class="at-permiso-top">
-          <h3>{{ p.nombre }}</h3>
-          <span class="at-estado">{{ {'probable': 'Probable', 'por confirmar': 'Por confirmar', 'antecedente': 'Antecedente'}[p.estado] }}</span>
-        </div>
-        <p>{{ p.detalle }}</p>
-        <small>{{ p.norma }}</small>
-      </li>
+    <h2 class="at-h2 reveal">Lo que arriesgas hoy</h2>
+    <ul class="at-arriesgas reveal" data-escalonar>
+      {%- for etiqueta, titulo, detalle in at.RIESGOS %}
+      <li><span>{{ etiqueta }}</span><b>{{ titulo }}</b><p>{{ detalle }}</p></li>
       {%- endfor %}
     </ul>
 
-    <h2 class="at-h2">Los 3 riesgos más comunes en tu tipo de local</h2>
-    <ol class="at-riesgos reveal" data-escalonar>
-      {%- for r in res.riesgos %}
-      <li>{{ r }}</li>
+    <h2 class="at-h2 reveal">Lo que este test no puede decirte</h2>
+    <ul class="at-nodice reveal" data-escalonar>
+      {%- for q in at.NO_DICE %}
+      <li>{{ q }}</li>
       {%- endfor %}
-    </ol>
+    </ul>
+    <p class="at-intro reveal">Eso depende de tu local, no de un test. Se responde mirándolo.</p>
 
     <div class="at-siguiente reveal" id="siguiente-paso">
       <div class="orbes" aria-hidden="true"><i></i><i></i><i></i></div>
       <div>
-        <p class="eyebrow">Siguiente paso</p>
-        <h2>{{ diag.nombre }} · {{ diag.precio|clp }}</h2>
-        <p>Revisamos fotos, planos y servicios de tu local, y te decimos exactamente qué autorizaciones necesitas, qué te falta y cuánto cuesta obtener la resolución. {{ diag.plazo }} {{ diag.precio_nota }}</p>
-        <p class="at-nota">{{ diag.nota }} Te escribimos por WhatsApp, por escrito.</p>
+        <p class="eyebrow">El siguiente paso</p>
+        <h2>Diagnóstico sanitario de tu local · {{ diag.precio|clp }}</h2>
+        <p>{{ at.SIGUIENTE }} Lo recibes en {{ diag.plazo[0]|lower }}{{ diag.plazo[1:] }} {{ diag.precio_nota }}</p>
       </div>
       <div class="at-siguiente-acciones">
-        <a class="btn btn-primary" href="{{ wa }}" target="_blank" rel="noopener" data-wa="autotest-diagnostico" data-linea="rs">{{ icono_whatsapp(18) }}<span>Pedir mi diagnóstico</span></a>
+        <a class="btn btn-luz" href="{{ wa }}" target="_blank" rel="noopener" data-wa="autotest-diagnostico" data-linea="rs">{{ icono_whatsapp(18) }}<span>Pedir mi diagnóstico</span></a>
         {%- if diag.pago_url %}
-        <a class="at-pago" href="{{ diag.pago_url }}" target="_blank" rel="noopener" data-pago="autotest-diagnostico" data-valor="{{ diag.precio }}">o pagar con tarjeta ahora</a>
+        <a class="at-pago" href="{{ diag.pago_url }}" data-pago="autotest-diagnostico" data-valor="{{ diag.precio }}">o pagar con tarjeta ahora</a>
         {%- endif %}
-        <a class="servicio-enlace" href="/autotest">Volver a hacer el autotest</a>
       </div>
     </div>
 
-    <p class="at-nota at-nota--pie">Resultado orientativo con reglas fijas a partir de la norma vigente (revisada el {{ at.REVISION_NORMATIVA }}). No es asesoría legal ni reemplaza la revisión de tu caso. {{ sitio.marca }} es una consultora privada: no somos parte de la SEREMI de Salud.</p>
+    <p class="at-nota at-nota--pie">{{ at.LETRA_CHICA }}</p>
   </div>
 </section>
+{%- endif %}
 {% endblock %}
 
 {% block scripts %}

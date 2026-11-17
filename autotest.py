@@ -1,21 +1,20 @@
-"""Autotest Sanitario + Mapa de permisos (escalón 0 de la escalera de RS, gratis).
+"""Autotest Sanitario (escalón 0 de la escalera de RS, gratis).
 
-Fuente de la definición: consultoria-clinica-chile/datos/tarifas.json → servicios.autotest, aprobado el
-17-nov-2026. Base legal: consultoria-clinica-chile/docs/base-normativa-sanitaria.md (revisada el 17-oct-2026).
+Criterio de Salvador (17-nov-2026): **el Autotest no enseña; muestra la exposición y lleva al diagnóstico.**
+No entrega la lista de permisos, no cita normas en el resultado y no explica trámites: eso es lo que se vende
+(diagnóstico express). Las reglas y los textos son los de consultoria-clinica-chile/productos/autotest/reglas.md,
+los mismos del flujo del bot. Si cambia una regla allá, se cambia aquí.
 
 Reglas fijas, sin texto libre de IA:
-- 6 preguntas: tipo de local, procedimientos, equipos, recintos, comuna y recepción final.
-- Resultado en 3 líneas (qué autorizaciones probablemente necesita), los 3 riesgos más comunes de su tipo
-  y el «Mapa de permisos» en PDF, sin datos personales.
-- NUNCA se dice que no necesita resolución. Con solo box de consulta: «depende de lo que hagas en el box;
-  eso lo revisa el diagnóstico» (error del 4-nov: «por regla general, no requiere autorización»).
-  tests/test_sitio.py revisa todas las combinaciones.
-
-Cambiar una regla = cambiar este archivo y que Salvador lo apruebe. El bot de WhatsApp debe usar las mismas.
+- 6 preguntas: tipo de local, qué hace, equipos, recintos, comuna y recepción final.
+- Resultado en 3 líneas (veredicto, equipos y residuos, inmueble), lo que arriesga (igual para todos),
+  lo que el test no puede decir y un solo cierre: el diagnóstico.
+- NUNCA se dice «no necesitas resolución». Con solo consultas: «puede que hoy no la necesites, pero depende de lo
+  que hagas en cada box». tests/test_autotest.py revisa todas las combinaciones.
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 import catalogo
 
@@ -23,67 +22,63 @@ import catalogo
 # existe pero no se enlaza, no va al sitemap y lleva noindex.
 PUBLICO = True
 
-REVISION_NORMATIVA = "17-oct-2026"
-
-# --- Preguntas ---------------------------------------------------------------------------------------
-# Cada opción: clave → (texto visible, cómo sigue el mensaje de WhatsApp «… de mi <x>»).
+# --- Preguntas (reglas.md, sección 1) -------------------------------------------------------------------
+# clave → (texto visible, cómo sigue el mensaje de WhatsApp «… de mi <x>»)
 TIPOS = {
-    "estetica": ("Centro estético o de medicina estética", "centro estético"),
-    "dental": ("Consulta o centro dental", "centro dental"),
-    "medico": ("Consulta o centro médico", "centro médico"),
-    "procedimientos": ("Sala de procedimientos o pabellón de cirugía menor", "sala de procedimientos"),
-    "salud": ("Kinesiología, nutrición, psicología u otra consulta de salud", "consulta de salud"),
-    "podologia": ("Podología", "consulta de podología"),
-    "tatuajes": ("Tatuajes y piercing", "estudio de tatuajes"),
-    "laboratorio": ("Laboratorio clínico o toma de muestras", "laboratorio"),
-    "otro": ("Otro establecimiento de salud", "establecimiento"),
+    "box": ("Box estético", "box estético"),
+    "procedimientos": ("Sala de procedimientos", "sala de procedimientos"),
+    "dental1": ("Consulta dental de 1 sillón", "consulta dental"),
+    "dental": ("Centro dental", "centro dental"),
+    "medico": ("Centro médico", "centro médico"),
+    "optica": ("Óptica", "óptica"),
+    "muestras": ("Toma de muestras", "sala de toma de muestras"),
+    "kine": ("Kinesiología", "consulta de kinesiología"),
+    "otro": ("Otro", "establecimiento"),
 }
 
-PROCEDIMIENTOS = {
-    "consulta": "Solo consultas, evaluaciones o controles",
-    "inyectables": "Inyectables: toxina botulínica, ácido hialurónico, sueros o mesoterapia",
-    "invasivos": "Procedimientos que atraviesan la piel o mucosas: biopsias, exodoncias, suturas o curaciones",
-    "cirugia": "Cirugía menor o implantes dentales",
-    "tatuaje": "Tatuajes, piercing o micropigmentación",
-    "muestras": "Toma de muestras de sangre u otras",
+HACE = {
+    "consulta": "Solo consultas o terapias, sin agujas ni cortes",
+    "agujas": "Procedimientos con agujas, inyecciones, sueros, curaciones o suturas",
+    "cirugia": "Cirugía menor o implantes",
+    "muestras": "Toma de muestras",
+    "lentes": "Venta y adaptación de lentes",
+    "nose": "No sé o una mezcla",
 }
 
 EQUIPOS = {
-    "laser": "Láser o luz pulsada (IPL)",
-    "aparatologia": "HIFU, radiofrecuencia o cavitación",
-    "rayos": "Rayos X (incluye radiografía dental o panorámica)",
+    "laser": "Láser, IPL, HIFU o radiofrecuencia",
+    "rayos": "Rayos X",
     "autoclave": "Autoclave",
-    "ninguno": "Ninguno de estos",
+    "ninguno": "Ninguno",
 }
 
+# clave → (texto visible, cómo va en el mensaje de WhatsApp)
 RECINTOS = {
-    "1": "1 box o sala",
-    "2-3": "2 a 3",
-    "4-6": "4 a 6",
-    "7+": "7 o más",
+    "1": ("Uno", "con 1 box"),
+    "2-3": ("Dos o tres", "con 2 a 3 recintos"),
+    "4-8": ("De cuatro a ocho", "con 4 a 8 recintos"),
+    "9+": ("Más de ocho", "con más de 8 recintos"),
 }
 
 RECEPCION = {
-    "si": "Sí, tiene recepción final de la DOM",
-    "no": "No tiene recepción final",
-    "casa": "Es una casa o departamento (uso habitacional)",
+    "si": "Sí",
+    "no": "No",
+    "tramite": "En trámite",
     "nose": "No sé",
 }
 
 COMUNA_MAX = 40
+_MINUSCULAS = {"de", "del", "la", "las", "los", "el", "y"}
 
 
 @dataclass(frozen=True)
 class Respuestas:
     tipo: str
-    procedimientos: tuple[str, ...]
+    hace: str
     equipos: tuple[str, ...]
     recintos: str
     recepcion: str
     comuna: str = ""
-
-
-_MINUSCULAS = {"de", "del", "la", "las", "los", "el", "y"}
 
 
 def _comuna(texto: str) -> str:
@@ -97,266 +92,122 @@ def _comuna(texto: str) -> str:
 
 def leer(args) -> tuple[Respuestas | None, list[str]]:
     """Respuestas desde request.args (o un dict con getlist). Devuelve (respuestas, errores)."""
-    def lista(nombre, validas):
-        valores = args.getlist(nombre) if hasattr(args, "getlist") else list(args.get(nombre, []))
-        return tuple(dict.fromkeys(v for v in valores if v in validas))
-
-    tipo = args.get("tipo", "")
-    procedimientos = lista("proc", PROCEDIMIENTOS)
-    equipos = lista("eq", EQUIPOS)
-    recintos = args.get("recintos", "")
-    recepcion = args.get("recepcion", "")
-    comuna = _comuna(args.get("comuna", ""))
+    valores = args.getlist("eq") if hasattr(args, "getlist") else list(args.get("eq", []))
+    equipos = tuple(dict.fromkeys(v for v in valores if v in EQUIPOS))
+    tipo, hace = args.get("tipo", ""), args.get("hace", "")
+    recintos, recepcion = args.get("recintos", ""), args.get("recepcion", "")
 
     errores = []
     if tipo not in TIPOS:
         errores.append("Elige el tipo de local.")
-    if not procedimientos:
-        errores.append("Marca al menos una opción en «qué haces».")
+    if hace not in HACE:
+        errores.append("Cuéntanos qué haces en el local.")
     if not equipos:
-        errores.append("Marca tus equipos, o «Ninguno de estos».")
+        errores.append("Marca tus equipos, o «Ninguno».")
     if recintos not in RECINTOS:
-        errores.append("Elige cuántos boxes o salas tiene.")
+        errores.append("Elige cuántos box, salas o sillones tiene.")
     if recepcion not in RECEPCION:
         errores.append("Cuéntanos si el local tiene recepción final.")
     if errores:
         return None, errores
     if len(equipos) > 1 and "ninguno" in equipos:
         equipos = tuple(e for e in equipos if e != "ninguno")
-    return Respuestas(tipo, procedimientos, equipos, recintos, recepcion, comuna), []
+    return Respuestas(tipo, hace, equipos, recintos, recepcion, _comuna(args.get("comuna", ""))), []
 
 
-# --- Resultado ---------------------------------------------------------------------------------------
+# --- Resultado (reglas.md, secciones 2 a 7) ---------------------------------------------------------------
+# Lo que arriesga: igual para todos los tipos. $72 millones = 1.000 UTM con la UTM de noviembre de 2026 ($72.440);
+# revisarlo si la UTM pasa de $73.000. El respaldo legal va solo en la letra chica.
+RIESGOS = (
+    ("Multa", "Hasta $72 millones", "Por infracción, y el doble si se repite."),
+    ("Clausura", "Cierre en el acto", "La autoridad puede prohibir el funcionamiento el mismo día de la visita."),
+    ("Patente", "Sin patente definitiva", "La municipalidad no la otorga sin la autorización sanitaria."),
+)
+
+NO_DICE = (
+    "Si tu local, tal como está hoy, pasaría una fiscalización.",
+    "Qué te falta exactamente, y qué de eso es obra, documento o trámite.",
+    "Si tu inmueble admite un establecimiento de salud o hay que regularizarlo primero.",
+    "Cuánto cuesta y cuánto demora dejar tu local en regla.",
+)
+
+SIGUIENTE = ("Evaluamos tu local y te entregamos un informe con tu nivel de preparación, cada brecha, lo que hay que "
+             "hacer y cuánto cuesta resolverlo.")
+
+LETRA_CHICA = ("Resultado orientativo según tus respuestas. No es un diagnóstico de tu local ni reemplaza la revisión "
+               "de la autoridad sanitaria, que es quien resuelve. Sanciones: Código Sanitario, arts. 15, 174 y 178; el "
+               "monto en pesos usa la UTM de noviembre de 2026. Consultoría Clínica Chile es una consultora privada y "
+               "no actúa en representación de ningún organismo público.")
+
+OTRO = "Ese tipo lo revisamos caso a caso. Cuéntanos en una línea qué harás en el local y te decimos el camino."
+
+_L3 = {
+    "si": "Tu local tiene recepción final: un problema menos. Falta saber si su destino admite un uso de salud.",
+    "no": "Sin recepción final el local no puede usarse: es lo primero que te van a objetar.",
+    "tramite": "Mientras la recepción final no salga, tu solicitud no puede avanzar.",
+    "nose": "No saber si tu local tiene recepción final es un riesgo: sin ella no puede usarse.",
+}
+
+
 @dataclass(frozen=True)
-class Permiso:
-    nombre: str
-    detalle: str
-    norma: str
-    estado: str  # "probable" | "por confirmar" | "antecedente"
-
-
-@dataclass
 class Resultado:
-    lineas: list[str]                 # las 3 líneas del resumen
-    permisos: list[Permiso]           # el «Mapa de permisos»
-    riesgos: list[str]                # los 3 riesgos de su tipo
-    alerta_local: str                 # recepción final / uso habitacional
-    whatsapp: str                     # texto precargado para Andrea
+    lineas: tuple[str, str, str]   # veredicto, equipos y residuos, inmueble
+    nivel: str                     # "expuesto" | "depende"
+    whatsapp: str                  # texto precargado para Andrea
     respuestas: Respuestas
-    rs_probable: bool = field(default=True)
+    caso_a_caso: bool = False      # tipo «Otro»: no hay resultado, se conversa
 
 
-_CONSULTA_SOLA = {"medico", "dental", "salud", "podologia", "otro"}
-
-RIESGOS = {
-    "estetica": (
-        "Funcionar sin resolución: la SEREMI RM ha prohibido el funcionamiento de salas de depilación láser sin "
-        "autorización, y las multas van de 0,1 a 1.000 UTM, más la clausura (Código Sanitario, arts. 174 y 178).",
-        "Que la aparatología o los inyectables los aplique alguien no habilitado: el láser y la IPL son aparatología "
-        "de uso médico (SERNAC) y la toxina y el ácido hialurónico requieren supervisión médica.",
-        "Infraestructura de sala de procedimientos incompleta: áreas limpia y sucia, esterilización, superficies "
-        "lavables y luces de emergencia (DS 283).",
-    ),
-    "dental": (
-        "Rayos X sin autorización de operación del equipo, o con operadores sin curso de protección radiológica ni "
-        "dosímetro (DS 133).",
-        "Hacer exodoncias, biopsias o implantes en un box de consulta: van en sala de procedimientos o en pabellón "
-        "de cirugía menor (DS 283).",
-        "Esterilización y residuos sin regularizar (autoclave y REAS): son antecedentes que pide la SEREMI.",
-    ),
-    "consulta": (
-        "Sumar procedimientos sin notarlo: infiltraciones, curaciones o inyectables convierten el box en sala de "
-        "procedimientos, que sí requiere autorización expresa (DS 283).",
-        "Local sin recepción final o con uso habitacional: la SEREMI pide la recepción final y la DOM puede exigir "
-        "cambio de destino.",
-        "Patente municipal: la definitiva no se otorga sin la autorización sanitaria cuando esta corresponde "
-        "(Código Sanitario, art. 15).",
-    ),
-    "procedimientos": (
-        "Áreas limpia y sucia, esterilización y superficies lavables incompletas: es lo primero que revisa la "
-        "visita inspectiva (DS 283).",
-        "El pabellón de cirugía menor exige además quirófano, lavado quirúrgico, botiquín, equipo de reanimación "
-        "y manual de procedimientos.",
-        "Libros foliados y manuales sin llevar, o un traslado o cambio de planta sin nueva autorización.",
-    ),
-    "tatuajes": (
-        "Funcionar sin director técnico profesional de la salud (Código Sanitario, art. 124, y DS 304).",
-        "Material no estéril o sin registro de clientes (DS 304).",
-        "Personal sin vacuna contra la hepatitis B y recinto sin lavamanos ni superficies lavables.",
-    ),
-    "laboratorio": (
-        "Una sala de toma de muestras necesita su propia resolución y depender de un laboratorio autorizado "
-        "(DS 20/2011).",
-        "Director técnico sin el perfil exigido (médico especialista, tecnólogo médico con mención, químico "
-        "farmacéutico o bioquímico) o con menos de 4 horas diarias.",
-        "Planos, flujograma, manuales y control de calidad incompletos.",
-    ),
-}
-_RIESGO_PODOLOGIA = ("El ejercicio de la podología requiere título reconocido o autorización de la SEREMI, a la "
-                     "vista del público (DS 951).")
-_RIESGO_PRESTADORES = ("No estar inscrito en el Registro Nacional de Prestadores Individuales de la Superintendencia "
-                       "de Salud.")
-
-ALERTAS_LOCAL = {
-    "si": "",
-    "no": ("Tu local no tiene recepción final: la SEREMI la pide entre los antecedentes. Conviene empezar por "
-           "regularizar en la DOM, porque es lo que más demora."),
-    "casa": ("Usar una casa o departamento como centro de salud requiere cambio de destino en la DOM (LGUC, art. 145) "
-             "y que el plan regulador permita ese uso en la zona. Revísalo antes de invertir."),
-    "nose": ("Averigua si el local tiene recepción final (en la DOM de tu comuna o con el dueño): es uno de los "
-             "antecedentes que pide la SEREMI."),
-}
+def _linea1(r: Respuestas) -> tuple[str, str, bool]:
+    """(texto, nivel, usó_el_láser). Se aplica la primera regla que calce."""
+    if r.tipo == "optica" or r.hace == "lentes":
+        return "Una óptica no puede funcionar sin autorización sanitaria.", "expuesto", False
+    if r.tipo == "muestras" or r.hace == "muestras":
+        return "Una sala de toma de muestras no puede funcionar sin su propia autorización sanitaria.", "expuesto", False
+    if r.hace == "cirugia":
+        return ("Lo que haces exige un pabellón autorizado: es la exigencia más alta para un local ambulatorio.",
+                "expuesto", False)
+    if r.hace == "agujas":
+        if r.tipo == "box":
+            return ("Con lo que haces en tu box necesitas autorización sanitaria y un director técnico antes de atender.",
+                    "expuesto", False)
+        if r.tipo in ("dental1", "dental"):
+            return "Con extracciones o biopsias, tu box necesita autorización sanitaria antes de atender.", "expuesto", False
+        return "Esos procedimientos solo se pueden hacer en una sala con autorización sanitaria.", "expuesto", False
+    if r.hace == "consulta":
+        if "laser" in r.equipos:
+            return ("Con láser o luz pulsada tu local necesita autorización sanitaria, aunque no uses agujas.",
+                    "expuesto", True)
+        return ("Por lo que cuentas puede que hoy no la necesites, pero depende de lo que hagas en cada box: un solo "
+                "procedimiento lo cambia.", "depende", False)
+    return "Depende de lo que hagas en cada box, y eso no se resuelve con un test.", "depende", False
 
 
-def _y(items: list[str]) -> str:
-    if len(items) <= 1:
-        return "".join(items)
-    return ", ".join(items[:-1]) + " y " + items[-1]
+def _linea2(r: Respuestas, laser_usado: bool) -> str:
+    if "rayos" in r.equipos:
+        return "Tu equipo de rayos X necesita un permiso aparte, y cada persona que lo usa, el suyo."
+    if "autoclave" in r.equipos:
+        return "Tu autoclave tiene un trámite propio antes de usarse."
+    if "laser" in r.equipos and not laser_usado:
+        return "Tu láser o luz pulsada no puede operarlo cualquiera."
+    if r.hace in ("agujas", "cirugia", "muestras"):
+        return "Tus agujas y residuos tienen exigencias propias que la autoridad revisa."
+    return "Lo que define tu riesgo es lo que haces en cada box y el estado del local."
 
 
 def evaluar(r: Respuestas) -> Resultado:
-    proc = set(r.procedimientos)
-    eq = set(r.equipos)
-
-    pabellon = "cirugia" in proc
-    sala = bool(proc & {"inyectables", "invasivos"} or eq & {"laser", "aparatologia"}) or r.tipo == "procedimientos"
-    tatuaje = r.tipo == "tatuajes" or "tatuaje" in proc
-    muestras = r.tipo == "laboratorio" or "muestras" in proc
-    rs_probable = pabellon or sala or tatuaje or muestras or r.tipo == "estetica"
-
-    permisos: list[Permiso] = []
-    motivos: list[str] = []
-
-    # 1. Autorización sanitaria del establecimiento
-    if pabellon:
-        permisos.append(Permiso(
-            "Autorización sanitaria como pabellón de cirugía menor",
-            "Quirófano, lavado quirúrgico, botiquín, reanimación y manual de procedimientos, además de lo que pide "
-            "una sala de procedimientos.",
-            "DS 283/1997 (mod. DS 11/2019)", "probable"))
-        motivos.append("haces cirugía menor o implantes")
-    elif sala:
-        permisos.append(Permiso(
-            "Autorización sanitaria como sala de procedimientos",
-            "Áreas limpia y sucia, esterilización, superficies lavables, luces de emergencia y libros foliados.",
-            "DS 283/1997 (mod. DS 11/2019); Código Sanitario, art. 124", "probable"))
-        if proc & {"inyectables", "invasivos"}:
-            motivos.append("haces procedimientos invasivos o inyectables")
-        if eq & {"laser", "aparatologia"}:
-            motivos.append("usas aparatología de uso médico")
-    if tatuaje:
-        permisos.append(Permiso(
-            "Autorización sanitaria para tatuajes y piercing",
-            "Lavamanos, superficies lavables, material estéril, vacuna contra la hepatitis B y registro de clientes.",
-            "DS 304/2002; Código Sanitario, art. 124", "probable"))
-        motivos.append("haces tatuajes, piercing o micropigmentación")
-    if muestras:
-        permisos.append(Permiso(
-            "Autorización sanitaria de laboratorio o sala de toma de muestras",
-            "La sala de toma de muestras debe depender de un laboratorio autorizado. Director técnico calificado, "
-            "planos, flujograma, manuales y control de calidad.",
-            "DS 20/2011", "probable"))
-        motivos.append("tomas muestras")
-    if r.tipo == "estetica" and not (sala or pabellon or tatuaje):
-        permisos.append(Permiso(
-            "Autorización sanitaria del centro estético",
-            "Todo local estético que use instrumentos que penetren la piel o mucosas requiere autorización previa y "
-            "director técnico profesional de la salud. Depende de lo que hagas en cada box.",
-            "Código Sanitario, art. 124; DS 283", "probable"))
-        motivos.append("es un centro estético")
-    if not rs_probable:
-        permisos.append(Permiso(
-            "Autorización sanitaria del establecimiento",
-            "Con solo box de consulta, depende de lo que hagas en el box: infiltraciones, curaciones o inyectables "
-            "ya cuentan como sala de procedimientos. Eso lo revisa el diagnóstico.",
-            "DS 58/2008; DS 283/1997", "por confirmar"))
-
-    # 2. Equipos y apoyo
-    if "rayos" in eq:
-        permisos.append(Permiso(
-            "Rayos X: autorización de operación del equipo",
-            "Instalación de 2.ª categoría. Además, cada operador necesita su autorización de desempeño, con curso de "
-            "protección radiológica y dosímetro.",
-            "DS 133/1984", "probable"))
-    if "autoclave" in eq:
-        permisos.append(Permiso(
-            "Autoclave",
-            "Su autorización va entre los antecedentes que pide la SEREMI.",
-            "Antecedentes de Seremi en línea", "antecedente"))
-    elif proc & {"invasivos", "cirugia", "tatuaje", "inyectables"}:
-        permisos.append(Permiso(
-            "Esterilización",
-            "Con procedimientos invasivos tienes que resolver cómo esterilizas: autoclave propio o servicio externo.",
-            "DS 283/1997", "antecedente"))
-    if proc - {"consulta"} or r.tipo in {"dental", "estetica", "procedimientos", "laboratorio", "tatuajes"}:
-        permisos.append(Permiso(
-            "Manejo de residuos (REAS)",
-            "Plan y lugar de almacenamiento para residuos especiales y cortopunzantes.",
-            "DS 6/2009", "antecedente"))
-    if rs_probable:
-        permisos.append(Permiso(
-            "Director técnico",
-            "Profesional de la salud a cargo, inscrito en el Registro de Prestadores.",
-            "Código Sanitario, art. 124; DS 283", "antecedente"))
-
-    # 3. Local y municipalidad
-    permisos.append(Permiso(
-        "Recepción final de la DOM",
-        ALERTAS_LOCAL[r.recepcion] or "La tienes: es uno de los antecedentes que pide la SEREMI.",
-        "LGUC, art. 145", "antecedente"))
-    permisos.append(Permiso(
-        "Certificados eléctrico (TE1) y de gas (TC6)",
-        "Los pide la SEREMI junto con los planos y el derecho a usar el inmueble.",
-        "Antecedentes de Seremi en línea", "antecedente"))
-    permisos.append(Permiso(
-        "Patente municipal",
-        "La definitiva no se otorga sin la autorización sanitaria cuando esta corresponde.",
-        "Código Sanitario, art. 15", "antecedente"))
-
-    # Resumen en 3 líneas
-    if rs_probable:
-        linea1 = f"Autorización sanitaria de la SEREMI: probablemente la necesitas, porque {_y(motivos)}."
-    else:
-        linea1 = ("Autorización sanitaria de la SEREMI: depende de lo que hagas en el box; eso lo revisa el "
-                  "diagnóstico.")
-    cortos = {"Rayos X: autorización de operación del equipo": "rayos X", "Autoclave": "autoclave",
-              "Esterilización": "esterilización", "Manejo de residuos (REAS)": "residuos (REAS)"}
-    extras = [cortos[p.nombre] for p in permisos if p.nombre in cortos]
-    linea2 = (f"Además: {_y(extras)}." if extras else
-              "Además: director técnico, planos y certificados TE1 y TC6 entre los antecedentes.")
-    linea3 = {"si": "Tu local: tiene recepción final, uno de los antecedentes clave.",
-              "no": "Tu local: falta la recepción final; conviene partir por la DOM.",
-              "casa": "Tu local: es de uso habitacional y necesita cambio de destino en la DOM.",
-              "nose": "Tu local: averigua si tiene recepción final; la SEREMI la pide."}[r.recepcion]
-
-    # Riesgos de su tipo
-    if r.tipo in RIESGOS:
-        riesgos = list(RIESGOS[r.tipo])
-    else:
-        riesgos = list(RIESGOS["consulta"])
-        if r.tipo == "podologia":
-            riesgos[2] = _RIESGO_PODOLOGIA
-        elif r.tipo == "salud":
-            riesgos[2] = _RIESGO_PRESTADORES
-    if r.tipo in _CONSULTA_SOLA and rs_probable and r.tipo != "dental":
-        riesgos[0] = RIESGOS["procedimientos"][0]
-
-    return Resultado(
-        lineas=[linea1, linea2, linea3],
-        permisos=permisos,
-        riesgos=riesgos,
-        alerta_local=ALERTAS_LOCAL[r.recepcion],
-        whatsapp=texto_whatsapp(r),
-        respuestas=r,
-        rs_probable=rs_probable,
-    )
+    if r.tipo == "otro":
+        return Resultado((OTRO, "", ""), "depende", texto_whatsapp(r), r, caso_a_caso=True)
+    l1, nivel, laser_usado = _linea1(r)
+    return Resultado((l1, _linea2(r, laser_usado), _L3[r.recepcion]), nivel, texto_whatsapp(r), r)
 
 
 def texto_whatsapp(r: Respuestas) -> str:
-    """Texto para Andrea: activa el flujo de RS y le da tipo, comuna y recintos (3 de los 4 datos que pide)."""
+    """Texto para Andrea: activa el flujo de RS, dice «vengo del autotest de la página web» (el bot lo reconoce y no
+    vuelve a preguntar) y le da tipo, comuna y recintos."""
     base = "Hola, vengo del autotest de la página web. Quiero el diagnóstico express para la resolución sanitaria"
     detalle = f" de mi {TIPOS[r.tipo][1]}"
-    recintos = f", con {RECINTOS[r.recintos].replace('1 box o sala', '1 box')} recintos" if r.recintos != "1" else ", con 1 box"
+    recintos = f", {RECINTOS[r.recintos][1]}"
     con_comuna = f"{base}{detalle} en {r.comuna}{recintos}." if r.comuna else ""
     if con_comuna and not catalogo.revisar_texto(con_comuna, "rs"):
         return con_comuna
