@@ -48,6 +48,7 @@ def static_v(filename: str) -> str:
 app.jinja_env.globals["static_v"] = static_v
 app.jinja_env.filters["wa"] = catalogo.wa_link
 app.jinja_env.globals["rev"] = catalogo.rev
+app.jinja_env.globals["revision_precio"] = catalogo.REVISION_MARCA
 
 
 @app.template_filter("clp")
@@ -497,7 +498,7 @@ for _nombre in _PAGOS:
 def _productos_pago() -> dict:
     """Lo que se puede pagar con tarjeta desde la web. Precios y textos salen de catalogo.py (tarifas.json)."""
     diag = catalogo.servicio("diagnostico-express")
-    return {
+    productos = {
         "diagnostico": {
             "clave": "diagnostico", "nombre": diag.nombre, "monto": diag.precio, "linea": "rs",
             "titulo": "Diagnóstico sanitario express · Consultoría Clínica Chile",
@@ -513,7 +514,8 @@ def _productos_pago() -> dict:
             "titulo": "Reserva de registro de marca · Consultoría Clínica Chile",
             "resumen": "Hacemos el estudio formal y dejamos tu solicitud lista. Se descuenta completa del plan y "
                        "tienes 30 días para completar el saldo.",
-            "campos": "marca", "volver": "/marcas#planes", "wa": catalogo.WA_RESERVA_PAGADA, "evento": "reserva-marca",
+            "campos": "marca", "etiqueta_marca": "Nombre de la marca que quieres reservar",
+            "volver": "/marcas#planes", "wa": catalogo.WA_RESERVA_PAGADA, "evento": "reserva-marca",
             "boton_gracias": "Avisar por WhatsApp",
             "pasos": ["Avísanos por WhatsApp con el botón de abajo.",
                       "Completa los datos del titular de la marca: con eso preparamos la solicitud y el poder simple.",
@@ -523,6 +525,21 @@ def _productos_pago() -> dict:
             "aviso": catalogo.rev("aviso_reserva"),
         },
     }
+    if catalogo.REVISION_PAGADA:   # la revisión pagada parte junto con el bot de marcas v3 (catalogo.py)
+        productos["revision"] = {
+            "clave": "revision", "nombre": "Revisión de marca", "monto": catalogo.REVISION_MARCA, "linea": "marcas",
+            "titulo": "Revisión de marca · Consultoría Clínica Chile",
+            "resumen": "Recibes el informe de tu marca el mismo día hábil si pagas antes de las 15:00. "
+                       "Se descuenta del plan si registras dentro de 30 días.",
+            "campos": "marca", "etiqueta_marca": "Nombre de la marca que quieres revisar",
+            "volver": "/marcas", "wa": catalogo.WA_REVISION_PAGADA, "evento": "revision-marca",
+            "boton_gracias": "Avisar por WhatsApp",
+            "pasos": ["Avísanos por WhatsApp con el botón de abajo.",
+                      "Cuéntanos qué vendes o vas a vender con esa marca.",
+                      "Recibes el informe de tu marca el mismo día hábil si pagaste antes de las 15:00; si no, el día "
+                      "hábil siguiente. Lo que pagaste se descuenta del plan si registras dentro de 30 días."],
+        }
+    return productos
 
 
 def _wa_pago(pedido: dict | None, prod: dict) -> str:
@@ -591,7 +608,7 @@ def pagar(producto):
     if prod["campos"] == "marca":
         f["tipo"] = f["comuna"] = ""
         if len(f["marca"]) < 2:
-            errores.append("Escribe el nombre de la marca que quieres reservar.")
+            errores.append("Escribe el nombre de la marca.")
     else:
         f["marca"] = ""
         if f["tipo"] not in {visible for visible, _ in catalogo.TIPOS_ESTABLECIMIENTO} | {""}:

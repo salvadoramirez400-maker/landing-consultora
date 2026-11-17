@@ -126,7 +126,11 @@ REVISION_TEXTOS = {
                       f"¿Todavía no revisamos tu marca? Pide primero la revisión ({_REV_PRECIO}, descontable del "
                       "plan): sabes si está disponible antes de reservar."),
     "faq_clases": ("Te lo decimos en la revisión gratis.", "Te lo decimos en la revisión de tu marca."),
+    # Enlace al pago con tarjeta de la revisión (/pagar/revision, app.py). Vacío mientras sea gratis.
+    "pago_enlace": ("", "o pagar la revisión con tarjeta ahora"),
 }
+# Después de pagar la revisión en la web: activa el bot de marcas («revisar mi marca») y avisa que ya pagó.
+WA_REVISION_PAGADA = "Hola, quiero revisar mi marca. Ya pagué la revisión en la página web y envío el comprobante."
 
 
 def rev(clave: str) -> str:

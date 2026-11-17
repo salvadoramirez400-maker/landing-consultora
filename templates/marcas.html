@@ -36,6 +36,9 @@
         <button type="submit" class="btn btn-primary">{{ rev("boton") }}</button>
       </form>
       <p class="mk-nota entra" style="--i:12">Te respondemos por WhatsApp en menos de 24 horas hábiles.</p>
+      {% if rev("pago_enlace") %}
+      <a class="mk-pago entra" style="--i:13" href="/pagar/revision" data-pago="revision-marca-inicio" data-valor="{{ revision_precio }}" data-linea-pago="marcas">{{ rev("pago_enlace") }}</a>
+      {%- endif %}
     </div>
   </section>
 
@@ -132,6 +135,9 @@
         <input type="text" name="marca" placeholder="Escribe el nombre de tu marca" aria-label="Nombre de tu marca" autocomplete="off" required>
         <button type="submit" class="btn btn-primary">{{ rev("boton") }}</button>
       </form>
+      {% if rev("pago_enlace") %}
+      <a class="mk-pago" href="/pagar/revision" data-pago="revision-marca-cierre" data-valor="{{ revision_precio }}" data-linea-pago="marcas">{{ rev("pago_enlace") }}</a>
+      {%- endif %}
       <p class="mk-fuentes">Tasas según inapi.cl, al valor de la UTM de noviembre de 2026 ($72.440). Multa: Ley 19.039, art. 28 (25 a 1.000 UTM). Volumen de solicitudes: INAPI, enero a julio de 2026.</p>
     </div>
   </section>

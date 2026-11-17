@@ -49,7 +49,7 @@
       </div>
       {%- if prod.campos == 'marca' %}
       <div class="pg-campo">
-        <label for="pg-marca">Nombre de la marca que quieres reservar</label>
+        <label for="pg-marca">{{ prod.etiqueta_marca }}</label>
         <input id="pg-marca" name="marca" value="{{ datos.marca or '' }}" required maxlength="80" autocomplete="off">
       </div>
       {%- else %}

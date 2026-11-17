@@ -486,6 +486,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
 .mk-buscador:focus-within { outline: 3px solid var(--accent); outline-offset: 2px; }
 .mk-buscador .btn { white-space: nowrap; border-radius: var(--r-full); }
 .mk-nota { font-size: 0.9rem; color: var(--gray-500); margin-top: 12px; }
+.mk-pago { display: inline-block; margin-top: 14px; padding: 6px 0; color: var(--white); font-size: 0.95rem; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
 .mk-riesgo { background: var(--navy); color: var(--texto-claro); padding: 56px 0; }
 .mk-riesgo h2 { color: var(--white); font-size: clamp(1.5rem, 3vw, 2.2rem); max-width: 760px; margin-bottom: 28px; text-wrap: balance; }
 .mk-datos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }

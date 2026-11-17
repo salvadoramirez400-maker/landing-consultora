@@ -231,6 +231,37 @@ class Pagos(unittest.TestCase):
         self.assertIn("Marca: Café Aurora", texto)
         self.assertIn('data-linea="marcas"', html)
 
+    @unittest.skipUnless(catalogo.REVISION_PAGADA, "la revisión de marca todavía es gratis")
+    def test_revision_con_tarjeta(self):
+        """/pagar/revision: $14.990, pide la marca, crea el cobro y vuelve con el texto que activa el bot de marcas."""
+        html = self.c.get("/pagar/revision").get_data(as_text=True)
+        self.assertIn("Nombre de la marca que quieres revisar", html)
+        montos = set(re.findall(r"\$\d{1,3}(?:\.\d{3})+", test_sitio._texto_visible(html)))
+        self.assertEqual(montos, {"$14.990"})
+        self.assertIsNone(re.search(r"devol|reembols|gratis", test_sitio._texto_visible(html).replace("Autotest sanitario gratis", ""), re.I))
+        self.assertEqual(self.c.post("/pagar/revision", data={"nombre": "Luis Soto", "telefono": "+56 9 8765 4321"}).status_code, 400)
+        r = self.c.post("/pagar/revision", data=self.RESERVA)
+        self.assertEqual((r.status_code, r.headers["Location"]), (303, sitio._PAGOS["revision"]))
+        p = sitio.db.pedidos[-1]
+        self.assertEqual((p["producto"], p["monto"], p["marca"]), ("Revisión de marca", 14990, "Café Aurora"))
+        creados = []
+        self._con_mercado_pago()
+        mercadopago.crear_preferencia = lambda **k: creados.append(k) or {"id": "pref-3", "url": "https://www.mercadopago.cl/x"}
+        self.c.post("/pagar/revision", data=self.RESERVA)
+        self.assertEqual((creados[0]["monto"], creados[0]["producto"]), (14990, "revision"))
+        p = sitio.db.pedidos[-1]
+        mercadopago.consultar_pago = lambda pago_id: {"id": "888", "estado": "pagado", "ficha": p["ficha"], "monto": 14990}
+        html = self.c.get(f"/pago/gracias?pedido={p['ficha']}&payment_id=888").get_data(as_text=True)
+        self.assertIn("Tu pago quedó confirmado", html)
+        self.assertIn("qué vendes o vas a vender", html)
+        self.assertNotIn('href="/marcas/datos"', html)
+        enlace = unescape(re.search(r'href="(https://wa\.me/[^"]+)"[^>]*data-wa="pago-gracias"', html).group(1))
+        texto = parse_qs(urlparse(enlace).query)["text"][0]
+        self.assertEqual(catalogo.revisar_texto(texto, "marcas"), [])
+        self.assertIn("Marca: Café Aurora", texto)
+        marcas = self.c.get("/marcas").get_data(as_text=True)
+        self.assertEqual(marcas.count('href="/pagar/revision"'), 2)
+
     def test_reserva_marca_que_activaria_otro_bot_se_omite(self):
         """Una marca como «Asesorías López» activaría a Andrea: el mensaje va sin el nombre de la marca."""
         self.c.post("/pagar/reserva", data=dict(self.RESERVA, marca="Asesorías López"))
