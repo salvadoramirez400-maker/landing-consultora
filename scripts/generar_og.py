@@ -53,7 +53,7 @@ OG = {
     "og-marcas.jpg": {
         "sobre": "Registro de marca en INAPI",
         "titulo": "Si tu marca no está registrada, <b>no es tuya.</b>",
-        "cta": "Revisa tu marca gratis", "video": None, "sello": True,
+        "cta": "Revisa tu marca hoy", "video": None, "sello": True,
     },
 }
 
