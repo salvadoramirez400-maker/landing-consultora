@@ -7,8 +7,9 @@ from zoneinfo import ZoneInfo
 
 from flask import Flask, jsonify, redirect, render_template, request, session, url_for
 
-import db
 import blob
+import catalogo
+import db
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-key-change-in-production")
@@ -38,6 +39,13 @@ def static_v(filename: str) -> str:
 
 
 app.jinja_env.globals["static_v"] = static_v
+app.jinja_env.filters["wa"] = catalogo.wa_link
+
+
+@app.template_filter("clp")
+def clp(monto: int) -> str:
+    """49990 → "$49.990"."""
+    return "$" + f"{monto:,}".replace(",", ".")
 
 
 @app.template_filter("video_poster")
