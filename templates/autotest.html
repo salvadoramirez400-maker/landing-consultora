@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{%- from "_componentes.html" import icono_whatsapp -%}
+
+{% block title %}Autotest sanitario gratis: ¿qué permisos necesita tu centro de salud? · {{ sitio.marca }}{% endblock %}
+{% block description %}Responde 6 preguntas y descubre qué autorizaciones de la SEREMI probablemente necesita tu centro de salud, los 3 riesgos más comunes de tu tipo de local y tu Mapa de permisos en PDF. Gratis y sin dejar tus datos.{% endblock %}
+{% block meta %}
+  {%- if not publico %}
+  <meta name="robots" content="noindex, nofollow">
+  {%- endif %}
+{% endblock %}
+{% block body_class %}pagina-autotest{% endblock %}
+
+{% block content %}
+<section class="at-hero">
+  <div class="at-wrap">
+    <p class="eyebrow">Autotest sanitario · gratis</p>
+    <h1>¿Qué permisos necesita tu centro de salud?</h1>
+    <p class="at-sub">6 preguntas, 2 minutos. Te mostramos qué autorizaciones probablemente necesitas, los 3 riesgos más comunes en tu tipo de local y tu Mapa de permisos en PDF. Sin registrarte y sin dejar tus datos.</p>
+  </div>
+</section>
+
+<section class="at-sec">
+  <div class="at-wrap">
+    {%- if errores %}
+    <div class="at-errores" role="alert"><strong>Te faltó responder:</strong>
+      <ul>{% for e in errores %}<li>{{ e }}</li>{% endfor %}</ul>
+    </div>
+    {%- endif %}
+
+    <form class="at-form" id="at-form" method="get" action="/autotest/resultado" novalidate>
+      <div class="at-progreso" aria-hidden="true"><span id="at-barra"></span></div>
+      <p class="at-paso-n" id="at-paso-n" aria-live="polite"></p>
+
+      <fieldset class="at-paso" data-paso="1">
+        <legend>¿Qué tipo de local es?</legend>
+        <div class="at-opciones">
+          {%- for clave, (visible, _) in at.TIPOS.items() %}
+          <label class="at-opcion"><input type="radio" name="tipo" value="{{ clave }}" required{% if previas.get('tipo') == clave %} checked{% endif %}><span>{{ visible }}</span></label>
+          {%- endfor %}
+        </div>
+      </fieldset>
+
+      <fieldset class="at-paso" data-paso="2">
+        <legend>¿Qué haces en el local? <small>Marca todo lo que corresponda.</small></legend>
+        <div class="at-opciones">
+          {%- for clave, visible in at.PROCEDIMIENTOS.items() %}
+          <label class="at-opcion"><input type="checkbox" name="proc" value="{{ clave }}"{% if clave in previas.getlist('proc') %} checked{% endif %}><span>{{ visible }}</span></label>
+          {%- endfor %}
+        </div>
+      </fieldset>
+
+      <fieldset class="at-paso" data-paso="3">
+        <legend>¿Qué equipos usas o vas a usar? <small>Marca todo lo que corresponda.</small></legend>
+        <div class="at-opciones">
+          {%- for clave, visible in at.EQUIPOS.items() %}
+          <label class="at-opcion"><input type="checkbox" name="eq" value="{{ clave }}"{% if clave in previas.getlist('eq') %} checked{% endif %}><span>{{ visible }}</span></label>
+          {%- endfor %}
+        </div>
+      </fieldset>
+
+      <fieldset class="at-paso" data-paso="4">
+        <legend>¿Cuántos boxes, salas o sillones tiene?</legend>
+        <div class="at-opciones at-opciones--fila">
+          {%- for clave, visible in at.RECINTOS.items() %}
+          <label class="at-opcion"><input type="radio" name="recintos" value="{{ clave }}" required{% if previas.get('recintos') == clave %} checked{% endif %}><span>{{ visible }}</span></label>
+          {%- endfor %}
+        </div>
+      </fieldset>
+
+      <fieldset class="at-paso" data-paso="5">
+        <legend>¿En qué comuna está? <small>Opcional.</small></legend>
+        <div class="at-campo">
+          <label for="at-comuna" class="sr-only">Comuna</label>
+          <input type="text" id="at-comuna" name="comuna" value="{{ previas.get('comuna', '') }}" placeholder="Ej.: Providencia" autocomplete="address-level2" maxlength="{{ at.COMUNA_MAX }}">
+        </div>
+      </fieldset>
+
+      <fieldset class="at-paso" data-paso="6">
+        <legend>¿El local tiene recepción final de la DOM?</legend>
+        <div class="at-opciones">
+          {%- for clave, visible in at.RECEPCION.items() %}
+          <label class="at-opcion"><input type="radio" name="recepcion" value="{{ clave }}" required{% if previas.get('recepcion') == clave %} checked{% endif %}><span>{{ visible }}</span></label>
+          {%- endfor %}
+        </div>
+      </fieldset>
+
+      <p class="at-aviso" id="at-aviso" role="alert" hidden></p>
+      <div class="at-acciones">
+        <button type="button" class="btn btn-outline-navy" id="at-atras" hidden>Atrás</button>
+        <button type="button" class="btn btn-primary" id="at-siguiente" hidden>Siguiente</button>
+        <button type="submit" class="btn btn-primary" id="at-ver">Ver mi resultado</button>
+      </div>
+      <p class="at-nota">Resultado orientativo con reglas fijas a partir de la norma vigente (revisada el {{ at.REVISION_NORMATIVA }}). No es asesoría legal: tu caso lo confirma el diagnóstico.</p>
+    </form>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    // Una pregunta a la vez. Sin JS se ven todas y el formulario funciona igual.
+    var form = document.getElementById('at-form');
+    var pasos = Array.prototype.slice.call(form.querySelectorAll('.at-paso'));
+    var atras = document.getElementById('at-atras');
+    var sig = document.getElementById('at-siguiente');
+    var ver = document.getElementById('at-ver');
+    var aviso = document.getElementById('at-aviso');
+    var barra = document.getElementById('at-barra');
+    var numero = document.getElementById('at-paso-n');
+    var actual = 0;
+    var mensajes = {
+      1: 'Elige el tipo de local.',
+      2: 'Marca al menos una opción.',
+      3: 'Marca tus equipos, o «Ninguno de estos».',
+      4: 'Elige cuántos boxes o salas tiene.',
+      6: 'Elige una opción.'
+    };
+    form.classList.add('at-form--pasos');
+
+    function respondido(i) {
+      var n = i + 1;
+      if (n === 5) return true;
+      return !!pasos[i].querySelector('input:checked');
+    }
+    function mostrar(i) {
+      actual = i;
+      pasos.forEach(function (p, j) { p.hidden = j !== i; });
+      atras.hidden = i === 0;
+      sig.hidden = i === pasos.length - 1;
+      ver.hidden = i !== pasos.length - 1;
+      aviso.hidden = true;
+      barra.style.width = ((i + 1) / pasos.length * 100) + '%';
+      numero.textContent = 'Pregunta ' + (i + 1) + ' de ' + pasos.length;
+    }
+    function avanzar() {
+      if (!respondido(actual)) { aviso.textContent = mensajes[actual + 1]; aviso.hidden = false; return; }
+      if (actual < pasos.length - 1) {
+        mostrar(actual + 1);
+        var primero = pasos[actual].querySelector('input');
+        if (primero) primero.focus({ preventScroll: true });
+        form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+    sig.addEventListener('click', avanzar);
+    atras.addEventListener('click', function () { mostrar(Math.max(0, actual - 1)); });
+    // Con una sola respuesta posible (radio), pasa sola a la siguiente pregunta.
+    form.addEventListener('change', function (e) {
+      if (e.target.type === 'radio' && actual < pasos.length - 1) setTimeout(avanzar, 180);
+    });
+    // «Ninguno de estos» desmarca los demás equipos y al revés.
+    form.addEventListener('change', function (e) {
+      if (e.target.name !== 'eq' || !e.target.checked) return;
+      form.querySelectorAll('input[name="eq"]').forEach(function (c) {
+        if (c !== e.target && (e.target.value === 'ninguno' || c.value === 'ninguno')) c.checked = false;
+      });
+    });
+    form.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' && e.target.id === 'at-comuna') { e.preventDefault(); avanzar(); }
+    });
+    form.addEventListener('submit', function (e) {
+      for (var i = 0; i < pasos.length; i++) {
+        if (!respondido(i)) { e.preventDefault(); mostrar(i); aviso.textContent = mensajes[i + 1]; aviso.hidden = false; return; }
+      }
+    });
+    var primeroSinResponder = pasos.findIndex(function (p, i) { return !respondido(i); });
+    {% if errores %}mostrar(primeroSinResponder < 0 ? 0 : primeroSinResponder);{% else %}mostrar(0);{% endif %}
+  })();
+</script>
+{% endblock %}

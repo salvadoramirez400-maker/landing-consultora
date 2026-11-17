@@ -8,6 +8,7 @@ from zoneinfo import ZoneInfo
 
 from flask import Flask, Response, jsonify, redirect, render_template, request, send_from_directory, session, url_for
 
+import autotest
 import blob
 import catalogo
 import db
@@ -118,12 +119,13 @@ def _preparar_base():
     return None
 
 
-_PAGINAS_SITEMAP = ("/", "/marcas", "/privacidad")
+_PAGINAS_SITEMAP = ("/", "/marcas", "/privacidad") + (("/autotest",) if autotest.PUBLICO else ())
 
 
 @app.route("/robots.txt")
 def robots():
     lineas = ["User-agent: *", "Disallow: /admin", "Disallow: /login", "Disallow: /logout", "Disallow: /api/",
+              "Disallow: /autotest/",
               "", f"Sitemap: {SITIO_URL}/sitemap.xml", ""]
     return Response("\n".join(lineas), mimetype="text/plain")
 
@@ -461,6 +463,47 @@ def _cache_de_borde(resp):
             and "Set-Cookie" not in resp.headers):
         resp.headers["Cache-Control"] = "public, max-age=0, s-maxage=300, stale-while-revalidate=86400"
     return resp
+
+
+# --- Autotest sanitario (gratis) ---
+def _autotest_query(r: autotest.Respuestas) -> str:
+    """Respuestas para el link del PDF. Sin la comuna: el PDF no lleva datos personales."""
+    from urllib.parse import urlencode
+    return urlencode({"tipo": r.tipo, "proc": r.procedimientos, "eq": r.equipos, "recintos": r.recintos,
+                      "recepcion": r.recepcion}, doseq=True)
+
+
+@app.route("/autotest")
+def autotest_pagina():
+    return render_template("autotest.html", config=_config(), at=autotest, errores=[], previas=request.args,
+                           publico=autotest.PUBLICO)
+
+
+@app.route("/autotest/resultado")
+def autotest_resultado():
+    respuestas, errores = autotest.leer(request.args)
+    if errores:
+        return render_template("autotest.html", config=_config(), at=autotest, errores=errores,
+                               previas=request.args, publico=autotest.PUBLICO)
+    res = autotest.evaluar(respuestas)
+    return render_template("autotest_resultado.html", config=_config(), at=autotest, res=res,
+                           wa=catalogo.wa_link(res.whatsapp), pdf_url="/autotest/mapa.pdf?" + _autotest_query(respuestas),
+                           diag=catalogo.servicio("diagnostico-express"))
+
+
+@app.route("/autotest/mapa.pdf")
+def autotest_pdf():
+    respuestas, errores = autotest.leer(request.args)
+    if errores:
+        return redirect("/autotest")
+    import mapa_pdf  # reportlab solo se carga cuando alguien pide el PDF
+
+    pdf = mapa_pdf.generar(autotest.evaluar(respuestas))
+    return Response(pdf, mimetype="application/pdf", headers={
+        "Content-Disposition": 'attachment; filename="Mapa de permisos - Consultoria Clinica Chile.pdf"',
+        "X-Robots-Tag": "noindex",
+        "Cache-Control": "public, max-age=3600",
+    })
 
 
 @app.route("/privacidad")

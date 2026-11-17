@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{%- from "_componentes.html" import icono_whatsapp -%}
+
+{% block title %}Tu resultado del autotest sanitario · {{ sitio.marca }}{% endblock %}
+{% block meta %}
+  <meta name="robots" content="noindex, nofollow">
+{% endblock %}
+{% block body_class %}pagina-autotest{% endblock %}
+
+{% block content %}
+<section class="at-hero at-hero--resultado">
+  <div class="at-wrap">
+    <p class="eyebrow">Autotest sanitario · tu resultado</p>
+    <h1>{{ at.TIPOS[res.respuestas.tipo][0] }}{% if res.respuestas.comuna %} en {{ res.respuestas.comuna }}{% endif %}</h1>
+    <ol class="at-lineas">
+      {%- for linea in res.lineas %}
+      <li>{{ linea }}</li>
+      {%- endfor %}
+    </ol>
+    <div class="at-cta-arriba">
+      <a class="btn btn-primary" href="{{ wa }}" target="_blank" rel="noopener" data-wa="autotest" data-linea="rs">{{ icono_whatsapp(18) }}<span>Quiero el diagnóstico de mi caso</span></a>
+      <a class="btn btn-outline-navy" href="{{ pdf_url }}" data-pdf>Descargar mi Mapa de permisos (PDF)</a>
+    </div>
+  </div>
+</section>
+
+<section class="at-sec">
+  <div class="at-wrap">
+    <h2 class="at-h2">Tu Mapa de permisos</h2>
+    <p class="at-intro">Lo que probablemente te pedirá la SEREMI y lo que conviene tener listo antes de ingresar la solicitud.</p>
+    <ul class="at-permisos">
+      {%- for p in res.permisos %}
+      <li class="at-permiso at-permiso--{{ p.estado|replace(' ', '-') }}">
+        <div class="at-permiso-top">
+          <h3>{{ p.nombre }}</h3>
+          <span class="at-estado">{{ {'probable': 'Probable', 'por confirmar': 'Por confirmar', 'antecedente': 'Antecedente'}[p.estado] }}</span>
+        </div>
+        <p>{{ p.detalle }}</p>
+        <small>{{ p.norma }}</small>
+      </li>
+      {%- endfor %}
+    </ul>
+
+    <h2 class="at-h2">Los 3 riesgos más comunes en tu tipo de local</h2>
+    <ol class="at-riesgos">
+      {%- for r in res.riesgos %}
+      <li>{{ r }}</li>
+      {%- endfor %}
+    </ol>
+
+    <div class="at-siguiente" id="siguiente-paso">
+      <div>
+        <p class="eyebrow">Siguiente paso</p>
+        <h2>{{ diag.nombre }} · {{ diag.precio|clp }}</h2>
+        <p>Revisamos fotos, planos y servicios de tu local, y te decimos exactamente qué autorizaciones necesitas, qué te falta y cuánto cuesta obtener la resolución. {{ diag.plazo }} {{ diag.precio_nota }}</p>
+        <p class="at-nota">{{ diag.nota }} Te escribimos por WhatsApp, por escrito.</p>
+      </div>
+      <div class="at-siguiente-acciones">
+        <a class="btn btn-primary" href="{{ wa }}" target="_blank" rel="noopener" data-wa="autotest-diagnostico" data-linea="rs">{{ icono_whatsapp(18) }}<span>Pedir mi diagnóstico</span></a>
+        <a class="servicio-enlace" href="/autotest">Volver a hacer el autotest</a>
+      </div>
+    </div>
+
+    <p class="at-nota at-nota--pie">Resultado orientativo con reglas fijas a partir de la norma vigente (revisada el {{ at.REVISION_NORMATIVA }}). No es asesoría legal ni reemplaza la revisión de tu caso. {{ sitio.marca }} es una consultora privada: no somos parte de la SEREMI de Salud.</p>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    // Medición: terminar el autotest cuenta como Lead (solo si el visitante aceptó las cookies).
+    if (window.cccLead) window.cccLead('autotest', 'rs');
+    var pdf = document.querySelector('[data-pdf]');
+    if (pdf) pdf.addEventListener('click', function () {
+      if (typeof fbq !== 'undefined') fbq('trackCustom', 'MapaPermisos', { content_category: 'rs' });
+    });
+  })();
+</script>
+{% endblock %}
