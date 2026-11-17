@@ -495,8 +495,7 @@ FAQ_MARCAS = (
      "honorarios. Las tasas de INAPI del reintento las paga el titular. El plan Hazlo Tú no incluye el reintento."),
     ("¿Puedo reservar mi marca sin pagar todo?",
      "Sí. Con $49.990 reservas tu marca: hacemos el estudio formal y dejamos la solicitud lista. Ese monto se "
-     "descuenta completo del plan y tienes 30 días para completar el saldo. La reserva no es reembolsable, porque "
-     "cubre el estudio y la solicitud, que te entregamos igual."),
+     "descuenta completo del plan y tienes 30 días para completar el saldo."),
     ("¿Ustedes son parte de INAPI?",
      "No. Somos una consultora privada: preparamos y presentamos tu solicitud ante INAPI y hacemos el seguimiento "
      "por ti."),

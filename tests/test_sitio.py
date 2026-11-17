@@ -243,10 +243,10 @@ class PaginasPublicas(unittest.TestCase):
                     self.assertIn("modalidad Completa", respuesta)
 
     def test_nunca_se_menciona_devolucion(self):
-        """Salvador, 17-nov-2026: nunca se menciona devolución del anticipo ni de ningún pago."""
+        """Salvador, 17-nov-2026: nunca se habla de devoluciones ni de reembolsos, para bien o para mal."""
         for ruta, html in self.html.items():
             with self.subTest(ruta=ruta):
-                self.assertIsNone(re.search(r"devol", _texto_visible(html), re.I))
+                self.assertIsNone(re.search(r"devol|reembols", _texto_visible(html), re.I))
 
     def test_pago_de_la_rs_igual_a_empresa_json(self):
         empresa = TARIFAS.parent / "empresa.json"
