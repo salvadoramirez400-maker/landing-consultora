@@ -1106,3 +1106,12 @@ body.con-modal { overflow: hidden; }
 .pg-pasos li::marker { color: var(--accent); font-weight: 700; }
 .pagina-pagar .md-trampa { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
 @media (max-width: 520px) { .pg-dos { grid-template-columns: minmax(0, 1fr); } .pg-form { padding: 18px; } .pg-resumen { flex-direction: column; align-items: flex-start; gap: 6px; } }
+
+/* ----- Reserva de marca con tarjeta ----- */
+.mk-reserva { display: flex; align-items: center; gap: 18px; margin-top: 22px; padding: 18px 22px; border: 1px solid var(--gray-100); border-radius: var(--r-lg); background: var(--white); box-shadow: var(--shadow-sm); }
+.mk-reserva p { flex: 1; font-size: 0.94rem; line-height: 1.55; color: var(--gray-500); }
+.mk-reserva p b { color: var(--near-black); }
+.mk-reserva .btn { flex: none; }
+.pg-aviso { padding: 12px 16px; border-left: 4px solid var(--azul); background: var(--accent-light); border-radius: 0 var(--r-sm) var(--r-sm) 0; font-size: 0.9rem; line-height: 1.5; color: var(--gray-700); }
+.pg-aviso a { color: var(--accent); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
+@media (max-width: 760px) { .mk-reserva { flex-direction: column; align-items: flex-start; } .mk-reserva .btn { width: 100%; } }

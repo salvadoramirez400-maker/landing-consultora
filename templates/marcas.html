@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% from "_componentes.html" import monograma, icono_whatsapp %}
+{% from "_componentes.html" import monograma, icono_whatsapp, icono_tarjeta %}
 {% block title %}Registro de marca en INAPI | {{ sitio.marca }}{% endblock %}
 {% block description %}Revisamos gratis si el nombre de tu marca está disponible y lo registramos en INAPI por ti. Registro Completo a {{ marca.precio|clp }}, tasas INAPI aparte.{% endblock %}
 {% block og_title %}Registra tu marca antes de que otro lo haga{% endblock %}
@@ -75,7 +75,10 @@
         {%- endfor %}
       </div>
       <p class="mk-tasas">Tasas de INAPI aparte: 1 UTM por clase al presentar ($72.440) y 2 UTM por clase al aceptar ($144.880), más la publicación en el Diario Oficial. Clase adicional: $49.990. Te avisamos el monto exacto en cada etapa.</p>
-      <p class="mk-tasas"><b>¿Prefieres partir de a poco? Reserva tu marca con $49.990.</b> Hacemos el estudio formal y dejamos tu solicitud lista; se descuenta completa del plan y tienes 30 días para completar el saldo.</p>
+      <div class="mk-reserva reveal">
+        <p><b>¿Prefieres partir de a poco? Reserva tu marca con $49.990.</b> Hacemos el estudio formal y dejamos tu solicitud lista; se descuenta completa del plan y tienes 30 días para completar el saldo.</p>
+        <a class="btn btn-outline-navy" href="/pagar/reserva" data-pago="reserva-marca" data-valor="49990" data-linea-pago="marcas">{{ icono_tarjeta(18) }}<span>Reservar con tarjeta</span></a>
+      </div>
       <div class="mk-garantia reveal">
         <div class="mk-sello" aria-hidden="true">®</div>
         <div><b>Garantía de reintento</b>Con los planes Completo y PRO, si INAPI no acepta tu marca, la presentamos de nuevo sin cobrarte honorarios.</div>

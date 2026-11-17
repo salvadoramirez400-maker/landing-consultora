@@ -97,7 +97,7 @@
             {% if pedidos %}
                 <table>
                     <thead>
-                        <tr><th>N.°</th><th>Fecha</th><th>Producto</th><th>Monto</th><th>Nombre</th><th>WhatsApp</th><th>Local</th><th>Estado</th></tr>
+                        <tr><th>N.°</th><th>Fecha</th><th>Producto</th><th>Monto</th><th>Nombre</th><th>WhatsApp</th><th>Local o marca</th><th>Estado</th></tr>
                     </thead>
                     <tbody>
                         {% for p in pedidos %}
@@ -108,7 +108,7 @@
                                 <td>{{ p.monto|clp }}</td>
                                 <td><strong>{{ p.nombre }}</strong></td>
                                 <td>{{ p.telefono }}</td>
-                                <td>{{ p.tipo or '—' }}{% if p.comuna %}<br><small>{{ p.comuna }}</small>{% endif %}</td>
+                                <td>{% if p.marca %}Marca: <strong>{{ p.marca }}</strong>{% else %}{{ p.tipo or '—' }}{% endif %}{% if p.comuna %}<br><small>{{ p.comuna }}</small>{% endif %}</td>
                                 <td>{% if p.estado == 'pagado' %}<strong>Pagado</strong> (confirmado por Mercado Pago){% elif p.estado == 'pendiente' %}Pago en proceso{% elif p.estado == 'rechazado' %}Rechazado{% else %}Fue a pagar; sin confirmación{% endif %}</td>
                             </tr>
                         {% endfor %}

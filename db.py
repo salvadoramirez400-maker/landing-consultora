@@ -41,6 +41,7 @@ def ensure_schema() -> None:
         cur.execute((MIGRACIONES / "001_init.sql").read_text())
         cur.execute((MIGRACIONES / "002_marcas_titulares.sql").read_text())
         cur.execute((MIGRACIONES / "004_pedidos.sql").read_text())
+        cur.execute((MIGRACIONES / "005_pedidos_marca.sql").read_text())
         if nueva:
             cur.execute((MIGRACIONES / "003_portada_sin_cifras.sql").read_text())
 
@@ -157,11 +158,12 @@ def marcar_titular_procesado(titular_id: int) -> None:
 _FECHA_TXT = "to_char(fecha AT TIME ZONE 'America/Santiago', 'YYYY-MM-DD HH24:MI') AS fecha_txt"
 
 
-def insert_pedido(ficha: str, producto: str, monto: int, nombre: str, telefono: str, tipo: str, comuna: str) -> int:
+def insert_pedido(ficha: str, producto: str, monto: int, nombre: str, telefono: str, tipo: str, comuna: str,
+                  marca: str = "") -> int:
     with get_conn() as conn, conn.cursor() as cur:
-        cur.execute("INSERT INTO pedidos (ficha, producto, monto, nombre, telefono, tipo, comuna) "
-                    "VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
-                    (ficha, producto, monto, nombre, telefono, tipo, comuna))
+        cur.execute("INSERT INTO pedidos (ficha, producto, monto, nombre, telefono, tipo, comuna, marca) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING id",
+                    (ficha, producto, monto, nombre, telefono, tipo, comuna, marca))
         return cur.fetchone()["id"]
 
 

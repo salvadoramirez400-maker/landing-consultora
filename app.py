@@ -488,18 +488,48 @@ for _nombre in _PAGOS:
 # 2. Con MP_ACCESS_TOKEN en Vercel, crea el cobro en Mercado Pago con el pedido como referencia: el cliente vuelve a
 #    /pago/gracias y Mercado Pago avisa a /api/mp/webhook. Sin la variable, manda al link de pago fijo (_PAGOS).
 # 3. Un pedido solo queda «pagado» si Mercado Pago lo confirma al consultarle el pago (mercadopago.consultar_pago).
-_PRODUCTOS_PAGO = {
-    "diagnostico": {"servicio": "diagnostico-express", "titulo": "Diagnóstico sanitario express · Consultoría Clínica Chile",
-                    "linea": "rs"},
-}
+def _productos_pago() -> dict:
+    """Lo que se puede pagar con tarjeta desde la web. Precios y textos salen de catalogo.py (tarifas.json)."""
+    diag = catalogo.servicio("diagnostico-express")
+    return {
+        "diagnostico": {
+            "clave": "diagnostico", "nombre": diag.nombre, "monto": diag.precio, "linea": "rs",
+            "titulo": "Diagnóstico sanitario express · Consultoría Clínica Chile",
+            "resumen": f"{diag.precio_nota} Plazo: {diag.plazo}",
+            "campos": "local", "volver": "/#resolucion", "wa": diag.pago_whatsapp, "evento": "diagnostico-express",
+            "boton_gracias": "Enviar mis fotos por WhatsApp",
+            "pasos": ["Escríbenos por WhatsApp con el botón de abajo.",
+                      "Mándanos fotos del local, los planos si tienes y la lista de servicios que vas a prestar.",
+                      f"Te entregamos el diagnóstico en {diag.plazo[0].lower()}{diag.plazo[1:]}"],
+        },
+        "reserva": {
+            "clave": "reserva", "nombre": "Reserva de marca", "monto": catalogo.RESERVA_MARCA, "linea": "marcas",
+            "titulo": "Reserva de registro de marca · Consultoría Clínica Chile",
+            "resumen": "Hacemos el estudio formal y dejamos tu solicitud lista. Se descuenta completa del plan y "
+                       "tienes 30 días para completar el saldo.",
+            "campos": "marca", "volver": "/marcas#planes", "wa": catalogo.WA_RESERVA_PAGADA, "evento": "reserva-marca",
+            "boton_gracias": "Avisar por WhatsApp",
+            "pasos": ["Avísanos por WhatsApp con el botón de abajo.",
+                      "Completa los datos del titular de la marca: con eso preparamos la solicitud y el poder simple.",
+                      "Hacemos el estudio formal (clases y riesgo) y dejamos tu solicitud lista. Tienes 30 días para "
+                      "completar el saldo del plan; la reserva sola no presenta la marca."],
+            "enlace_paso": ("/marcas/datos", "Completar los datos del titular"),
+            "aviso": "¿Todavía no revisamos tu marca? Pide primero la revisión gratis: te decimos si está disponible "
+                     "antes de que pagues.",
+        },
+    }
 
 
-def _wa_pago(pedido: dict | None, servicio) -> str:
-    """Texto de WhatsApp para después de pagar: activa a Andrea y lleva el número del pedido."""
-    base = servicio.pago_whatsapp
+def _wa_pago(pedido: dict | None, prod: dict) -> str:
+    """Texto de WhatsApp para después de pagar: activa el bot de su línea y lleva el número del pedido."""
+    base = prod["wa"]
     if pedido:
         con_pedido = base.rstrip(".") + f". Pedido web N.° {pedido['id']}."
-        if not catalogo.revisar_texto(con_pedido, servicio.linea):
+        if pedido.get("marca"):
+            con_marca = base.rstrip(".") + f". Marca: {pedido['marca']}. Pedido web N.° {pedido['id']}."
+            if not catalogo.revisar_texto(con_marca, prod["linea"]):
+                return con_marca
+        if not catalogo.revisar_texto(con_pedido, prod["linea"]):
             return con_pedido
     return base
 
@@ -511,7 +541,8 @@ def _avisar_pago(pedido: dict) -> None:
     if not token or not chat:
         return
     texto = (f"PAGO CONFIRMADO por Mercado Pago · {pedido['producto']} · {clp(pedido['monto'])}\n"
-             f"{pedido['nombre']} · {pedido['telefono']}" + (f" · {pedido['tipo']}" if pedido.get("tipo") else "")
+             f"{pedido['nombre']} · {pedido['telefono']}" + (f" · Marca: {pedido['marca']}" if pedido.get("marca") else "")
+             + (f" · {pedido['tipo']}" if pedido.get("tipo") else "")
              + (f" · {pedido['comuna']}" if pedido.get("comuna") else "") + f"\nPedido web N.° {pedido['id']}")
     try:
         datos = urllib.parse.urlencode({"chat_id": chat, "text": texto}).encode()
@@ -536,36 +567,42 @@ def _registrar_pago(pago: dict | None) -> None:
 
 @app.route("/pagar/<producto>", methods=["GET", "POST"])
 def pagar(producto):
-    datos_producto = _PRODUCTOS_PAGO.get(producto)
-    if not datos_producto:
+    prod = _productos_pago().get(producto)
+    if not prod:
         abort(404)
-    servicio = catalogo.servicio(datos_producto["servicio"])
-    contexto = dict(config=_config(), producto=producto, servicio=servicio, tipos=catalogo.TIPOS_ESTABLECIMIENTO)
+    contexto = dict(config=_config(), prod=prod, tipos=catalogo.TIPOS_ESTABLECIMIENTO, wa_pagina=_wa_pagina(prod["linea"]),
+                    wa_revisar=catalogo.wa_link(catalogo.WA_MARCAS))
     if request.method == "GET":
         aviso = ["El pago no se completó. Puedes intentarlo de nuevo o escribirnos por WhatsApp."] if request.args.get("pedido") else []
         return render_template("pagar.html", errores=aviso, datos={}, **contexto)
     if request.form.get("sitio_web"):   # campo trampa: solo lo llenan los robots
         return redirect(f"/pagar/{producto}", code=303)
-    f = {k: " ".join(request.form.get(k, "").split())[:80] for k in ("nombre", "telefono", "tipo", "comuna")}
+    f = {k: " ".join(request.form.get(k, "").split())[:80] for k in ("nombre", "telefono", "tipo", "comuna", "marca")}
     errores = []
     if len(f["nombre"]) < 2:
         errores.append("Escribe tu nombre.")
     if not 8 <= len(re.sub(r"\D", "", f["telefono"])) <= 12:
         errores.append("Escribe tu WhatsApp con código, por ejemplo +56 9 1234 5678.")
-    if f["tipo"] not in {visible for visible, _ in catalogo.TIPOS_ESTABLECIMIENTO} | {""}:
-        f["tipo"] = ""
+    if prod["campos"] == "marca":
+        f["tipo"] = f["comuna"] = ""
+        if len(f["marca"]) < 2:
+            errores.append("Escribe el nombre de la marca que quieres reservar.")
+    else:
+        f["marca"] = ""
+        if f["tipo"] not in {visible for visible, _ in catalogo.TIPOS_ESTABLECIMIENTO} | {""}:
+            f["tipo"] = ""
     if errores:
         return render_template("pagar.html", errores=errores, datos=f, **contexto), 400
     ficha = secrets.token_urlsafe(12)
     guardado = True
     try:
-        db.insert_pedido(ficha, servicio.nombre, servicio.precio, f["nombre"], f["telefono"], f["tipo"], f["comuna"])
+        db.insert_pedido(ficha, prod["nombre"], prod["monto"], f["nombre"], f["telefono"], f["tipo"], f["comuna"], f["marca"])
     except Exception:   # si la base falla, no se pierde la venta: igual sigue al pago
         guardado = False
         app.logger.exception("No se pudo guardar el pedido")
     if guardado and mercadopago.configurado():
         try:
-            pref = mercadopago.crear_preferencia(ficha=ficha, titulo=datos_producto["titulo"], monto=servicio.precio,
+            pref = mercadopago.crear_preferencia(ficha=ficha, titulo=prod["titulo"], monto=prod["monto"],
                                                  sitio_url=SITIO_URL, producto=producto)
             db.set_pedido_preferencia(ficha, pref["id"])
             return redirect(pref["url"], code=303)
@@ -588,12 +625,11 @@ def pago_gracias():
         pedido = db.get_pedido(ficha) if ficha else None
     except Exception:
         app.logger.exception("No se pudo leer el pedido")
-    producto = next((k for k, v in _PRODUCTOS_PAGO.items() if pedido and catalogo.servicio(v["servicio"]).nombre == pedido["producto"]),
-                    "diagnostico")
-    servicio = catalogo.servicio(_PRODUCTOS_PAGO[producto]["servicio"])
-    return render_template("pago_gracias.html", config=_config(), pedido=pedido, servicio=servicio,
-                           estado=(pedido or {}).get("estado", "desconocido"),
-                           wa=catalogo.wa_link(_wa_pago(pedido, servicio)))
+    productos = _productos_pago()
+    prod = next((v for v in productos.values() if pedido and v["nombre"] == pedido["producto"]), productos["diagnostico"])
+    return render_template("pago_gracias.html", config=_config(), pedido=pedido, prod=prod,
+                           estado=(pedido or {}).get("estado", "desconocido"), wa_pagina=_wa_pagina(prod["linea"]),
+                           wa=catalogo.wa_link(_wa_pago(pedido, prod)))
 
 
 @app.route("/api/mp/webhook", methods=["POST", "GET"])
@@ -615,8 +651,8 @@ def api_pedidos():
     """Pagos confirmados que todavía no se le avisan a Salvador (para la revisión automática de CCC)."""
     if not _token_marcas_ok():
         return jsonify({"ok": False}), 401
-    campos = ("id", "fecha_txt", "producto", "monto", "nombre", "telefono", "tipo", "comuna", "estado", "mp_pago")
-    return jsonify({"ok": True, "pedidos": [{k: p[k] for k in campos} for p in db.list_pedidos(solo_sin_avisar=True)]})
+    campos = ("id", "fecha_txt", "producto", "monto", "nombre", "telefono", "tipo", "comuna", "marca", "estado", "mp_pago")
+    return jsonify({"ok": True, "pedidos": [{k: p.get(k, "") for k in campos} for p in db.list_pedidos(solo_sin_avisar=True)]})
 
 
 @app.route("/api/pedidos/<int:pedido_id>/avisado", methods=["POST"])

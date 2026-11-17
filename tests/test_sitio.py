@@ -33,9 +33,10 @@ def _db_simulada() -> types.ModuleType:
     # Pedidos de pago con tarjeta, en memoria
     db.pedidos = []
 
-    def insert_pedido(ficha, producto, monto, nombre, telefono, tipo, comuna):
+    def insert_pedido(ficha, producto, monto, nombre, telefono, tipo, comuna, marca=""):
         db.pedidos.append({"id": len(db.pedidos) + 1, "ficha": ficha, "producto": producto, "monto": monto,
-                           "nombre": nombre, "telefono": telefono, "tipo": tipo, "comuna": comuna, "estado": "iniciado",
+                           "nombre": nombre, "telefono": telefono, "tipo": tipo, "comuna": comuna, "marca": marca,
+                           "estado": "iniciado",
                            "mp_preferencia": "", "mp_pago": "", "avisado": False, "fecha_txt": "2026-11-17 15:00"})
         return len(db.pedidos)
 
@@ -68,6 +69,8 @@ def _textos_whatsapp():
     """(origen, texto, línea) de todos los textos precargados del catálogo."""
     for nombre, (texto, linea) in catalogo.TEXTOS_WHATSAPP.items():
         yield nombre, texto, linea
+    yield "WA_RESERVA_PAGADA", catalogo.WA_RESERVA_PAGADA, "marcas"
+    yield "WA_RESERVA_PAGADA con marca", catalogo.WA_RESERVA_PAGADA.rstrip(".") + ". Marca: Café Aurora. Pedido web N.° 7.", "marcas"
     for s in catalogo.SERVICIOS + catalogo.BORRADORES:
         yield s.id, s.whatsapp, s.linea
         if s.pago_whatsapp:
@@ -121,6 +124,7 @@ class Catalogo(unittest.TestCase):
         mantencion = next(s for s in catalogo.BORRADORES if s.id == "mantencion")
         self.assertEqual(mantencion.precio, t["mantencion"]["precio_mensual"])
         self.assertEqual(t["inapi"]["reserva"]["precio"], 49990)  # la reserva que se nombra en /marcas
+        self.assertEqual(catalogo.RESERVA_MARCA, t["inapi"]["reserva"]["precio"])
         # Borradores ocultos: que no queden con precios viejos el día que se publiquen.
         for id_, clave in (("kit-documental", "kit_documental"), ("pre-auditoria-remota", "preauditoria_remota"),
                            ("sos-fiscalizacion", "sos_fiscalizacion")):
@@ -198,6 +202,9 @@ class PaginasPublicas(unittest.TestCase):
         self.assertIn('data-valor="79990"', etiqueta)
         self.assertIn("diagnostico", sitio._PAGOS)
         self.assertIn("Después de pagar", _texto_visible(html))
+        marcas = re.search(r'<a\b[^>]*data-pago="reserva-marca"[^>]*>', self.html["/marcas"]).group(0)
+        self.assertIn('href="/pagar/reserva"', marcas)
+        self.assertIn('data-valor="49990"', marcas)
 
     def test_www_redirige_al_dominio(self):
         r = self.c.get("/marcas?utm_source=x", headers={"Host": "www.consultoriaclinica.cl"})

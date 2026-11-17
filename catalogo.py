@@ -87,6 +87,7 @@ TEXTOS_WHATSAPP = {
     "WA_OTROS": (WA_OTROS, "rs"),
     "WA_MARCAS": (WA_MARCAS, "marcas"),
 }
+# WA_RESERVA_PAGADA se define más abajo, junto a la reserva; tests/test_sitio.py también lo revisa.
 
 # Opciones del formulario «Cuéntanos tu caso» de la portada: (texto visible, cómo sigue el mensaje).
 TIPOS_ESTABLECIMIENTO = (
@@ -237,6 +238,11 @@ SERVICIOS = (
         enlace_url="/marcas#planes",
     ),
 )
+
+# Reserva de marca (tarifas.json → servicios.inapi.reserva): estudio formal y solicitud lista; se descuenta completa
+# del plan y hay 30 días para completar el saldo. Se paga con tarjeta en /pagar/reserva (app.py).
+RESERVA_MARCA = 49990
+WA_RESERVA_PAGADA = "Hola, pagué la reserva del registro de marca en la página web y envío el comprobante."
 
 # Productos en preparación: NO se muestran. Precios y plazos al 17-nov-2026 ~14:27 (la Ruta RS quedó retirada).
 # Productos en preparación: NO se muestran. Precios aprobados el 17-nov-2026 (tarifas.json → servicios.*);

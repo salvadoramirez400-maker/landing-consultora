@@ -182,6 +182,66 @@ class Pagos(unittest.TestCase):
         self.assertEqual(p["estado"], "iniciado")
         self.assertEqual(self.c.get("/pago/gracias?pedido=no-existe").status_code, 200)
 
+    # --- Reserva de marca ---
+    RESERVA = {"nombre": "Luis Soto", "telefono": "+56 9 8765 4321", "marca": "Café Aurora"}
+
+    def test_reserva_formulario(self):
+        html = self.c.get("/pagar/reserva").get_data(as_text=True)
+        self.assertEqual(html.count("<h1"), 1)
+        self.assertIn("Reserva de marca", html)
+        self.assertIn("$49.990", html)
+        self.assertIn('name="marca"', html)
+        self.assertNotIn('name="tipo"', html)
+        self.assertIn("Pide primero la revisión gratis", html)
+        montos = set(re.findall(r"\$\d{1,3}(?:\.\d{3})+", test_sitio._texto_visible(html)))
+        self.assertEqual(montos, {"$49.990"})
+        self.assertIsNone(re.search(r"devol|reembols", test_sitio._texto_visible(html), re.I))
+
+    def test_reserva_pide_la_marca(self):
+        r = self.c.post("/pagar/reserva", data={"nombre": "Luis Soto", "telefono": "+56 9 8765 4321"})
+        self.assertEqual(r.status_code, 400)
+        self.assertIn("Escribe el nombre de la marca", r.get_data(as_text=True))
+        self.assertEqual(sitio.db.pedidos, [])
+
+    def test_reserva_guarda_y_va_a_su_link(self):
+        r = self.c.post("/pagar/reserva", data=self.RESERVA)
+        self.assertEqual(r.status_code, 303)
+        self.assertEqual(r.headers["Location"], sitio._PAGOS["reserva"])
+        (p,) = sitio.db.pedidos
+        self.assertEqual((p["producto"], p["monto"], p["marca"], p["tipo"]), ("Reserva de marca", 49990, "Café Aurora", ""))
+
+    def test_reserva_cobro_y_vuelta(self):
+        creados = []
+        self._con_mercado_pago()
+        mercadopago.crear_preferencia = lambda **k: creados.append(k) or {"id": "pref-2", "url": "https://www.mercadopago.cl/x"}
+        self.c.post("/pagar/reserva", data=self.RESERVA)
+        self.assertEqual((creados[0]["monto"], creados[0]["producto"]), (49990, "reserva"))
+        self.assertIn("Reserva de registro de marca", creados[0]["titulo"])
+        p = sitio.db.pedidos[-1]
+        mercadopago.consultar_pago = lambda pago_id: {"id": "777", "estado": "pagado", "ficha": p["ficha"], "monto": 49990}
+        html = self.c.get(f"/pago/gracias?pedido={p['ficha']}&payment_id=777").get_data(as_text=True)
+        self.assertIn("Tu pago quedó confirmado", html)
+        self.assertIn("Café Aurora", html)
+        self.assertIn('href="/marcas/datos"', html)
+        self.assertIn("la reserva sola no presenta la marca", html)
+        enlace = unescape(re.search(r'href="(https://wa\.me/[^"]+)"[^>]*data-wa="pago-gracias"', html).group(1))
+        texto = parse_qs(urlparse(enlace).query)["text"][0]
+        self.assertEqual(catalogo.revisar_texto(texto, "marcas"), [])
+        self.assertIn("Marca: Café Aurora", texto)
+        self.assertIn('data-linea="marcas"', html)
+
+    def test_reserva_marca_que_activaria_otro_bot_se_omite(self):
+        """Una marca como «Asesorías López» activaría a Andrea: el mensaje va sin el nombre de la marca."""
+        self.c.post("/pagar/reserva", data=dict(self.RESERVA, marca="Asesorías López"))
+        p = sitio.db.pedidos[-1]
+        p["estado"] = "pagado"
+        html = self.c.get(f"/pago/gracias?pedido={p['ficha']}").get_data(as_text=True)
+        enlace = unescape(re.search(r'href="(https://wa\.me/[^"]+)"[^>]*data-wa="pago-gracias"', html).group(1))
+        texto = parse_qs(urlparse(enlace).query)["text"][0]
+        self.assertEqual(catalogo.revisar_texto(texto, "marcas"), [])
+        self.assertNotIn("Asesorías", texto)
+        self.assertIn(f"Pedido web N.° {p['id']}", texto)
+
     def test_api_de_pedidos_pide_la_clave(self):
         self.assertEqual(self.c.get("/api/pedidos").status_code, 401)
         p = self._pedido()

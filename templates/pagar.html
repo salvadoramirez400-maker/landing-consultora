@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {%- from "_componentes.html" import icono_tarjeta, monograma -%}
-{% block title %}Pagar {{ servicio.nombre|lower }} | {{ sitio.marca }}{% endblock %}
+{% block title %}Pagar {{ prod.nombre|lower }} | {{ sitio.marca }}{% endblock %}
 {% block meta %}
   <meta name="robots" content="noindex, nofollow">
 {% endblock %}
@@ -10,7 +10,7 @@
   <nav class="nav" aria-label="Principal">
     <div class="nav-inner">
       <a href="/" class="logo" aria-label="{{ sitio.marca }}, inicio">{{ monograma() }}<span>{{ sitio.marca }}</span></a>
-      <a href="/#resolucion" class="btn btn-sm btn-nav">Volver</a>
+      <a href="{{ prod.volver }}" class="btn btn-sm btn-nav">Volver</a>
     </div>
   </nav>
 {%- endblock %}
@@ -23,17 +23,20 @@
   <canvas class="fondo-vivo" data-fondo="claro" aria-hidden="true"></canvas>
   <div class="pg-wrap">
     <p class="eyebrow entra" style="--i:0">Pago con tarjeta</p>
-    <h1 class="entra" style="--i:2">{{ servicio.nombre }}</h1>
+    <h1 class="entra" style="--i:2">{{ prod.nombre }}</h1>
     <div class="pg-resumen entra" style="--i:4">
-      <b>{{ servicio.precio|clp }}</b>
-      <span>{{ servicio.precio_nota }} Plazo: {{ servicio.plazo }}</span>
+      <b>{{ prod.monto|clp }}</b>
+      <span>{{ prod.resumen }}</span>
     </div>
+    {%- if prod.aviso %}
+    <p class="pg-aviso entra" style="--i:5">{{ prod.aviso }} <a href="{{ wa_revisar }}" target="_blank" rel="noopener" data-wa="pagar-revisar" data-linea="marcas">Revisar mi marca gratis</a></p>
+    {%- endif %}
 
     {%- if errores %}
     <div class="at-errores" role="alert"><ul>{% for e in errores %}<li>{{ e }}</li>{% endfor %}</ul></div>
     {%- endif %}
 
-    <form class="pg-form entra" style="--i:6" method="post" action="/pagar/{{ producto }}" novalidate id="pg-form">
+    <form class="pg-form entra" style="--i:6" method="post" action="/pagar/{{ prod.clave }}" novalidate id="pg-form">
       <p class="pg-intro">Déjanos tu nombre y tu WhatsApp para saber de quién es el pago y escribirte con los pasos que siguen.</p>
       <div class="md-trampa" aria-hidden="true"><label for="sitio_web">No completes este campo</label><input id="sitio_web" name="sitio_web" tabindex="-1" autocomplete="off"></div>
       <div class="pg-campo">
@@ -44,6 +47,12 @@
         <label for="pg-telefono">WhatsApp</label>
         <input id="pg-telefono" name="telefono" type="tel" value="{{ datos.telefono or '' }}" required maxlength="20" autocomplete="tel" placeholder="+56 9 1234 5678">
       </div>
+      {%- if prod.campos == 'marca' %}
+      <div class="pg-campo">
+        <label for="pg-marca">Nombre de la marca que quieres reservar</label>
+        <input id="pg-marca" name="marca" value="{{ datos.marca or '' }}" required maxlength="80" autocomplete="off">
+      </div>
+      {%- else %}
       <div class="pg-dos">
         <div class="pg-campo">
           <label for="pg-tipo">Tipo de establecimiento <small>(opcional)</small></label>
@@ -59,6 +68,7 @@
           <input id="pg-comuna" name="comuna" value="{{ datos.comuna or '' }}" maxlength="60" autocomplete="address-level2">
         </div>
       </div>
+      {%- endif %}
       <button type="submit" class="btn btn-primary">{{ icono_tarjeta(18) }}<span>Continuar al pago seguro</span></button>
       <p class="pg-nota">Te llevamos a Mercado Pago: tarjeta de crédito, débito o prepago, hasta 12 cuotas (el interés lo cobra tu tarjeta), o transferencia. No guardamos datos de tu tarjeta. Tus datos se usan solo para este servicio (<a href="/privacidad">política de privacidad</a>).</p>
     </form>
@@ -69,7 +79,7 @@
 {% block scripts %}
 <script>
   document.getElementById('pg-form').addEventListener('submit', function () {
-    if (typeof fbq !== 'undefined') fbq('track', 'InitiateCheckout', { content_name: 'pagar-{{ producto }}', content_category: '{{ servicio.linea }}', value: {{ servicio.precio }}, currency: 'CLP' });
+    if (typeof fbq !== 'undefined') fbq('track', 'InitiateCheckout', { content_name: 'pagar-{{ prod.clave }}', content_category: '{{ prod.linea }}', value: {{ prod.monto }}, currency: 'CLP' });
   });
 </script>
 {% endblock %}

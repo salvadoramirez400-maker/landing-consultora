@@ -46,6 +46,9 @@ CONVERSIONES = [
     ("Web · Lead · Autotest terminado", "LEAD", _y("Lead", {"content_name": {"eq": "autotest"}})),
     ("Web · Pago con tarjeta iniciado · Diagnóstico", "INITIATED_CHECKOUT",
      _y("InitiateCheckout", {"content_name": {"i_contains": "diagnostico"}})),
+    ("Web · Pago con tarjeta iniciado · Reserva de marca", "INITIATED_CHECKOUT",
+     _y("InitiateCheckout", {"content_name": {"i_contains": "reserva"}})),
+    ("Web · Compra confirmada", "PURCHASE", _y("Purchase", {"URL": {"i_contains": DOMINIO}})),
     # Los eventos propios necesitan una condición además del nombre: se usa el dominio del sitio.
     ("Web · Clic al autotest", "OTHER", _y("ClicAutotest", {"URL": {"i_contains": DOMINIO}})),
     ("Web · Pop-up de salida visto", "OTHER", _y("PopupSalida", {"URL": {"i_contains": DOMINIO}})),

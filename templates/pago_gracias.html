@@ -24,31 +24,34 @@
     <h1 class="entra" style="--i:2">Gracias{% if pedido and pedido.nombre %}, {{ pedido.nombre.split(' ')[0] }}{% endif %}. Tu pago quedó confirmado</h1>
     <div class="pg-resumen entra" style="--i:4">
       <b>{{ pedido.monto|clp }}</b>
-      <span>{{ pedido.producto }} · Pedido web N.° {{ pedido.id }}</span>
+      <span>{{ pedido.producto }}{% if pedido.marca %} · {{ pedido.marca }}{% endif %} · Pedido web N.° {{ pedido.id }}</span>
     </div>
     <div class="pg-form entra" style="--i:6">
       <h2>Lo que sigue</h2>
       <ol class="pg-pasos">
-        <li>Escríbenos por WhatsApp con el botón de abajo.</li>
-        <li>Mándanos fotos del local, los planos si tienes y la lista de servicios que vas a prestar.</li>
-        <li>Te entregamos el diagnóstico en {{ servicio.plazo[0]|lower }}{{ servicio.plazo[1:] }}</li>
+        {%- for paso in prod.pasos %}
+        <li>{{ paso }}</li>
+        {%- endfor %}
       </ol>
-      <a class="btn btn-primary" href="{{ wa }}" target="_blank" rel="noopener" data-wa="pago-gracias" data-linea="{{ servicio.linea }}">{{ icono_whatsapp(18) }}<span>Enviar mis fotos por WhatsApp</span></a>
+      <a class="btn btn-primary" href="{{ wa }}" target="_blank" rel="noopener" data-wa="pago-gracias" data-linea="{{ prod.linea }}">{{ icono_whatsapp(18) }}<span>{{ prod.boton_gracias }}</span></a>
+      {%- if prod.enlace_paso %}
+      <a class="btn btn-outline-navy" href="{{ prod.enlace_paso[0] }}">{{ prod.enlace_paso[1] }}</a>
+      {%- endif %}
     </div>
     {%- elif estado == 'pendiente' %}
     <p class="eyebrow entra" style="--i:0">Pago en proceso</p>
     <h1 class="entra" style="--i:2">Mercado Pago todavía está procesando tu pago</h1>
     <div class="pg-form entra" style="--i:4">
       <p class="pg-intro">Puede tardar unos minutos. Cuando se apruebe, Mercado Pago te avisa por correo. Si quieres, escríbenos y lo revisamos contigo.</p>
-      <a class="btn btn-primary" href="{{ wa }}" target="_blank" rel="noopener" data-wa="pago-pendiente" data-linea="{{ servicio.linea }}">{{ icono_whatsapp(18) }}<span>Escribir por WhatsApp</span></a>
+      <a class="btn btn-primary" href="{{ wa }}" target="_blank" rel="noopener" data-wa="pago-pendiente" data-linea="{{ prod.linea }}">{{ icono_whatsapp(18) }}<span>Escribir por WhatsApp</span></a>
     </div>
     {%- else %}
     <p class="eyebrow entra" style="--i:0">Estado de tu pago</p>
     <h1 class="entra" style="--i:2">Todavía no vemos tu pago confirmado</h1>
     <div class="pg-form entra" style="--i:4">
       <p class="pg-intro">Si ya pagaste, mándanos el comprobante por WhatsApp y lo revisamos. Si no alcanzaste a pagar, puedes intentarlo de nuevo.</p>
-      <a class="btn btn-primary" href="{{ wa }}" target="_blank" rel="noopener" data-wa="pago-sin-confirmar" data-linea="{{ servicio.linea }}">{{ icono_whatsapp(18) }}<span>Enviar el comprobante</span></a>
-      <a class="btn btn-outline-navy" href="/pagar/diagnostico">Intentar el pago de nuevo</a>
+      <a class="btn btn-primary" href="{{ wa }}" target="_blank" rel="noopener" data-wa="pago-sin-confirmar" data-linea="{{ prod.linea }}">{{ icono_whatsapp(18) }}<span>Enviar el comprobante</span></a>
+      <a class="btn btn-outline-navy" href="/pagar/{{ prod.clave }}">Intentar el pago de nuevo</a>
     </div>
     {%- endif %}
   </div>
@@ -62,7 +65,7 @@
   try {
     var clave = 'ccc-compra-{{ pedido.id }}';
     if (typeof fbq !== 'undefined' && !sessionStorage.getItem(clave)) {
-      fbq('track', 'Purchase', { content_name: 'diagnostico-express', content_category: '{{ servicio.linea }}', value: {{ pedido.monto }}, currency: 'CLP' });
+      fbq('track', 'Purchase', { content_name: '{{ prod.evento }}', content_category: '{{ prod.linea }}', value: {{ pedido.monto }}, currency: 'CLP' });
       sessionStorage.setItem(clave, '1');
     }
   } catch (e) {}
