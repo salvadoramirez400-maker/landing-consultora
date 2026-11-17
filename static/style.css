@@ -815,8 +815,11 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
   background: var(--azul); border: 3px solid var(--white); box-shadow: 0 0 0 2px var(--azul);
   transition: background 0.4s var(--ease), box-shadow 0.4s var(--ease), scale 0.4s var(--ease-out);
 }
-.wow [data-linea-tiempo] > * { opacity: 0.38; translate: 0 10px; transition: opacity 0.5s var(--ease-out), translate 0.5s var(--ease-out); }
-.wow [data-linea-tiempo] > .activo { opacity: 1; translate: 0 0; }
+/* Los pasos pendientes no se atenúan (perdían contraste: PageSpeed, 17-nov-2026): solo suben y encienden su punto. */
+.wow [data-linea-tiempo] > * { translate: 0 12px; transition: translate 0.5s var(--ease-out); }
+.wow [data-linea-tiempo] > .activo { translate: 0 0; }
+.wow [data-linea-tiempo] > * > :first-child { transition: color 0.4s var(--ease); }
+.wow [data-linea-tiempo] > :not(.activo) > :first-child { color: var(--gray-500); }
 .wow [data-linea-tiempo] > :not(.activo)::before { background: var(--gray-300); box-shadow: 0 0 0 2px var(--gray-300); scale: 0.8; }
 
 /* ----- Sello giratorio (bloque de marcas) ----- */

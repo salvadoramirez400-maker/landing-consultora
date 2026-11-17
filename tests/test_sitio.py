@@ -411,5 +411,14 @@ class PaginasPublicas(unittest.TestCase):
             self.assertTrue(archivo.exists(), ref)
             self.assertLess(archivo.stat().st_size, 1_500_000, ref)
 
+    def test_fuentes_dentro_de_la_pagina(self):
+        """Las @font-face van en un <style> de la página y apuntan a archivos que existen."""
+        html = self.html["/"]
+        self.assertNotIn("fonts/fonts.css", html)
+        fuentes = set(re.findall(r"url\((/static/fonts/[^)]+\.woff2)\)", html))
+        self.assertGreaterEqual(len(fuentes), 2)
+        for ref in fuentes:
+            self.assertEqual(self.c.get(ref).status_code, 200, ref)
+
 if __name__ == "__main__":
     unittest.main()

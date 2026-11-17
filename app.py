@@ -71,6 +71,18 @@ def _wa_pagina(linea: str, con_cambio: bool = False) -> dict:
     return datos
 
 
+def _fuentes_css() -> str:
+    """static/fonts/fonts.css sin comentarios ni saltos, para ponerlo dentro de la página (base.html)."""
+    try:
+        css = (_STATIC_DIR / "fonts" / "fonts.css").read_text(encoding="utf-8")
+    except OSError:
+        return ""
+    return re.sub(r"\s+", " ", re.sub(r"/\*.*?\*/", "", css, flags=re.S)).strip()
+
+
+_FUENTES_CSS = _fuentes_css()
+
+
 @app.context_processor
 def _contexto_sitio() -> dict:
     """Valores comunes. Una ruta puede reemplazarlos pasando la misma clave a render_template."""
@@ -87,6 +99,7 @@ def _contexto_sitio() -> dict:
         },
         "wa_pagina": _wa_pagina("rs"),
         "autotest_publico": autotest.PUBLICO,
+        "fuentes_css": _FUENTES_CSS,
         "pixel": True,
         "og_imagen": "img/og-portada.jpg",
     }
