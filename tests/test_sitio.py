@@ -29,6 +29,31 @@ def _db_simulada() -> types.ModuleType:
     db.list_titulares = lambda solo_pendientes=False: []
     db.insert_titular = lambda datos: 1
     db.insert_lead = lambda nombre, telefono, email: 1
+
+    # Pedidos de pago con tarjeta, en memoria
+    db.pedidos = []
+
+    def insert_pedido(ficha, producto, monto, nombre, telefono, tipo, comuna):
+        db.pedidos.append({"id": len(db.pedidos) + 1, "ficha": ficha, "producto": producto, "monto": monto,
+                           "nombre": nombre, "telefono": telefono, "tipo": tipo, "comuna": comuna, "estado": "iniciado",
+                           "mp_preferencia": "", "mp_pago": "", "avisado": False, "fecha_txt": "2026-11-17 15:00"})
+        return len(db.pedidos)
+
+    def get_pedido(ficha):
+        return next((p for p in db.pedidos if p["ficha"] == ficha), None)
+
+    def update_pedido_pago(ficha, estado, mp_pago):
+        p = get_pedido(ficha)
+        if not p or p["estado"] == "pagado":
+            return False
+        p.update(estado=estado, mp_pago=mp_pago)
+        return estado == "pagado"
+
+    db.insert_pedido, db.get_pedido, db.update_pedido_pago = insert_pedido, get_pedido, update_pedido_pago
+    db.set_pedido_preferencia = lambda ficha, pref: get_pedido(ficha).update(mp_preferencia=pref)
+    db.list_pedidos = lambda solo_sin_avisar=False: [p for p in db.pedidos
+                                                     if not solo_sin_avisar or (p["estado"] == "pagado" and not p["avisado"])]
+    db.marcar_pedido_avisado = lambda pedido_id: next(p for p in db.pedidos if p["id"] == pedido_id).update(avisado=True)
     return db
 
 
@@ -169,7 +194,7 @@ class PaginasPublicas(unittest.TestCase):
         botones = re.findall(r'<a\b[^>]*data-pago="([^"]+)"[^>]*>', html)
         self.assertEqual(botones, ["diagnostico-express"])
         etiqueta = re.search(r'<a\b[^>]*data-pago="diagnostico-express"[^>]*>', html).group(0)
-        self.assertIn('href="/diagnostico"', etiqueta)
+        self.assertIn('href="/pagar/diagnostico"', etiqueta)
         self.assertIn('data-valor="79990"', etiqueta)
         self.assertIn("diagnostico", sitio._PAGOS)
         self.assertIn("Después de pagar", _texto_visible(html))

@@ -37,6 +37,7 @@ def ensure_schema() -> None:
         nueva = cur.fetchone()["t"] is None
         cur.execute((MIGRACIONES / "001_init.sql").read_text())
         cur.execute((MIGRACIONES / "002_marcas_titulares.sql").read_text())
+        cur.execute((MIGRACIONES / "004_pedidos.sql").read_text())
         if nueva:
             cur.execute((MIGRACIONES / "003_portada_sin_cifras.sql").read_text())
 
@@ -147,3 +148,51 @@ def list_titulares(solo_pendientes: bool = False) -> list[dict]:
 def marcar_titular_procesado(titular_id: int) -> None:
     with get_conn() as conn, conn.cursor() as cur:
         cur.execute("UPDATE marcas_titulares SET procesado = TRUE WHERE id = %s", (titular_id,))
+
+
+# --- Pedidos de pago con tarjeta desde la web (migrations/004_pedidos.sql) ---
+_FECHA_TXT = "to_char(fecha AT TIME ZONE 'America/Santiago', 'YYYY-MM-DD HH24:MI') AS fecha_txt"
+
+
+def insert_pedido(ficha: str, producto: str, monto: int, nombre: str, telefono: str, tipo: str, comuna: str) -> int:
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute("INSERT INTO pedidos (ficha, producto, monto, nombre, telefono, tipo, comuna) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s) RETURNING id",
+                    (ficha, producto, monto, nombre, telefono, tipo, comuna))
+        return cur.fetchone()["id"]
+
+
+def get_pedido(ficha: str) -> dict | None:
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(f"SELECT *, {_FECHA_TXT} FROM pedidos WHERE ficha = %s", (ficha,))
+        return cur.fetchone()
+
+
+def set_pedido_preferencia(ficha: str, preferencia: str) -> None:
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute("UPDATE pedidos SET mp_preferencia = %s WHERE ficha = %s", (preferencia, ficha))
+
+
+def update_pedido_pago(ficha: str, estado: str, mp_pago: str) -> bool:
+    """Guarda el estado que informó Mercado Pago. Devuelve True si el pedido pasó recién ahora a «pagado»."""
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute("SELECT estado FROM pedidos WHERE ficha = %s", (ficha,))
+        fila = cur.fetchone()
+        if not fila or fila["estado"] == "pagado":   # un pedido pagado no vuelve atrás por un aviso tardío
+            return False
+        cur.execute("UPDATE pedidos SET estado = %s, mp_pago = %s, "
+                    "pagado_en = CASE WHEN %s = 'pagado' THEN NOW() ELSE pagado_en END WHERE ficha = %s",
+                    (estado, mp_pago, estado, ficha))
+        return estado == "pagado"
+
+
+def list_pedidos(solo_sin_avisar: bool = False) -> list[dict]:
+    where = "WHERE estado = 'pagado' AND NOT avisado" if solo_sin_avisar else ""
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute(f"SELECT *, {_FECHA_TXT} FROM pedidos {where} ORDER BY fecha DESC LIMIT 200")
+        return cur.fetchall()
+
+
+def marcar_pedido_avisado(pedido_id: int) -> None:
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute("UPDATE pedidos SET avisado = TRUE WHERE id = %s", (pedido_id,))

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{%- from "_componentes.html" import icono_tarjeta, monograma -%}
+{% block title %}Pagar {{ servicio.nombre|lower }} | {{ sitio.marca }}{% endblock %}
+{% block meta %}
+  <meta name="robots" content="noindex, nofollow">
+{% endblock %}
+{% block body_class %}pagina-pagar{% endblock %}
+
+{% block nav -%}
+  <nav class="nav" aria-label="Principal">
+    <div class="nav-inner">
+      <a href="/" class="logo" aria-label="{{ sitio.marca }}, inicio">{{ monograma() }}<span>{{ sitio.marca }}</span></a>
+      <a href="/#resolucion" class="btn btn-sm btn-nav">Volver</a>
+    </div>
+  </nav>
+{%- endblock %}
+
+{#- Sin botón flotante: taparía el formulario. -#}
+{% block flotante %}{% endblock %}
+
+{% block content %}
+<section class="pg-hero">
+  <canvas class="fondo-vivo" data-fondo="claro" aria-hidden="true"></canvas>
+  <div class="pg-wrap">
+    <p class="eyebrow entra" style="--i:0">Pago con tarjeta</p>
+    <h1 class="entra" style="--i:2">{{ servicio.nombre }}</h1>
+    <div class="pg-resumen entra" style="--i:4">
+      <b>{{ servicio.precio|clp }}</b>
+      <span>{{ servicio.precio_nota }} Plazo: {{ servicio.plazo }}</span>
+    </div>
+
+    {%- if errores %}
+    <div class="at-errores" role="alert"><ul>{% for e in errores %}<li>{{ e }}</li>{% endfor %}</ul></div>
+    {%- endif %}
+
+    <form class="pg-form entra" style="--i:6" method="post" action="/pagar/{{ producto }}" novalidate id="pg-form">
+      <p class="pg-intro">Déjanos tu nombre y tu WhatsApp para saber de quién es el pago y escribirte con los pasos que siguen.</p>
+      <div class="md-trampa" aria-hidden="true"><label for="sitio_web">No completes este campo</label><input id="sitio_web" name="sitio_web" tabindex="-1" autocomplete="off"></div>
+      <div class="pg-campo">
+        <label for="pg-nombre">Nombre</label>
+        <input id="pg-nombre" name="nombre" value="{{ datos.nombre or '' }}" required maxlength="80" autocomplete="name">
+      </div>
+      <div class="pg-campo">
+        <label for="pg-telefono">WhatsApp</label>
+        <input id="pg-telefono" name="telefono" type="tel" value="{{ datos.telefono or '' }}" required maxlength="20" autocomplete="tel" placeholder="+56 9 1234 5678">
+      </div>
+      <div class="pg-dos">
+        <div class="pg-campo">
+          <label for="pg-tipo">Tipo de establecimiento <small>(opcional)</small></label>
+          <select id="pg-tipo" name="tipo">
+            <option value="">Selecciona</option>
+            {%- for visible, _ in tipos %}
+            <option value="{{ visible }}"{% if datos.tipo == visible %} selected{% endif %}>{{ visible }}</option>
+            {%- endfor %}
+          </select>
+        </div>
+        <div class="pg-campo">
+          <label for="pg-comuna">Comuna <small>(opcional)</small></label>
+          <input id="pg-comuna" name="comuna" value="{{ datos.comuna or '' }}" maxlength="60" autocomplete="address-level2">
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary">{{ icono_tarjeta(18) }}<span>Continuar al pago seguro</span></button>
+      <p class="pg-nota">Te llevamos a Mercado Pago: tarjeta de crédito, débito o prepago, hasta 12 cuotas (el interés lo cobra tu tarjeta), o transferencia. No guardamos datos de tu tarjeta. Tus datos se usan solo para este servicio (<a href="/privacidad">política de privacidad</a>).</p>
+    </form>
+  </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.getElementById('pg-form').addEventListener('submit', function () {
+    if (typeof fbq !== 'undefined') fbq('track', 'InitiateCheckout', { content_name: 'pagar-{{ producto }}', content_category: '{{ servicio.linea }}', value: {{ servicio.precio }}, currency: 'CLP' });
+  });
+</script>
+{% endblock %}

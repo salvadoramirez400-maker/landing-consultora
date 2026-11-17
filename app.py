@@ -1,17 +1,22 @@
 import hashlib
+import json
 import os
 import re
+import secrets
 import time
+import urllib.parse
+import urllib.request
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from flask import Flask, Response, jsonify, redirect, render_template, request, send_from_directory, session, url_for
+from flask import Flask, Response, abort, jsonify, redirect, render_template, request, send_from_directory, session, url_for
 
 import autotest
 import blob
 import catalogo
 import db
+import mercadopago
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-key-change-in-production")
@@ -138,7 +143,7 @@ _PAGINAS_SITEMAP = ("/", "/marcas", "/privacidad") + (("/autotest",) if autotest
 
 @app.route("/robots.txt")
 def robots():
-    lineas = ["User-agent: *", "Disallow: /admin", "Disallow: /login", "Disallow: /logout", "Disallow: /api/",
+    lineas = ["User-agent: *", "Disallow: /admin", "Disallow: /login", "Disallow: /logout", "Disallow: /api/", "Disallow: /pagar/", "Disallow: /pago/",
               "Disallow: /autotest/",
               "", f"Sitemap: {SITIO_URL}/sitemap.xml", ""]
     return Response("\n".join(lineas), mimetype="text/plain")
@@ -478,6 +483,150 @@ for _nombre in _PAGOS:
     app.add_url_rule(f"/{_nombre}", f"pago_{_nombre}", _ruta_de_pago(_nombre))
 
 
+# --- Pago con tarjeta desde la web: /pagar/<producto> → Mercado Pago → /pago/gracias ---
+# 1. /pagar/<producto> pide nombre y WhatsApp y guarda el pedido (tabla pedidos), para saber quién iba a pagar.
+# 2. Con MP_ACCESS_TOKEN en Vercel, crea el cobro en Mercado Pago con el pedido como referencia: el cliente vuelve a
+#    /pago/gracias y Mercado Pago avisa a /api/mp/webhook. Sin la variable, manda al link de pago fijo (_PAGOS).
+# 3. Un pedido solo queda «pagado» si Mercado Pago lo confirma al consultarle el pago (mercadopago.consultar_pago).
+_PRODUCTOS_PAGO = {
+    "diagnostico": {"servicio": "diagnostico-express", "titulo": "Diagnóstico sanitario express · Consultoría Clínica Chile",
+                    "linea": "rs"},
+}
+
+
+def _wa_pago(pedido: dict | None, servicio) -> str:
+    """Texto de WhatsApp para después de pagar: activa a Andrea y lleva el número del pedido."""
+    base = servicio.pago_whatsapp
+    if pedido:
+        con_pedido = base.rstrip(".") + f". Pedido web N.° {pedido['id']}."
+        if not catalogo.revisar_texto(con_pedido, servicio.linea):
+            return con_pedido
+    return base
+
+
+def _avisar_pago(pedido: dict) -> None:
+    """Aviso opcional por Telegram cuando Mercado Pago confirma un pago (si existen TELEGRAM_BOT_TOKEN y
+    TELEGRAM_CHAT_ID en Vercel). Si no, el pedido queda en /admin y en /api/pedidos para la revisión de CCC."""
+    token, chat = os.environ.get("TELEGRAM_BOT_TOKEN", ""), os.environ.get("TELEGRAM_CHAT_ID", "")
+    if not token or not chat:
+        return
+    texto = (f"PAGO CONFIRMADO por Mercado Pago · {pedido['producto']} · {clp(pedido['monto'])}\n"
+             f"{pedido['nombre']} · {pedido['telefono']}" + (f" · {pedido['tipo']}" if pedido.get("tipo") else "")
+             + (f" · {pedido['comuna']}" if pedido.get("comuna") else "") + f"\nPedido web N.° {pedido['id']}")
+    try:
+        datos = urllib.parse.urlencode({"chat_id": chat, "text": texto}).encode()
+        urllib.request.urlopen(f"https://api.telegram.org/bot{token}/sendMessage", data=datos, timeout=8).close()
+        db.marcar_pedido_avisado(pedido["id"])
+    except Exception:
+        app.logger.exception("No se pudo avisar el pago por Telegram")
+
+
+def _registrar_pago(pago: dict | None) -> None:
+    """Guarda lo que Mercado Pago informó de un pago y avisa si el pedido pasó a pagado."""
+    if not pago or not pago["ficha"]:
+        return
+    try:
+        if db.update_pedido_pago(pago["ficha"], pago["estado"], pago["id"]):
+            pedido = db.get_pedido(pago["ficha"])
+            if pedido:
+                _avisar_pago(pedido)
+    except Exception:
+        app.logger.exception("No se pudo registrar el pago %s", pago.get("id"))
+
+
+@app.route("/pagar/<producto>", methods=["GET", "POST"])
+def pagar(producto):
+    datos_producto = _PRODUCTOS_PAGO.get(producto)
+    if not datos_producto:
+        abort(404)
+    servicio = catalogo.servicio(datos_producto["servicio"])
+    contexto = dict(config=_config(), producto=producto, servicio=servicio, tipos=catalogo.TIPOS_ESTABLECIMIENTO)
+    if request.method == "GET":
+        aviso = ["El pago no se completó. Puedes intentarlo de nuevo o escribirnos por WhatsApp."] if request.args.get("pedido") else []
+        return render_template("pagar.html", errores=aviso, datos={}, **contexto)
+    if request.form.get("sitio_web"):   # campo trampa: solo lo llenan los robots
+        return redirect(f"/pagar/{producto}", code=303)
+    f = {k: " ".join(request.form.get(k, "").split())[:80] for k in ("nombre", "telefono", "tipo", "comuna")}
+    errores = []
+    if len(f["nombre"]) < 2:
+        errores.append("Escribe tu nombre.")
+    if not 8 <= len(re.sub(r"\D", "", f["telefono"])) <= 12:
+        errores.append("Escribe tu WhatsApp con código, por ejemplo +56 9 1234 5678.")
+    if f["tipo"] not in {visible for visible, _ in catalogo.TIPOS_ESTABLECIMIENTO} | {""}:
+        f["tipo"] = ""
+    if errores:
+        return render_template("pagar.html", errores=errores, datos=f, **contexto), 400
+    ficha = secrets.token_urlsafe(12)
+    guardado = True
+    try:
+        db.insert_pedido(ficha, servicio.nombre, servicio.precio, f["nombre"], f["telefono"], f["tipo"], f["comuna"])
+    except Exception:   # si la base falla, no se pierde la venta: igual sigue al pago
+        guardado = False
+        app.logger.exception("No se pudo guardar el pedido")
+    if guardado and mercadopago.configurado():
+        try:
+            pref = mercadopago.crear_preferencia(ficha=ficha, titulo=datos_producto["titulo"], monto=servicio.precio,
+                                                 sitio_url=SITIO_URL, producto=producto)
+            db.set_pedido_preferencia(ficha, pref["id"])
+            return redirect(pref["url"], code=303)
+        except Exception:
+            app.logger.exception("Mercado Pago no creó el cobro: se usa el link de pago fijo")
+    return redirect(_PAGOS[producto], code=303)
+
+
+@app.route("/pago/gracias")
+def pago_gracias():
+    """Vuelta desde Mercado Pago. El estado sale de consultarle el pago a Mercado Pago, no de la URL."""
+    ficha = request.args.get("pedido", "")[:40]
+    pago_id = request.args.get("payment_id") or request.args.get("collection_id") or ""
+    pedido = None
+    try:
+        if pago_id:
+            pago = mercadopago.consultar_pago(pago_id)
+            if pago and pago["ficha"] == ficha:
+                _registrar_pago(pago)
+        pedido = db.get_pedido(ficha) if ficha else None
+    except Exception:
+        app.logger.exception("No se pudo leer el pedido")
+    producto = next((k for k, v in _PRODUCTOS_PAGO.items() if pedido and catalogo.servicio(v["servicio"]).nombre == pedido["producto"]),
+                    "diagnostico")
+    servicio = catalogo.servicio(_PRODUCTOS_PAGO[producto]["servicio"])
+    return render_template("pago_gracias.html", config=_config(), pedido=pedido, servicio=servicio,
+                           estado=(pedido or {}).get("estado", "desconocido"),
+                           wa=catalogo.wa_link(_wa_pago(pedido, servicio)))
+
+
+@app.route("/api/mp/webhook", methods=["POST", "GET"])
+def mp_webhook():
+    """Aviso de Mercado Pago. Solo dice «mira este pago»: el estado se le consulta a Mercado Pago."""
+    cuerpo = request.get_json(silent=True) or {}
+    tipo = cuerpo.get("type") or request.args.get("type") or request.args.get("topic") or ""
+    pago_id = str((cuerpo.get("data") or {}).get("id") or request.args.get("data.id") or request.args.get("id") or "")
+    if tipo != "payment" or not pago_id:
+        return jsonify({"ok": True})   # otros avisos (merchant_order, pruebas) no interesan
+    if not mercadopago.firma_valida(request.headers, pago_id):
+        return jsonify({"ok": False}), 401
+    _registrar_pago(mercadopago.consultar_pago(pago_id))
+    return jsonify({"ok": True})
+
+
+@app.route("/api/pedidos")
+def api_pedidos():
+    """Pagos confirmados que todavía no se le avisan a Salvador (para la revisión automática de CCC)."""
+    if not _token_marcas_ok():
+        return jsonify({"ok": False}), 401
+    campos = ("id", "fecha_txt", "producto", "monto", "nombre", "telefono", "tipo", "comuna", "estado", "mp_pago")
+    return jsonify({"ok": True, "pedidos": [{k: p[k] for k in campos} for p in db.list_pedidos(solo_sin_avisar=True)]})
+
+
+@app.route("/api/pedidos/<int:pedido_id>/avisado", methods=["POST"])
+def api_pedido_avisado(pedido_id):
+    if not _token_marcas_ok():
+        return jsonify({"ok": False}), 401
+    db.marcar_pedido_avisado(pedido_id)
+    return jsonify({"ok": True})
+
+
 @app.errorhandler(404)
 def no_encontrada(_error):
     return render_template("404.html", config=_config(), diagnostico=catalogo.servicio("diagnostico-express"),
@@ -574,7 +723,13 @@ def admin():
     except Exception:  # sin la migración 002 no existe marcas_titulares: /admin igual abre con los leads
         app.logger.warning("marcas_titulares no existe: falta correr migrations/002_marcas_titulares.sql")
         titulares = []
-    return render_template("admin.html", leads=db.list_leads(), titulares=titulares, config=db.load_config())
+    try:
+        pedidos = db.list_pedidos()
+    except Exception:  # sin la migración 004 no existe pedidos
+        app.logger.warning("pedidos no existe: falta correr migrations/004_pedidos.sql")
+        pedidos = []
+    return render_template("admin.html", leads=db.list_leads(), titulares=titulares, pedidos=pedidos,
+                           config=db.load_config())
 
 
 @app.route("/admin/delete/<int:lead_id>")

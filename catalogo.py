@@ -155,7 +155,7 @@ SERVICIOS = (
                  "de mi establecimiento.",
         # Pago con tarjeta desde la web (Salvador, 17-nov-2026). Link de Mercado Pago: hasta 12 cuotas, con el
         # interés a cargo del comprador.
-        pago_url="/diagnostico",
+        pago_url="/pagar/diagnostico",   # pide nombre y WhatsApp y después manda a Mercado Pago (app.py)
         pago_nota="Pago por Mercado Pago, con tarjeta y hasta 12 cuotas (el interés lo cobra tu tarjeta). "
                   "Después de pagar, mándanos el comprobante y las fotos de tu local por WhatsApp.",
         pago_whatsapp="Hola, vengo de la página web. Pagué el diagnóstico express para la resolución sanitaria "

@@ -92,6 +92,33 @@
             {% endif %}
         </div>
 
+        <h2 style="margin:40px 0 12px">Pagos con tarjeta desde la web</h2>
+        <div class="table-container">
+            {% if pedidos %}
+                <table>
+                    <thead>
+                        <tr><th>N.°</th><th>Fecha</th><th>Producto</th><th>Monto</th><th>Nombre</th><th>WhatsApp</th><th>Local</th><th>Estado</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for p in pedidos %}
+                            <tr>
+                                <td>{{ p.id }}</td>
+                                <td>{{ p.fecha_txt }}</td>
+                                <td>{{ p.producto }}</td>
+                                <td>{{ p.monto|clp }}</td>
+                                <td><strong>{{ p.nombre }}</strong></td>
+                                <td>{{ p.telefono }}</td>
+                                <td>{{ p.tipo or '—' }}{% if p.comuna %}<br><small>{{ p.comuna }}</small>{% endif %}</td>
+                                <td>{% if p.estado == 'pagado' %}<strong>Pagado</strong> (confirmado por Mercado Pago){% elif p.estado == 'pendiente' %}Pago en proceso{% elif p.estado == 'rechazado' %}Rechazado{% else %}Fue a pagar; sin confirmación{% endif %}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="empty"><p>Todavía nadie ha ido a pagar desde la web</p></div>
+            {% endif %}
+        </div>
+
         <h2 style="margin:40px 0 12px">Marcas · datos del titular</h2>
         <div class="table-container">
             {% if titulares %}
