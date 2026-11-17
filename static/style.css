@@ -380,6 +380,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
   border-radius: var(--r-md); box-shadow: var(--shadow-lg); font-size: 14px; line-height: 1.5;
 }
 .cookie-banner[hidden] { display: none; }
+.cookie-corto { display: none; }
 .cookie-banner a { color: var(--accent); text-decoration: underline; }
 .cookie-actions { display: flex; gap: 10px; justify-content: flex-end; }
 
@@ -876,7 +877,14 @@ body.con-modal { overflow: hidden; }
   .mk-flotan i:nth-child(2), .mk-flotan i:nth-child(4) { display: none; }
 }
 @media (max-width: 560px) {
-  .hero-badge { font-size: 0.74rem; }
+  /* El primer botón de WhatsApp tiene que verse aunque esté el aviso de cookies: héroe más corto y aviso compacto */
+  .hero-badge { display: none; }
+  .cookie-banner { flex-direction: row; align-items: center; gap: 10px; padding: 10px 12px; font-size: 12.5px; line-height: 1.4; }
+  .cookie-banner p { flex: 1; }
+  .cookie-largo { display: none; }
+  .cookie-corto { display: inline; }
+  .cookie-actions { gap: 6px; }
+  .cookie-actions .btn { padding: 7px 12px; font-size: 0.8rem; }
   .cinta { padding: 12px 0; }
   .modal { place-items: end center; padding: 0; }
   .modal-caja { width: 100%; border-radius: 24px 24px 0 0; padding: 34px 20px calc(18px + env(safe-area-inset-bottom, 0px)); translate: 0 100%; scale: 1; }
@@ -891,4 +899,11 @@ body.con-modal { overflow: hidden; }
   .carrete { overflow-x: auto; }
   .fondo-vivo { display: none; }
   ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+}
+
+/* Pantallas bajas (la mayoría de los teléfonos con la barra del navegador): sin el párrafo del héroe,
+   para que el primer botón de WhatsApp quede a la vista sobre el aviso de cookies. */
+@media (max-width: 560px) and (max-height: 760px) {
+  .hero-sub { display: none; }
+  .hero-title { margin-bottom: 4px; }
 }
