@@ -162,7 +162,20 @@ def _authenticate(username: str, password: str) -> bool:
 
 @app.route("/")
 def index():
-    return render_template("index.html", config=db.load_config(), content=db.load_content())
+    """Portada. Los textos viven en catalogo.py y templates/index.html, no en la base (site_content)."""
+    return render_template(
+        "index.html",
+        config=_config(),
+        servicios_rs=catalogo.publicados("rs"),
+        diagnostico=catalogo.servicio("diagnostico-express"),
+        marca=catalogo.servicio("registro-marca"),
+        faq=catalogo.FAQ_PORTADA,
+        fotos=catalogo.FOTOS_PROYECTOS,
+        tipos=catalogo.TIPOS_ESTABLECIMIENTO,
+        wa_formulario=catalogo.WA_RS_FORMULARIO,
+        wa_otros=catalogo.wa_link(catalogo.WA_OTROS),
+        wa_pagina=_wa_pagina("rs", con_cambio=True),
+    )
 
 
 _MESES = ("enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto",

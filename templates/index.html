@@ -1,600 +1,242 @@
-{% macro picture(filename, alt, sizes='100vw', loading='lazy') -%}
-  {%- set srcset = filename|webp_srcset -%}
-  {%- set src = filename|webp_src or url_for('static', filename=filename) -%}
-  <img src="{{ src }}"{% if srcset %} srcset="{{ srcset }}" sizes="{{ sizes }}"{% endif %} alt="{{ alt }}" loading="{{ loading }}" decoding="async">
-{%- endmacro %}
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="facebook-domain-verification" content="lxqoz11k5lp2uxr8ik7ak2dhobxdo0" />
-  <title>{{ config.business_name }} · Expertos en clínicas estéticas</title>
-  <meta name="description" content="{{ content.hero.subtitle }}">
-  <meta property="og:title" content="{{ config.business_name }} · Expertos en clínicas estéticas">
-  <meta property="og:description" content="{{ content.hero.subtitle }}">
-  <meta property="og:type" content="website">
-  <meta property="og:locale" content="es_CL">
-  <!-- Meta Pixel «CCC · consultoriaclinica.cl». Solo se carga si el visitante acepta el aviso de cookies
-       (ver #cookie-banner al final). Eventos: PageView, Contact (enlaces wa.me) y Lead (formulario). -->
-  <script>
-    window.cccPixel = function(){
-      var FB_PIXEL_ID = '39876910071899964';
-      if (window.fbq) return;
-      !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', FB_PIXEL_ID); fbq('track','PageView');
-    };
-    try { if (localStorage.getItem('ccc-cookies') === 'si') window.cccPixel(); } catch (e) {}
-  </script>
-  <style>
-    /* Aviso de cookies: inline porque style.css se cachea un año sin versión */
-    .cookie-banner { position: fixed; left: 24px; bottom: 24px; z-index: 1000; max-width: 420px; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; background: var(--white); color: var(--gray-700); border: 1px solid var(--gray-100); border-radius: var(--r-md); box-shadow: var(--shadow-lg); font-family: var(--font-body); font-size: 14px; line-height: 1.5; }
-    .cookie-banner[hidden] { display: none; }
-    .cookie-banner a { color: var(--accent); text-decoration: underline; }
-    .cookie-actions { display: flex; gap: 10px; justify-content: flex-end; }
-    @media (max-width: 600px) { .cookie-banner { left: 12px; right: 12px; bottom: 12px; max-width: none; } }
-  </style>
-  <link rel="preload" href="{{ url_for('static', filename='fonts/Fustat-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="{{ static_v('fonts/fonts.css') }}">
-  <link rel="stylesheet" href="{{ static_v('style.css') }}">
-</head>
-<body>
+{% extends "base.html" %}
+{% from "_componentes.html" import tarjeta_servicio, picture, icono_whatsapp %}
+{% block title %}Resolución Sanitaria y registro de marca | {{ sitio.marca }}{% endblock %}
+{% block body_class %}portada{% endblock %}
+{% block content %}
+  {#- Textos y precios: catalogo.py (precios solo de tarifas.json). Sin cifras ni testimonios sin respaldo. -#}
 
-  <!-- PAGE TOP: shared white background + blue glow for nav + hero -->
-  <div class="page-top">
-    <div class="bg-glow">
-      <div class="bg-glow-1"></div>
-      <div class="bg-glow-2"></div>
+  <!-- HÉROE: las dos líneas de negocio, cada una con su WhatsApp -->
+  <section class="hero" aria-labelledby="hero-titulo">
+    <div class="hero-content">
+      <p class="hero-badge">Consultora chilena · 100 % online en todo Chile</p>
+      <h1 class="hero-title" id="hero-titulo">Resolución Sanitaria y registro de marca, de principio a fin</h1>
+      <p class="hero-sub">Acompañamos a clínicas, centros estéticos y dentales ante la SEREMI de Salud, y a pymes de todo Chile ante INAPI. Todo por WhatsApp y por escrito.</p>
+      <ul class="hero-confianza">
+        <li>Garantías sobre lo que depende de nosotros</li>
+        <li>Precio claro antes de partir</li>
+        <li>Salvador Ramírez revisa cada diagnóstico</li>
+      </ul>
     </div>
+    <div class="hero-puertas">
+      <article class="puerta">
+        <p class="puerta-para">Para centros de salud</p>
+        <h2 class="puerta-titulo">Resolución Sanitaria</h2>
+        <p class="puerta-texto">Clínicas estéticas, centros médicos y dentales, salas de procedimientos. Partimos con un diagnóstico express de <b>{{ diagnostico.precio|clp }}</b>, que se descuenta completo si sigues.</p>
+        <a class="btn btn-primary" href="{{ diagnostico.whatsapp_url }}" target="_blank" rel="noopener" data-wa="portada-rs" data-linea="rs">{{ icono_whatsapp(18) }}<span>Partir con el diagnóstico</span></a>
+        <a class="puerta-enlace" href="#resolucion">Ver servicios y garantías</a>
+      </article>
+      <article class="puerta">
+        <p class="puerta-para">Para pymes y emprendedores</p>
+        <h2 class="puerta-titulo">Registro de marca en INAPI</h2>
+        <p class="puerta-texto">Revisamos gratis si tu marca está disponible y la registramos por ti. Desde <b>{{ marca.precio|clp }}</b> + tasas de INAPI, con garantía de reintento.</p>
+        <a class="btn btn-primary" href="{{ marca.whatsapp_url }}" target="_blank" rel="noopener" data-wa="portada-marcas" data-linea="marcas">{{ icono_whatsapp(18) }}<span>Revisar mi marca gratis</span></a>
+        <a class="puerta-enlace" href="/marcas">Ver planes y precios</a>
+      </article>
+    </div>
+  </section>
 
-    <!-- NAV — Floating Glass Pill -->
-    <nav class="nav" id="nav">
-      <div class="nav-inner">
-        <a href="#inicio" class="logo">
-          {% if config.logo %}
-            <img src="{{ config.logo }}" alt="{{ config.business_name }}" style="height:34px;">
-          {% else %}
-            {{ config.business_name }}
-          {% endif %}
-        </a>
-        <ul class="nav-links">
-          <li><a href="#servicios">Servicios</a></li>
-          <li><a href="#beneficios">Beneficios</a></li>
-          <li><a href="#audiovisual">Videos</a></li>
-          <li><a href="#galeria">Galería</a></li>
-          <li><a href="#faq">FAQ</a></li>
-          <li>
-            <a href="#captura" class="btn btn-sm btn-nav">
-              Contactar
-              <span class="btn-arrow-icon">
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-              </span>
-            </a>
-          </li>
+  <!-- RESOLUCIÓN SANITARIA -->
+  <section class="section section-white" id="resolucion">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="eyebrow">Resolución Sanitaria</span>
+        <h2 class="section-title">Tu centro de salud, autorizado por la SEREMI</h2>
+        <p class="section-lead">La resolución sanitaria (autorización sanitaria) la otorga la SEREMI de Salud. Preparamos todo lo que exige, la ingresamos y respondemos las observaciones hasta el término del proceso.</p>
+        <ul class="chips" aria-label="Establecimientos con los que trabajamos">
+          <li>Clínicas y centros estéticos</li>
+          <li>Centros médicos</li>
+          <li>Centros dentales</li>
+          <li>Salas de procedimientos y pabellones</li>
+          <li>Estudios de tatuaje</li>
+          <li>Laboratorios, ELEAM y otros</li>
         </ul>
-        <button class="nav-toggle" aria-label="Menú" onclick="document.querySelector('.nav-links').classList.toggle('open')">
-          <span></span><span></span><span></span>
-        </button>
       </div>
-    </nav>
-
-    <!-- HERO — Dual column: content left, glassy orb right -->
-    <section class="hero" id="inicio">
-      <!-- Left: Content -->
-      <div class="hero-content">
-        {% if content.hero.badge %}
-        <span class="hero-badge">
-          {{ content.hero.badge }}
-        </span>
-        {% endif %}
-        <h1 class="hero-title">{{ content.hero.title }}</h1>
-        <p class="hero-sub">{{ content.hero.subtitle }}</p>
-        <div class="hero-trust-line">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          Operamos contigo hasta que tu clínica facture.
-        </div>
-        <div class="hero-buttons">
-          <a href="#captura" class="btn btn-primary">
-            {{ content.hero.button_primary }}
-            <span class="btn-arrow-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </span>
-          </a>
-          <a href="https://wa.me/56930175070?text=Hola%2C+quiero+informaci%C3%B3n+sobre+abrir+una+cl%C3%ADnica" target="_blank" rel="noopener" class="btn btn-outline-navy">{{ content.hero.button_secondary }}</a>
-        </div>
-        <p class="hero-note">{{ content.hero.note }}</p>
+      <div class="servicios-grid">
+        {%- for s in servicios_rs %}
+        {{ tarjeta_servicio(s) }}
+        {%- endfor %}
       </div>
+      <p class="servicios-otros">También coordinamos arquitectura sanitaria y obras, supervisión médica, documentación legal y captación de pacientes. <a href="{{ wa_otros }}" target="_blank" rel="noopener" data-wa="otros-servicios" data-linea="rs">Consúltanos por WhatsApp</a>.</p>
+    </div>
+  </section>
 
-      <!-- Right: Glassy Orb video -->
-      <div class="hero-orb">
-      </div>
-    </section>
-
-  </div><!-- /page-top -->
-
-  <!-- META ADS -->
-  <section class="section-meta-ads" id="experiencia">
+  <!-- CÓMO TRABAJAMOS + GARANTÍAS (tarifas.json → garantias) -->
+  <section class="section section-off" id="como-trabajamos">
     <div class="container">
-      <div class="meta-ads-block reveal">
-        <span class="eyebrow">Experiencia comprobada</span>
-        <div class="meta-ads-stat">
-          <span class="meta-ads-prefix">Más de</span>
-          <span class="meta-ads-number">$150.000.000</span>
-          <span class="meta-ads-suffix">invertidos en Meta Ads</span>
-        </div>
-        <p>Gestionamos presupuestos reales en Facebook e Instagram Ads para clínicas estéticas. Sabemos qué funciona y qué no.</p>
+      <div class="section-header reveal">
+        <span class="eyebrow">Cómo trabajamos</span>
+        <h2 class="section-title">De tu primer mensaje a la resolución, en 4 pasos</h2>
+        <p class="section-lead">Todo por WhatsApp y por escrito. Sabes qué pagas y qué recibes en cada etapa.</p>
+      </div>
+      <ol class="pasos reveal">
+        <li class="paso">
+          <span class="paso-num">Paso 1</span>
+          <h3>Nos escribes</h3>
+          <p>Nos cuentas qué tipo de establecimiento es y en qué comuna está. Te respondemos por WhatsApp.</p>
+        </li>
+        <li class="paso">
+          <span class="paso-num">Paso 2 · 48 horas hábiles</span>
+          <h3>Diagnóstico express</h3>
+          <p>Con fotos del local, planos si tienes y la lista de servicios, te entregamos las autorizaciones que necesitas, las brechas y el presupuesto. Cuesta {{ diagnostico.precio|clp }} y se descuenta completo si sigues.</p>
+        </li>
+        <li class="paso">
+          <span class="paso-num">Paso 3 · 10 días hábiles</span>
+          <h3>Preparamos e ingresamos</h3>
+          <p>Protocolos, manuales, consentimientos y expediente. Con todos los antecedentes, ingresamos tu solicitud a la SEREMI dentro de 10 días hábiles.</p>
+        </li>
+        <li class="paso">
+          <span class="paso-num">Paso 4</span>
+          <h3>Observaciones hasta el final</h3>
+          <p>Si la SEREMI hace observaciones, las respondemos sin cobrar honorarios adicionales, hasta terminar el proceso.</p>
+        </li>
+      </ol>
+      <p class="pasos-pago">La resolución se paga en 3 partes: <b>60%</b> al aceptar, <b>30%</b> al ingresar la solicitud y <b>10%</b> al obtenerla.</p>
+
+      <div class="garantias reveal">
+        <h3>Nuestras garantías</h3>
+        <ul>
+          <li><span><b>Ingreso en 10 días hábiles.</b> Ingresamos tu solicitud a la SEREMI dentro de 10 días hábiles desde que recibimos todos los antecedentes. Si no cumplimos, te devolvemos el anticipo.</span></li>
+          <li><span><b>Observaciones sin costo.</b> Si la SEREMI hace observaciones, las respondemos sin cobrar honorarios adicionales hasta terminar el proceso.</span></li>
+          <li><span><b>Diagnóstico descontable.</b> Los {{ diagnostico.precio|clp }} del diagnóstico express se descuentan completos de la resolución.</span></li>
+          <li><span><b>Reintento en marcas.</b> Con los planes Completo y PRO, si INAPI no acepta tu marca, la presentamos de nuevo sin cobrar honorarios (las tasas de INAPI las paga el titular).</span></li>
+        </ul>
+        <p class="garantias-nota">La resolución la otorga la SEREMI y nadie puede garantizar su aprobación ni su plazo. Garantizamos lo que depende de nosotros.</p>
+      </div>
+
+      <div class="seccion-cta">
+        <a class="btn btn-primary" href="{{ diagnostico.whatsapp_url }}" target="_blank" rel="noopener" data-wa="como-trabajamos" data-linea="rs">{{ icono_whatsapp(18) }}<span>Partir con el diagnóstico</span></a>
       </div>
     </div>
   </section>
 
-
-  <!-- PROBLEMA -->
-  <section class="section section-white" id="problema">
-    <div class="container">
-      <div class="reveal section-header">
-        <span class="eyebrow">{{ content.problem.label }}</span>
-        <h2 class="section-title">{{ content.problem.title }}</h2>
-        <p class="section-lead">La mayoría pierde dinero antes de abrir. Estos son los errores que vemos una y otra vez.</p>
+  <!-- REGISTRO DE MARCA -->
+  <section class="section section-white" id="marcas">
+    <div class="container marcas-bloque">
+      <div class="marcas-texto reveal">
+        <span class="eyebrow">Registro de marca</span>
+        <h2 class="section-title">Si tu marca no está registrada, no es tuya</h2>
+        <p class="section-lead">En Chile, la marca se le da al primero que la pide en INAPI. Ni el dominio .cl ni tu cuenta de Instagram te dan ese derecho. Revisamos gratis si tu nombre está disponible y lo registramos por ti, para cualquier rubro.</p>
+        <ol class="marcas-pasos">
+          <li>Revisamos gratis tu marca y te decimos en qué clases conviene registrarla.</li>
+          <li>Eliges tu plan y presentamos la solicitud ante INAPI.</li>
+          <li>Te avisamos en cada etapa hasta que tienes el registro.</li>
+        </ol>
       </div>
-      <div class="problem-list reveal">
-        {% for item in content.problem["items"] %}
-        <div class="problem-item">
-          <span class="problem-num">0{{ loop.index }}</span>
-          <p class="problem-text">{{ item }}</p>
-        </div>
-        {% endfor %}
-      </div>
+      {{ tarjeta_servicio(marca) }}
     </div>
   </section>
 
-  <!-- SOLUCIÓN -->
-  <section class="section section-off" id="solucion">
+  <!-- QUIÉNES SOMOS -->
+  <section class="section section-off" id="nosotros">
     <div class="container">
-      <div class="reveal section-header">
-        <span class="eyebrow">{{ content.solution.label }}</span>
-        <h2 class="section-title">{{ content.solution.title | safe }}</h2>
-      </div>
-      <div class="solution-list reveal">
-        {% for item in content.solution["items"] %}
-        <div class="solution-item">
-          <div class="solution-check">
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" stroke="white" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
-          </div>
-          <p class="solution-text">{{ item }}</p>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </section>
-
-  <!-- SERVICIOS -->
-  <section class="section section-white" id="servicios">
-    <div class="container">
-      <div class="reveal section-header">
-        <span class="eyebrow">{{ content.services.label }}</span>
-        <h2 class="section-title">{{ content.services.title }}</h2>
-        <p class="section-lead">Todo lo que tu clínica necesita, coordinado por un solo equipo.</p>
-      </div>
-      <div class="services-list reveal">
-        {% for service in content.services["items"] %}
-        <div class="service-item">
-          <div class="service-icon-wrap">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 21h18M9 8h1M9 12h1M9 16h1M14 8h1M14 12h1M14 16h1M5 21V5a2 2 0 012-2h10a2 2 0 012 2v16"/></svg>
-          </div>
-          <h3>{{ service.title }}</h3>
-          <p>{{ service.desc }}</p>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </section>
-
-  <!-- DIFERENCIAL -->
-  <section class="section section-blue" id="diferencial">
-    <div class="container">
-      <div class="differential-inner reveal">
-        <span class="eyebrow">Nuestro diferencial</span>
-        <h2 class="section-title">No somos solo consultores</h2>
-        <p class="section-lead">Operamos contigo en la implementación real: elegimos la ubicación, gestionamos permisos, montamos el equipo y captamos pacientes. Seguimos hasta que tu clínica facture.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- SOCIAL PROOF -->
-  <section class="section section-off" id="social-proof">
-    <div class="container">
-      <div class="reveal section-header">
-        <span class="eyebrow">{{ content.stats.label }}</span>
-        <h2 class="section-title">{{ content.stats.title }}</h2>
-      </div>
-      {% if content.stats["items"] %}
-      <div class="stats-row reveal">
-        {% for stat in content.stats["items"] %}
-        <div class="stat-block">
-          <div class="stat-number">{{ stat.number }}</div>
-          <div class="stat-label">{{ stat.label }}</div>
-        </div>
-        {% endfor %}
-      </div>
-      {% endif %}
-
-      <!-- WhatsApp photo gallery — clinic spaces -->
-      {% set clinic_sizes = '(max-width: 768px) 50vw, 25vw' %}
-      {% set clinic_strip_1 = [
-        'WhatsApp Image 2026-05-20 at 11.56.30.jpeg',
-        'WhatsApp_Image_2026-05-20.jpeg',
-        'WhatsApp Image 2026-05-20 at 11.56.32.jpeg',
-        'WhatsApp Image 2026-05-20 at 11.56.32 (1).jpeg',
-        'WhatsApp Image 2026-05-20 at 11.56.32 (2).jpeg',
-        'WhatsApp Image 2026-05-20 at 11.56.32 (3).jpeg',
-        'WhatsApp Image 2026-05-20 at 11.56.32 (4).jpeg',
-        'WhatsApp Image 2026-05-20 at 11.56.33.jpeg',
-      ] %}
-      {% set clinic_strip_2 = [
-        'WhatsApp Image 2026-05-20 at 11.56.33 (1).jpeg',
-        'WhatsApp Image 2026-05-20 at 11.56.33 (2).jpeg',
-        'WhatsApp Image 2026-05-20 at 11.56.33 (3).jpeg',
-        'WhatsApp Image 2026-05-20 at 11.56.33 (4).jpeg',
-      ] %}
-      {% set clinic_strip_3 = ['WhatsApp Image 2026-05-20 at 11.56.33 (5).jpeg'] %}
-      <div class="clinic-photos-section reveal">
-        <p class="clinic-photos-label">Nuestros proyectos</p>
-        <div class="clinic-photos-strip">
-          {% for f in clinic_strip_1 %}
-          <div class="clinic-photo-item">{{ picture('images/' + f, 'Clínica proyecto ' ~ loop.index, clinic_sizes) }}</div>
-          {% endfor %}
-        </div>
-        <div class="clinic-photos-strip">
-          {% for f in clinic_strip_2 %}
-          <div class="clinic-photo-item">{{ picture('images/' + f, 'Clínica proyecto ' ~ (loop.index + 8), clinic_sizes) }}</div>
-          {% endfor %}
-        </div>
-        <div class="clinic-photos-strip-2">
-          {% for f in clinic_strip_3 %}
-          <div class="clinic-photo-item">{{ picture('images/' + f, 'Clínica proyecto 13', clinic_sizes) }}</div>
-          {% endfor %}
-        </div>
-      </div>
-
-      <div class="cases-grid reveal">
-        <div class="case-card glass-card">
-          <span class="case-tag">Caso real</span>
-          <h3>Clínica Goyenechea</h3>
-          <p>Clínica estética operativa con pacientes desde el mes uno. Implementación completa: ubicación, permisos, diseño y marketing.</p>
-        </div>
-        <div class="case-card glass-card">
-          <span class="case-tag">Caso real</span>
-          <h3>Residencia Teresita de Jesús</h3>
-          <p>Centro de salud con enfoque integral. Acompañamiento completo hasta obtener resolución sanitaria y primeros pacientes.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- AUDIOVISUAL -->
-  <section class="section section-white" id="audiovisual">
-    <div class="container">
-      <div class="reveal section-header">
-        <span class="eyebrow">{{ content.videos.label }}</span>
-        <h2 class="section-title">{{ content.videos.title }}</h2>
-        <p class="section-lead">{{ content.videos.text }}</p>
-      </div>
-      <div class="video-scroll reveal">
-        {% for video in content.videos["items"] %}
-        {% set vsrc = video.file if video.file.startswith('http') else url_for('static', filename='images/73727364/' + video.file) %}
-        {% set vposter = ('images/73727364/' + video.file)|video_poster if not video.file.startswith('http') else '' %}
-        <div class="video-item">
-          <video controls preload="none"{% if vposter %} poster="{{ vposter }}"{% endif %}>
-            <source src="{{ vsrc }}" type="video/mp4">
-          </video>
-          <div class="video-item-info">
-            <h3>{{ video.title }}</h3>
-            <p>{{ video.desc }}</p>
-          </div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </section>
-
-  <!-- GALERÍA -->
-  <section class="section section-off" id="galeria">
-    <div class="container">
-      <div class="reveal section-header">
-        <span class="eyebrow">{{ content.gallery.label }}</span>
-        <h2 class="section-title">{{ content.gallery.title }}</h2>
-        <p class="section-lead">{{ content.gallery.text }}</p>
-      </div>
-      <div class="gallery-slider-wrapper reveal">
-        <button class="slider-btn slider-btn-prev" aria-label="Anterior">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
-        </button>
-        <div class="gallery-slider" id="gallerySlider">
-          {% for image in content.gallery.images %}
-          <div class="gallery-slide">
-            {% if image.startswith('http') %}
-              <img src="{{ image }}" alt="Imagen {{ loop.index }}" loading="lazy" decoding="async">
-            {% else %}
-              {{ picture('images/73727364/' + image, 'Imagen ' ~ loop.index, '(max-width: 768px) 100vw, 800px') }}
-            {% endif %}
-          </div>
-          {% endfor %}
-        </div>
-        <button class="slider-btn slider-btn-next" aria-label="Siguiente">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
-        </button>
-      </div>
-      <div class="slider-dots" id="galleryDots"></div>
-    </div>
-  </section>
-
-  <!-- TECNOLOGÍA -->
-  <section class="section section-white" id="tecnologia">
-    <div class="container">
-      <div class="reveal section-header">
-        <span class="eyebrow">{{ content.technology.label }}</span>
-        <h2 class="section-title">{{ content.technology.title }}</h2>
-        <p class="section-lead">{{ content.technology.text }}</p>
-      </div>
-      <div class="tech-grid">
-        {% for tech in content.technology["items"] %}
-        <div class="tech-card glass-card reveal">
-          <div class="tech-icon-wrap">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"/></svg>
-          </div>
-          <h3>{{ tech.title }}</h3>
-          <p>{{ tech.desc }}</p>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </section>
-
-  <!-- CLIENTE IDEAL -->
-  <section class="section section-off" id="cliente-ideal">
-    <div class="container">
-      <div class="reveal section-header">
-        <span class="eyebrow">{{ content.client.label }}</span>
-        <h2 class="section-title">{{ content.client.title }}</h2>
-        <p class="section-lead">{{ content.client.text }}</p>
-      </div>
-      <div class="pain-solution-grid reveal">
-        <div class="pain-col">
-          <div class="col-header">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#dc2626" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
-            <h3>{{ content.client.pain_label }}</h3>
-          </div>
-          <ul class="col-list">
-            {% for item in content.client["pain_items"] %}
-            <li>{{ item }}</li>
-            {% endfor %}
+      <div class="nosotros">
+        <div class="nosotros-texto reveal">
+          <span class="eyebrow">Quiénes somos</span>
+          <h2 class="section-title">Una consultora chilena, con nombre y apellido</h2>
+          <p class="section-lead">{{ sitio.marca }} la dirige <b>Salvador Ramírez</b>, con experiencia administrando centros de salud y de medicina estética. Salvador revisa personalmente cada diagnóstico, y en cada proyecto coordinamos arquitectos, abogados y especialistas según lo que necesite.</p>
+          <ul class="hechos">
+            <li>100 % online, en todo Chile</li>
+            <li>Te respondemos por WhatsApp y todo queda por escrito</li>
+            <li>Consultora privada: no somos parte de la SEREMI ni de INAPI</li>
           </ul>
         </div>
-        <div class="solution-col">
-          <div class="col-header">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="#006FD6" stroke-width="2" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            <h3>{{ content.client.solution_label }}</h3>
-          </div>
-          <ul class="col-list">
-            {% for item in content.client["solution_items"] %}
-            <li>{{ item }}</li>
-            {% endfor %}
-          </ul>
+        <div class="proyectos reveal">
+          <article class="proyecto">
+            <span class="proyecto-tag">Proyecto de nuestro equipo</span>
+            <h3>Clínica Goyenechea</h3>
+            <p>Clínica estética operativa con pacientes desde el mes uno. Implementación completa: ubicación, permisos, diseño y marketing.</p>
+          </article>
+          <article class="proyecto">
+            <span class="proyecto-tag">Proyecto de nuestro equipo</span>
+            <h3>Residencia Teresita de Jesús</h3>
+            <p>Centro de salud con enfoque integral. Acompañamiento completo hasta obtener resolución sanitaria y primeros pacientes.</p>
+          </article>
         </div>
+      </div>
+      <div class="fotos">
+        {%- for archivo, alt in fotos %}
+        <figure class="foto">{{ picture('images/' + archivo, alt, '(max-width: 760px) 50vw, 380px') }}</figure>
+        {%- endfor %}
+      </div>
+      <p class="fotos-nota">Fotos de proyectos en los que ha trabajado nuestro equipo.</p>
+    </div>
+  </section>
+
+  <!-- PREGUNTAS FRECUENTES (mismo texto que el schema FAQPage) -->
+  <section class="section section-white" id="preguntas">
+    <div class="container">
+      <div class="section-header centered reveal">
+        <span class="eyebrow">Preguntas frecuentes</span>
+        <h2 class="section-title">Lo que nos preguntan antes de partir</h2>
+      </div>
+      <div class="faq">
+        {%- for pregunta, respuesta in faq %}
+        <details class="faq-item">
+          <summary>{{ pregunta }}</summary>
+          <p>{{ respuesta }}</p>
+        </details>
+        {%- endfor %}
       </div>
     </div>
   </section>
 
-  <!-- BENEFICIOS -->
-  <section class="section section-white" id="beneficios">
+  <!-- CIERRE: el formulario arma el mensaje de WhatsApp con los 2 datos que pide Andrea -->
+  <section class="section section-cta" id="contacto">
     <div class="container">
-      <div class="reveal section-header">
-        <span class="eyebrow">{{ content.benefits.label }}</span>
-        <h2 class="section-title">{{ content.benefits.title }}</h2>
-      </div>
-      <div class="benefits-grid">
-        {% for benefit in content.benefits["items"] %}
-        <div class="benefit-card glass-card reveal">
-          <div class="benefit-num">{{ benefit.number }}</div>
-          <h3>{{ benefit.title }}</h3>
-          <p>{{ benefit.desc }}</p>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </section>
-
-  <!-- CTA FINAL -->
-  <section class="section section-cta" id="cta">
-    <div class="container">
-      <div class="cta-inner reveal">
-        <span class="cta-badge">{{ content.cta.badge }}</span>
-        <h2 class="section-title">{{ content.cta.title }}</h2>
-        <p class="section-lead">{{ content.cta.text }}</p>
-        <div class="cta-buttons">
-          <a href="#captura" class="btn btn-primary">
-            {{ content.cta.button_primary }}
-            <span class="btn-arrow-icon">
-              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-            </span>
-          </a>
-          <a href="https://wa.me/56930175070?text=Hola%2C+quiero+informaci%C3%B3n+sobre+abrir+una+cl%C3%ADnica" target="_blank" rel="noopener" class="btn btn-outline-white">{{ content.cta.button_secondary }}</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- FAQ -->
-  <section class="section section-faq" id="faq">
-    <div class="container">
-      <div class="reveal section-header centered">
-        <span class="eyebrow">{{ content.faq.label }}</span>
-        <h2 class="section-title">{{ content.faq.title }}</h2>
-      </div>
-      <div class="faq-list">
-        {% for faq in content.faq["items"] %}
-        <div class="faq-item reveal">
-          <button class="faq-question" onclick="toggleFaq(this)">
-            <span>{{ faq.q }}</span>
-            <span class="faq-icon">+</span>
-          </button>
-          <div class="faq-answer"><p>{{ faq.a }}</p></div>
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </section>
-
-  <!-- CAPTURA -->
-  <section class="section section-captura" id="captura">
-    <div class="container">
-      <div class="reveal section-header centered">
-        <span class="eyebrow">Agenda tu asesoría</span>
-        <h2 class="section-title">Déjanos tus datos y agendamos</h2>
-        <p class="section-lead">Completa el formulario y te contactamos por WhatsApp para confirmar.</p>
-      </div>
-      <div class="capture-box reveal">
-        <form class="capture-form" id="capture-form">
+      <div class="cta-inner">
+        <span class="cta-badge">Primer paso</span>
+        <h2 class="section-title">Cuéntanos tu caso y te decimos por dónde partir</h2>
+        <p class="section-lead">Con el tipo de establecimiento y la comuna ya podemos orientarte. Te respondemos por WhatsApp, por escrito.</p>
+        <form class="caso-form" id="caso-form" data-texto="{{ wa_formulario }}" data-whatsapp="{{ ''|wa }}">
           <div class="form-field">
-            <label for="capture-nombre">Nombre completo</label>
-            <input type="text" id="capture-nombre" name="nombre" placeholder="Tu nombre" required>
-          </div>
-          <div class="form-field">
-            <label for="capture-telefono">Teléfono</label>
-            <input type="tel" id="capture-telefono" name="telefono" placeholder="+56 9 XXXX XXXX" required>
-          </div>
-          <div class="form-field">
-            <label for="capture-horario">Horario preferido</label>
-            <select id="capture-horario" name="horario" required>
-              <option value="">Selecciona horario</option>
-              <option value="09:00">09:00</option>
-              <option value="09:30">09:30</option>
-              <option value="10:00">10:00</option>
-              <option value="10:30">10:30</option>
-              <option value="11:00">11:00</option>
-              <option value="11:30">11:30</option>
-              <option value="12:00">12:00</option>
-              <option value="13:00">13:00</option>
-              <option value="14:00">14:00</option>
-              <option value="14:30">14:30</option>
-              <option value="15:00">15:00</option>
-              <option value="15:30">15:30</option>
-              <option value="16:00">16:00</option>
-              <option value="16:30">16:30</option>
-              <option value="17:00">17:00</option>
-              <option value="17:30">17:30</option>
+            <label for="caso-tipo">Tipo de establecimiento</label>
+            <select id="caso-tipo" name="tipo">
+              <option value="">Selecciona</option>
+              {%- for visible, sigue in tipos %}
+              <option value="{{ sigue }}">{{ visible }}</option>
+              {%- endfor %}
             </select>
           </div>
-          <button type="button" class="btn btn-primary btn-submit" id="btn-captura">Enviar por WhatsApp</button>
+          <div class="form-field">
+            <label for="caso-comuna">Comuna</label>
+            <input type="text" id="caso-comuna" name="comuna" placeholder="Ej.: Providencia" autocomplete="address-level2" maxlength="60">
+          </div>
+          <button type="submit" class="btn btn-primary">{{ icono_whatsapp(18) }}<span>Seguir en WhatsApp</span></button>
         </form>
+        <p class="cta-alterna">¿Es por una marca? <a href="{{ marca.whatsapp_url }}" target="_blank" rel="noopener" data-wa="cierre-marcas" data-linea="marcas">Revisa tu marca gratis por WhatsApp</a></p>
       </div>
     </div>
   </section>
+{% endblock %}
 
-  <!-- FOOTER -->
-  <footer class="footer">
-    <div class="container">
-      <div class="footer-top">
-        <div>
-          <div class="footer-brand">{{ config.business_name }}</div>
-          <p class="footer-text">{{ content.footer.text }}</p>
-        </div>
-        <div class="footer-actions">
-          <a href="https://wa.me/56930175070" target="_blank" rel="noopener" class="btn btn-sm btn-primary">WhatsApp</a>
-          <a href="#captura" class="btn btn-sm btn-outline-white">Agendar</a>
-        </div>
-      </div>
-      <div class="footer-bottom">
-        <span>&copy; 2026 {{ config.business_name }}. Todos los derechos reservados.</span>
-        <a href="/privacidad" class="footer-link">Política de privacidad</a>
-      </div>
-    </div>
-  </footer>
-
-  <!-- WHATSAPP FLOTANTE -->
-  <a href="https://wa.me/56930175070?text=Hola%2C+quiero+informaci%C3%B3n+sobre+abrir+una+cl%C3%ADnica" target="_blank" rel="noopener" class="whatsapp-float" aria-label="WhatsApp">
-    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-  </a>
-
-  <!-- AVISO DE COOKIES -->
-  <div class="cookie-banner" id="cookie-banner" role="region" aria-label="Aviso de cookies" hidden>
-    <p>Usamos cookies de medición de Meta para saber cómo llegan nuestras visitas y mejorar nuestros anuncios. <a href="/privacidad">Política de privacidad</a></p>
-    <div class="cookie-actions">
-      <button type="button" class="btn btn-sm btn-outline-navy" data-cookies="no">Rechazar</button>
-      <button type="button" class="btn btn-sm btn-primary" data-cookies="si">Aceptar</button>
-    </div>
-  </div>
-
+{% block scripts %}
   <script>
-    // Scroll reveal
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) { entry.target.classList.add('visible'); observer.unobserve(entry.target); }
-      });
-    }, { threshold: 0.08, rootMargin: '0px 0px -32px 0px' });
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-    // FAQ toggle
-    function toggleFaq(btn) {
-      const item = btn.parentElement;
-      const isOpen = item.classList.contains('open');
-      document.querySelectorAll('.faq-item.open').forEach(i => i.classList.remove('open'));
-      if (!isOpen) item.classList.add('open');
-    }
-
-    // Gallery slider
-    (function() {
-      const slider = document.getElementById('gallerySlider');
-      if (!slider) return;
-      const slides = slider.querySelectorAll('.gallery-slide');
-      const dots = document.getElementById('galleryDots');
-      let current = 0, auto;
-      function show(i) {
-        if (i < 0) i = slides.length - 1;
-        if (i >= slides.length) i = 0;
-        current = i;
-        slider.scrollTo({ left: slides[i].offsetLeft - slider.offsetLeft, behavior: 'smooth' });
-        dots.querySelectorAll('.slider-dot').forEach((d, j) => d.classList.toggle('active', j === i));
+    (function () {
+      // Formulario «Cuéntanos tu caso»: arma el texto para Andrea (contiene «resolución sanitaria») y abre WhatsApp.
+      var form = document.getElementById('caso-form');
+      if (form) {
+        form.addEventListener('submit', function (e) {
+          e.preventDefault();
+          var texto = form.dataset.texto;
+          var tipo = form.tipo.value;
+          var comuna = form.comuna.value.trim();
+          if (tipo) texto += ' para ' + tipo;
+          if (comuna) texto += (tipo ? ' en ' : ', en ') + comuna;
+          window.open(form.dataset.whatsapp + '?text=' + encodeURIComponent(texto + '.'), '_blank', 'noopener');
+          window.cccLead('formulario-rs', 'rs');
+        });
       }
-      slides.forEach((_, i) => {
-        const d = document.createElement('button');
-        d.className = 'slider-dot' + (i === 0 ? ' active' : '');
-        d.setAttribute('aria-label', 'Imagen ' + (i + 1));
-        d.onclick = () => { clearInterval(auto); show(i); startAuto(); };
-        dots.appendChild(d);
-      });
-      function startAuto() { auto = setInterval(() => show(current + 1), 4000); }
-      document.querySelector('.slider-btn-prev')?.addEventListener('click', () => { clearInterval(auto); show(current - 1); startAuto(); });
-      document.querySelector('.slider-btn-next')?.addEventListener('click', () => { clearInterval(auto); show(current + 1); startAuto(); });
-      startAuto();
-    })();
 
-    // WhatsApp form submit
-    document.getElementById('btn-captura').addEventListener('click', function() {
-      const nombre = document.getElementById('capture-nombre').value.trim();
-      const telefono = document.getElementById('capture-telefono').value.trim();
-      const horario = document.getElementById('capture-horario').value;
-      if (!nombre || !telefono || !horario) { alert('Por favor completa todos los campos.'); return; }
-      const msg = encodeURIComponent(`Hola, soy ${nombre}, mi teléfono es ${telefono}, horario preferido: ${horario}. Quiero agendar una asesoría.`);
-      window.open(`https://wa.me/56930175070?text=${msg}`, '_blank');
-      if (typeof fbq !== 'undefined') fbq('track', 'Lead');
-    });
-
-    // Aviso de cookies + evento Contact en los enlaces de WhatsApp
-    (function() {
-      const banner = document.getElementById('cookie-banner');
-      let eleccion = null;
-      try { eleccion = localStorage.getItem('ccc-cookies'); } catch (e) {}
-      if (!eleccion) banner.hidden = false;
-      banner.querySelectorAll('[data-cookies]').forEach(b => b.addEventListener('click', () => {
-        try { localStorage.setItem('ccc-cookies', b.dataset.cookies); } catch (e) {}
-        banner.hidden = true;
-        if (b.dataset.cookies === 'si') window.cccPixel();
-      }));
-      document.addEventListener('click', e => {
-        if (e.target.closest('a[href*="wa.me"]') && typeof fbq !== 'undefined') fbq('track', 'Contact');
-      });
+      // Botón flotante: mientras se ve la sección de marcas, abre WhatsApp con el texto de marcas.
+      var flotante = document.querySelector('.whatsapp-float[data-href-marcas]');
+      var marcas = document.getElementById('marcas');
+      if (flotante && marcas && 'IntersectionObserver' in window) {
+        new IntersectionObserver(function (entries) {
+          var enMarcas = entries[0].isIntersecting;
+          flotante.href = enMarcas ? flotante.dataset.hrefMarcas : flotante.dataset.hrefRs;
+          flotante.dataset.linea = enMarcas ? 'marcas' : 'rs';
+        }, { threshold: 0.35 }).observe(marcas);
+      }
     })();
   </script>
-</body>
-</html>
+{% endblock %}
