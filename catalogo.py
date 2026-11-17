@@ -125,7 +125,7 @@ REVISION_TEXTOS = {
                       "antes de que pagues.",
                       f"¿Todavía no revisamos tu marca? Pide primero la revisión ({_REV_PRECIO}, descontable del "
                       "plan): sabes si está disponible antes de reservar."),
-    "faq_clases": ("Te lo decimos en la revisión gratis.", "Te lo decimos en la revisión de tu marca."),
+    "faq_clases": ("Te la decimos en la revisión gratis.", "Te la decimos en la revisión de tu marca."),
     # Enlace al pago con tarjeta de la revisión (/pagar/revision, app.py). Vacío mientras sea gratis.
     "pago_enlace": ("", "o pagar la revisión con tarjeta ahora"),
 }
@@ -266,7 +266,7 @@ SERVICIOS = (
             "Seguimiento hasta la resolución del sumario",
         ),
         precio_texto="Revisamos tu caso con prioridad y te enviamos la propuesta.",
-        nota="Los plazos son cortos: la reposición se presenta dentro de 5 días hábiles desde la notificación.",
+        nota="Los plazos son cortos: cada día cuenta desde la notificación.",
         etiqueta="Urgente",
         cta="Tengo un sumario",
         whatsapp="Hola, vengo de la página web. Tengo un sumario sanitario de la SEREMI y necesito asesoría.",
@@ -477,13 +477,13 @@ PLANES_MARCA = (
     Plan(
         id="hazlo_tu",
         nombre="Registro Hazlo Tú",
-        lema="Con nuestra guía paso a paso",
+        lema="Con nuestro acompañamiento",
         precio=79990,
         precio_tachado=None,
         incluye=(
             "Revisión de disponibilidad en INAPI",
             "Clases y textos legales listos para tu solicitud",
-            "La presentas tú, con tu ClaveÚnica",
+            "La presentas tú, con nuestro acompañamiento",
             "Revisamos tu solicitud antes de que la envíes",
             "Si pasas al Completo antes de presentar, se descuenta el 100 %",
         ),
@@ -504,7 +504,7 @@ FAQ_PORTADA = (
      "60% al aceptar, 30% al ingresar la solicitud y 10% al obtenerla."),
     ("¿Hay costos aparte?",
      "Sí, y te los decimos antes de partir. En la resolución van aparte los aranceles de la SEREMI y, si tu caso "
-     "los necesita, planos, certificaciones (como el TE1), obras o equipamiento. En marcas, las tasas de INAPI y la "
+     "lo necesita, costos de terceros que te detallamos en el diagnóstico. En marcas, las tasas de INAPI y la "
      "publicación en el Diario Oficial."),
     ("¿Cuánto demora?",
      "El diagnóstico, 3 a 5 horas hábiles desde que tenemos el pago y las fotos. En la modalidad Completa, con todos "
@@ -531,9 +531,8 @@ FAQ_PORTADA = (
      "Trabajamos 100 % online en todo Chile: el diagnóstico, la resolución sanitaria y el registro de tu marca se "
      "hacen a distancia, desde cualquier región."),
     ("Me llegó un sumario o una fiscalización, ¿qué hago?",
-     "Escríbenos hoy con la fecha de notificación y una foto del acta o la citación. Los plazos son cortos: la "
-     "reposición, por ejemplo, se presenta dentro de 5 días hábiles desde la notificación. Revisamos tu caso con "
-     "prioridad."),
+     "Escríbenos hoy con la fecha de notificación y una foto del acta o la citación. Los plazos son cortos y "
+     "corren desde la notificación: escríbenos hoy. Revisamos tu caso con prioridad."),
     ("¿Son parte de la SEREMI o de INAPI?",
      "No. Somos una consultora privada: preparamos y presentamos tus solicitudes ante la SEREMI de Salud y ante "
      "INAPI, y hacemos el seguimiento por ti."),
@@ -555,8 +554,7 @@ FAQ_MARCAS = (
      "El tuyo, sí. El de otra persona, solo con su consentimiento (Ley 19.039, art. 20). Si la marca lleva el "
      "apellido de un socio, conviene dejarlo por escrito."),
     ("¿En qué clase registro mi marca?",
-     "Depende de lo que vendes: 25 ropa y calzado, 30 café y alimentos, 35 tienda y e-commerce, 43 restaurantes y "
-     "cafeterías, 41 cursos, 44 salud y estética, 3 cosmética, 9 y 42 apps y software. Te lo decimos en la "
+     "Depende de lo que vendes, y elegirla bien define qué protege tu marca. Te la decimos en la "
      "revisión gratis."),
     ("¿Qué pasa si INAPI la rechaza?",
      "Con los planes Completo y PRO aplica la garantía de reintento: la presentamos de nuevo sin cobrarte "
