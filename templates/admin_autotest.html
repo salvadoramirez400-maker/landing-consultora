@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Autotest interno · CCC</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Inter',sans-serif;background:#f0f8ff;color:#1e3a5f;line-height:1.45;padding-bottom:40px}
+header{background:linear-gradient(135deg,#1e7cd6,#16a34a);color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+header h1{font-size:18px}header a{color:#fff;font-size:14px;text-decoration:none;background:rgba(255,255,255,.2);padding:6px 12px;border-radius:8px}
+main{max-width:720px;margin:0 auto;padding:14px}
+fieldset{background:#fff;border:1px solid #d0e1f0;border-radius:12px;padding:12px;margin-bottom:12px}
+legend{font-weight:700;padding:0 6px;font-size:15px}
+label.op{display:block;padding:12px;margin:6px 0;border:1px solid #d0e1f0;border-radius:10px;font-size:16px;cursor:pointer}
+label.op:has(input:checked){background:#e1f0ff;border-color:#1e7cd6;font-weight:600}
+label.op input{margin-right:8px;transform:scale(1.2)}
+input[type=text]{width:100%;padding:12px;font-size:16px;border:1px solid #d0e1f0;border-radius:10px}
+button,.btn{display:block;width:100%;padding:14px;font-size:17px;font-weight:700;border:0;border-radius:12px;background:#1e7cd6;color:#fff;margin:8px 0;cursor:pointer;text-align:center;text-decoration:none}
+.btn2{background:#16a34a}.btn3{background:#5a6275}
+.err{background:#fee2e2;border:1px solid #fca5a5;border-radius:10px;padding:10px;margin-bottom:12px}
+.card{background:#fff;border:1px solid #d0e1f0;border-radius:12px;padding:14px;margin-bottom:12px}
+.card h2{font-size:15px;color:#1e7cd6;margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
+.card ul{padding-left:20px}.card li{margin:4px 0}
+.nivel{display:inline-block;padding:4px 12px;border-radius:999px;font-weight:700;color:#fff}
+.n-sí{background:#dc2626}.n-depende{background:#d97706}
+.alerta{background:#fef3c7;border:1px solid #fcd34d}
+pre{white-space:pre-wrap;font:13px/1.4 ui-monospace,monospace;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px}
+.ok{color:#16a34a;font-weight:600;margin:6px 0}
+</style>
+</head>
+<body>
+<header><h1>Autotest interno</h1><span><a href="/admin">CRM</a></span></header>
+<main>
+{% if aviso %}<p class="ok">{{ aviso }}</p>{% endif %}
+{% if errores %}<div class="err" role="alert"><strong>Falta:</strong><ul>{% for e in errores %}<li>{{ e }}</li>{% endfor %}</ul></div>{% endif %}
+
+<form method="get" action="/admin/autotest" id="f">
+<fieldset><legend>1. Tipo de local</legend>
+{% for k,(v,_) in at.TIPOS.items() %}<label class="op"><input type="radio" name="tipo" value="{{k}}" {{ 'checked' if previas.get('tipo')==k }}>{{v}}</label>{% endfor %}</fieldset>
+<fieldset><legend>2. Qué hace</legend>
+{% for k,v in at.HACE.items() %}<label class="op"><input type="radio" name="hace" value="{{k}}" {{ 'checked' if previas.get('hace')==k }}>{{v}}</label>{% endfor %}</fieldset>
+<fieldset><legend>3. Equipos (varios)</legend>
+{% for k,v in at.EQUIPOS.items() %}<label class="op"><input type="checkbox" name="eq" value="{{k}}" {{ 'checked' if k in previas.getlist('eq') }}>{{v}}</label>{% endfor %}</fieldset>
+<fieldset><legend>4. Box, salas o sillones</legend>
+{% for k,(v,_) in at.RECINTOS.items() %}<label class="op"><input type="radio" name="recintos" value="{{k}}" {{ 'checked' if previas.get('recintos')==k }}>{{v}}</label>{% endfor %}</fieldset>
+<fieldset><legend>5. Comuna (opcional)</legend>
+<input type="text" name="comuna" value="{{ previas.get('comuna','') }}" maxlength="{{ at.COMUNA_MAX }}" placeholder="Ej.: Providencia"></fieldset>
+<fieldset><legend>6. Recepción final de la DOM</legend>
+{% for k,v in at.RECEPCION.items() %}<label class="op"><input type="radio" name="recepcion" value="{{k}}" {{ 'checked' if previas.get('recepcion')==k }}>{{v}}</label>{% endfor %}</fieldset>
+<button type="submit">Diagnosticar</button>
+<a class="btn btn3" href="/admin/autotest">Limpiar</a>
+</form>
+
+{% if f %}
+<div id="resultado">
+<div class="card"><h2>Autorización</h2>
+<p><span class="nivel n-{{ f.nivel }}">{{ f.nivel|upper }}</span></p>
+<p style="margin-top:8px">{{ f.titular }}</p>
+<p style="margin-top:6px;color:#5a6275"><strong>Normas:</strong> {{ f.normas|join('; ') }}</p></div>
+{% if f.alertas %}<div class="card alerta"><h2>Ojo</h2><ul>{% for a in f.alertas %}<li>{{a}}</li>{% endfor %}</ul></div>{% endif %}
+<div class="card"><h2>Lo que verá el cliente (público)</h2><ul>{% for l in f.res.lineas if l %}<li>{{l}}</li>{% endfor %}</ul></div>
+<div class="card"><h2>Equipos</h2><ul>{% for e in f.equipos %}<li>{{e}}</li>{% endfor %}</ul></div>
+<div class="card"><h2>Residuos</h2><p>{{ f.residuos }}</p></div>
+<div class="card"><h2>Inmueble</h2><p>{{ f.inmueble }}</p></div>
+<div class="card"><h2>Preguntarle al cliente</h2><ul>{% for p in f.preguntas %}<li>{{p}}</li>{% endfor %}</ul></div>
+<div class="card"><h2>Pedirle</h2><ul>{% for a in f.antecedentes %}<li>{{a}}</li>{% endfor %}</ul></div>
+<div class="card"><h2>Plazo y costos</h2><p>{{ f.plazo }}</p><p style="margin-top:6px">{{ f.arancel }}</p></div>
+<pre id="txt">{{ texto }}</pre>
+<button type="button" class="btn2" onclick="navigator.clipboard.writeText(document.getElementById('txt').innerText).then(()=>this.textContent='Copiado ✓')">Copiar resumen</button>
+<form method="post" action="/admin/autotest/telegram"><input type="hidden" name="q" value="{{ query }}"><button type="submit">Enviar a Telegram</button></form>
+</div>
+{% endif %}
+</main>
+</body>
+</html>

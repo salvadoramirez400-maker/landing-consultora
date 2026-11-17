@@ -10,7 +10,7 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from flask import Flask, Response, abort, jsonify, redirect, render_template, request, send_from_directory, session, url_for
+from flask import Flask, Response, abort, jsonify, make_response, redirect, render_template, request, send_from_directory, session, url_for
 
 import autotest
 import blob
@@ -746,6 +746,50 @@ def autotest_pdf():
         "X-Robots-Tag": "noindex",
         "Cache-Control": "public, max-age=3600",
     })
+
+
+# --- Autotest INTERNO (solo con sesión de /admin) ---
+@app.route("/admin/autotest")
+def admin_autotest():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+    import autotest_interno
+    respuestas, errores = autotest.leer(request.args) if request.args.get("tipo") else (None, [])
+    f = texto = None
+    if respuestas:
+        f = autotest_interno.ficha(respuestas)
+        texto = autotest_interno.resumen(respuestas, f)
+    resp = make_response(render_template("admin_autotest.html", at=autotest, previas=request.args, errores=errores, f=f,
+                                         texto=texto, query=_autotest_query(respuestas) if respuestas else "",
+                                         aviso=request.args.get("aviso", "")))
+    resp.headers["Cache-Control"] = "private, no-store"
+    resp.headers["X-Robots-Tag"] = "noindex"
+    return resp
+
+
+@app.route("/admin/autotest/telegram", methods=["POST"])
+def admin_autotest_telegram():
+    if not session.get("logged_in"):
+        return redirect(url_for("login"))
+    import autotest_interno
+    from urllib.parse import parse_qsl
+    from werkzeug.datastructures import MultiDict
+    q = request.form.get("q", "")
+    respuestas, errores = autotest.leer(MultiDict(parse_qsl(q))) if q else (None, ["vacío"])
+    if errores:
+        return redirect("/admin/autotest")
+    token, chat = os.environ.get("TELEGRAM_BOT_TOKEN", ""), os.environ.get("TELEGRAM_CHAT_ID", "")
+    if not token or not chat:
+        return redirect("/admin/autotest?" + q + "&aviso=Telegram no está configurado en Vercel; usa «Copiar resumen».")
+    texto = autotest_interno.resumen(respuestas, autotest_interno.ficha(respuestas))
+    try:
+        datos = urllib.parse.urlencode({"chat_id": chat, "text": texto[:4000]}).encode()
+        urllib.request.urlopen(f"https://api.telegram.org/bot{token}/sendMessage", data=datos, timeout=8).close()
+        aviso = "Enviado a Telegram ✓"
+    except Exception:
+        app.logger.exception("No se pudo enviar el autotest interno por Telegram")
+        aviso = "No se pudo enviar a Telegram; usa «Copiar resumen»."
+    return redirect("/admin/autotest?" + q + "&aviso=" + urllib.parse.quote(aviso))
 
 
 @app.route("/privacidad")
