@@ -223,7 +223,7 @@ class PaginasPublicas(unittest.TestCase):
     def test_solo_precios_aprobados(self):
         permitidos = {"/": {"$49.990", "$147.990"},
                       "/marcas": {"$157.000", "$147.990", "$219.990", "$247.990", "$319.990", "$49.990",
-                                  "$72.151", "$144.302", "$216.453"}}
+                                  "$72.440", "$144.880", "$217.320"}}
         for ruta, aprobados in permitidos.items():
             montos = set(re.findall(r"\$\d{1,3}(?:\.\d{3})+", _texto_visible(self.html[ruta])))
             with self.subTest(ruta=ruta):

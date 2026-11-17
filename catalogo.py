@@ -421,7 +421,7 @@ FAQ_MARCAS = (
     ("¿Necesito empresa o inicio de actividades?",
      "No. La marca la puede registrar una persona natural o una empresa."),
     ("¿Las tasas de INAPI están incluidas?",
-     "No. Son 1 UTM por clase al presentar y 2 UTM por clase cuando INAPI la acepta (unos $216.453 en total por "
+     "No. Son 1 UTM por clase al presentar y 2 UTM por clase cuando INAPI la acepta (unos $217.320 en total por "
      "clase), más la publicación en el Diario Oficial. Te avisamos el monto exacto en cada etapa."),
     ("¿Puedo registrar mi apellido o el de otra persona?",
      "El tuyo, sí. El de otra persona, solo con su consentimiento (Ley 19.039, art. 20). Si la marca lleva el "
