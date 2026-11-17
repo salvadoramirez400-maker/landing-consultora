@@ -44,3 +44,4 @@ static/uploads/
 
 # Vercel
 .vercel
+.env*

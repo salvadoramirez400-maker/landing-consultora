@@ -98,6 +98,25 @@ def _dominio_canonico():
     return None
 
 
+_BASE_PREPARADA = False
+
+
+@app.before_request
+def _preparar_base():
+    """Base nueva (Vercel): crea las tablas que falten, una vez por proceso. Si falla, el sitio igual responde."""
+    global _BASE_PREPARADA
+    if _BASE_PREPARADA:
+        return None
+    _BASE_PREPARADA = True
+    preparar = getattr(db, "ensure_schema", None)
+    if preparar:
+        try:
+            preparar()
+        except Exception:
+            app.logger.exception("No se pudo preparar la base de datos")
+    return None
+
+
 _PAGINAS_SITEMAP = ("/", "/marcas", "/privacidad")
 
 
@@ -322,7 +341,7 @@ def _rut_valido(rut: str) -> bool:
 def marcas_datos():
     """Datos del titular para presentar la marca en INAPI. Los recibe Salvador en /admin."""
     if request.method == "GET":
-        return render_template("marcas_datos.html", config=db.load_config(), errores=[], datos={})
+        return render_template("marcas_datos.html", config=_config(), errores=[], datos={})
     f = {k: request.form.get(k, "").strip() for k in (
         "marca", "titular_tipo", "nombre", "rut", "razon_social", "rut_empresa", "cargo",
         "domicilio", "comuna", "correo", "telefono", "productos")}
@@ -345,9 +364,14 @@ def marcas_datos():
     if not f["autoriza"]:
         errores.append("Para presentar tu marca necesitamos tu autorización (la casilla del final).")
     if errores:
-        return render_template("marcas_datos.html", config=db.load_config(), errores=errores, datos=f), 400
-    db.insert_titular(f)
-    return render_template("marcas_datos.html", config=db.load_config(), errores=[], datos={}, enviado=True)
+        return render_template("marcas_datos.html", config=_config(), errores=errores, datos=f), 400
+    try:
+        db.insert_titular(f)
+    except Exception:
+        app.logger.exception("No se pudo guardar el titular de marca")
+        aviso = ["No pudimos guardar tus datos. Escríbenos por WhatsApp al +56 9 3017 5070 y los recibimos por ahí."]
+        return render_template("marcas_datos.html", config=_config(), errores=aviso, datos=f), 503
+    return render_template("marcas_datos.html", config=_config(), errores=[], datos={}, enviado=True)
 
 
 def _token_marcas_ok() -> bool:

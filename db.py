@@ -4,6 +4,7 @@ Una conexión por request. El pooling lo hace el host (Neon pgBouncer).
 """
 import json
 import os
+from pathlib import Path
 
 import psycopg
 from psycopg.rows import dict_row
@@ -20,6 +21,24 @@ def _dsn() -> str:
 
 def get_conn():
     return psycopg.connect(_dsn(), row_factory=dict_row)
+
+
+MIGRACIONES = Path(__file__).resolve().parent / "migrations"
+
+
+def ensure_schema() -> None:
+    """Crea las tablas que falten (base nueva, por ejemplo en Vercel). Es idempotente.
+
+    001 y 002 usan IF NOT EXISTS / ON CONFLICT. La 003 (portada sin cifras) se aplica solo si la base
+    era nueva, para no pisar lo que se edite después desde /admin.
+    """
+    with get_conn() as conn, conn.cursor() as cur:
+        cur.execute("SELECT to_regclass('public.site_content') AS t")
+        nueva = cur.fetchone()["t"] is None
+        cur.execute((MIGRACIONES / "001_init.sql").read_text())
+        cur.execute((MIGRACIONES / "002_marcas_titulares.sql").read_text())
+        if nueva:
+            cur.execute((MIGRACIONES / "003_portada_sin_cifras.sql").read_text())
 
 
 def load_config() -> dict:
