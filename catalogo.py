@@ -166,7 +166,7 @@ SERVICIOS = (
         precio_texto="En 3 modalidades: Asistida (la ingresas tú, con el expediente listo), Completa (lo hacemos "
                      "todo, con garantías) y Completa + Apertura. El valor de tu caso va con el diagnóstico.",
         plazo="90 a 120 días hábiles referenciales, según los antecedentes y los tiempos de la SEREMI.",
-        nota="La Completa se paga en 3 partes: 40% al aceptar, 40% al ingresar la solicitud y 20% al obtenerla.",
+        nota="La Completa se paga en 3 partes: 60% al aceptar, 30% al ingresar la solicitud y 10% al obtenerla.",
         cta="Cotizar mi resolución",
         whatsapp="Hola, vengo de la página web. Quiero cotizar la resolución sanitaria de mi establecimiento.",
     ),
@@ -419,7 +419,9 @@ PLANES_MARCA = (
             "Revisamos tu solicitud antes de que la envíes",
             "Si pasas al Completo antes de presentar, se descuenta el 100 %",
         ),
-        whatsapp="Hola, quiero revisar mi marca. Me interesa el Registro Hazlo Tú",
+        # Sin botón por ahora (17-nov-2026): Hazlo Tú pasa a ser la salida para quien encuentra caro el
+        # registro, no un plan de entrada. Vuelve cuando el bot de marcas v3 esté en SendPulse.
+        whatsapp="",
     ),
 )
 
@@ -431,20 +433,20 @@ FAQ_PORTADA = (
      "diagnóstico express de $49.990: en 48 horas hábiles te entregamos qué autorizaciones necesitas, las brechas "
      "y el presupuesto exacto en 3 modalidades: Asistida (la ingresas tú), Completa (lo hacemos todo) y Completa + "
      "Apertura. Si sigues con nosotros, esos $49.990 se descuentan completos. La Completa se paga en 3 partes: "
-     "40% al aceptar, 40% al ingresar la solicitud y 20% al obtenerla."),
+     "60% al aceptar, 30% al ingresar la solicitud y 10% al obtenerla."),
     ("¿Hay costos aparte?",
      "Sí, y te los decimos antes de partir. En la resolución van aparte los aranceles de la SEREMI y, si tu caso "
      "los necesita, planos, certificaciones (como el TE1), obras o equipamiento. En marcas, las tasas de INAPI y la "
      "publicación en el Diario Oficial."),
     ("¿Cuánto demora?",
-     "El diagnóstico, 48 horas hábiles desde que tenemos el pago y las fotos. Con todos los antecedentes, "
-     "ingresamos tu solicitud a la SEREMI dentro de 10 días hábiles. El proceso completo suele tomar entre 90 y "
+     "El diagnóstico, 48 horas hábiles desde que tenemos el pago y las fotos. En la modalidad Completa, con todos "
+     "los antecedentes, ingresamos tu solicitud a la SEREMI dentro de 10 días hábiles. El proceso completo suele tomar entre 90 y "
      "120 días hábiles, según las observaciones y los tiempos de la SEREMI. Un registro de marca toma unos 5 meses "
      "si nadie se opone."),
     ("¿Es seguro trabajar con ustedes?",
-     "Sí. Todo queda por escrito en WhatsApp y los pagos de la resolución van atados a avances: el segundo 40% se "
-     "paga cuando la solicitud ya está ingresada y el 20% final cuando la SEREMI la otorga. En la modalidad Completa, si "
-     "no ingresamos tu solicitud dentro de 10 días hábiles desde que tenemos todos los antecedentes, te devolvemos el primer pago. En marcas, "
+     "Sí. Todo queda por escrito en WhatsApp y los pagos de la resolución van atados a avances: el 30% se paga "
+     "cuando la solicitud ya está ingresada y el 10% final cuando la SEREMI la otorga. En la modalidad Completa, "
+     "ingresamos tu solicitud dentro de 10 días hábiles desde que tenemos todos los antecedentes. En marcas, "
      "cuando presentamos tu solicitud te llega el número para que la verifiques tú en el buscador de INAPI. Las "
      "transferencias van a Auria SpA, la empresa que factura los servicios de Consultoría Clínica Chile."),
     ("¿Lo puedo hacer yo mismo?",
@@ -455,7 +457,7 @@ FAQ_PORTADA = (
     ("¿Garantizan que la SEREMI apruebe mi resolución?",
      "No. La resolución la otorga la SEREMI y nadie puede garantizar su resultado ni su plazo. Garantizamos lo que "
      "depende de nosotros. En la modalidad Completa: ingresar tu solicitud dentro de 10 días hábiles con todos los "
-     "antecedentes (o te devolvemos el primer pago) y responder las observaciones sin cobrar honorarios adicionales hasta terminar el "
+     "antecedentes y responder las observaciones sin cobrar honorarios adicionales hasta terminar el "
      "proceso."),
     ("¿Atienden en regiones? ¿Tienen oficina?",
      "Trabajamos 100 % online en todo Chile. El diagnóstico se hace con fotos del local y la lista de servicios, y "

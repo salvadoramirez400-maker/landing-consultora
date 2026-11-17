@@ -62,7 +62,9 @@
             <li>{{ item }}</li>
             {%- endfor %}
           </ul>
+          {%- if p.whatsapp %}
           <a class="btn {{ 'btn-primary' if p.recomendado else 'btn-outline-navy' }}" href="{{ p.whatsapp_url }}" target="_blank" rel="noopener" data-wa="plan-{{ p.id }}" data-linea="marcas">Quiero este plan</a>
+          {%- endif %}
         </div>
         {%- endfor %}
       </div>

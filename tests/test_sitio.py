@@ -46,7 +46,8 @@ def _textos_whatsapp():
     for s in catalogo.SERVICIOS + catalogo.BORRADORES:
         yield s.id, s.whatsapp, s.linea
     for p in catalogo.PLANES_MARCA:
-        yield f"plan-{p.id}", p.whatsapp, "marcas"
+        if p.whatsapp:
+            yield f"plan-{p.id}", p.whatsapp, "marcas"
     for _, sigue in catalogo.TIPOS_ESTABLECIMIENTO:
         yield f"formulario ({sigue or 'otro'})", f"{catalogo.WA_RS_FORMULARIO} para {sigue} en Ñuñoa.", "rs"
 
@@ -237,9 +238,24 @@ class PaginasPublicas(unittest.TestCase):
                       "En la RS Asistida la solicitud la ingresas tú"):
             self.assertIn(frase, texto)
         for pregunta, respuesta in catalogo.FAQ_PORTADA:
-            if "10 días hábiles" in respuesta and "devolvemos" in respuesta:
+            if "ingresamos tu solicitud" in respuesta or "ingresar tu solicitud" in respuesta:
                 with self.subTest(pregunta=pregunta):
                     self.assertIn("modalidad Completa", respuesta)
+
+    def test_nunca_se_menciona_devolucion(self):
+        """Salvador, 17-nov-2026: nunca se menciona devolución del anticipo ni de ningún pago."""
+        for ruta, html in self.html.items():
+            with self.subTest(ruta=ruta):
+                self.assertIsNone(re.search(r"devol", _texto_visible(html), re.I))
+
+    def test_pago_de_la_rs_igual_a_empresa_json(self):
+        empresa = TARIFAS.parent / "empresa.json"
+        if not empresa.exists():
+            self.skipTest("sin empresa.json")
+        pcts = [h["pct"] for h in json.loads(empresa.read_text())["pago_rs"]]
+        esperado = f"{pcts[0]}% al aceptar, {pcts[1]}% al ingresar la solicitud y {pcts[2]}% al obtenerla"
+        self.assertIn(esperado, _texto_visible(self.html["/"]).replace("  ", " "))
+        self.assertIsNone(re.search(r"\b40 ?%", _texto_visible(self.html["/"])))
 
     def test_reintento_de_marcas_excluye_hazlo_tu(self):
         texto = _texto_visible(self.html["/marcas"])
