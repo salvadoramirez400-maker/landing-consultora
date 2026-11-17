@@ -33,6 +33,9 @@ def ensure_schema() -> None:
     era nueva, para no pisar lo que se edite después desde /admin.
     """
     with get_conn() as conn, conn.cursor() as cur:
+        # Candado: al desplegar, varias copias del servidor arrancan a la vez y dos CREATE TABLE simultáneos chocan
+        # («duplicate key … pg_class_relname_nsp_index», 17-nov-2026). Con el candado entran de a una.
+        cur.execute("SELECT pg_advisory_xact_lock(20261117)")
         cur.execute("SELECT to_regclass('public.site_content') AS t")
         nueva = cur.fetchone()["t"] is None
         cur.execute((MIGRACIONES / "001_init.sql").read_text())
