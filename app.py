@@ -191,7 +191,16 @@ def _oferta_hasta(hoy: date | None = None) -> str:
 
 @app.route("/marcas")
 def marcas():
-    return render_template("marcas.html", config=db.load_config(), oferta_hasta=_oferta_hasta())
+    return render_template(
+        "marcas.html",
+        config=_config(),
+        oferta_hasta=_oferta_hasta(),
+        planes=catalogo.PLANES_MARCA,
+        marca=catalogo.servicio("registro-marca"),
+        faq=catalogo.FAQ_MARCAS,
+        wa_revisar=catalogo.WA_MARCAS,
+        wa_pagina=_wa_pagina("marcas"),
+    )
 
 
 def _rut_valido(rut: str) -> bool:
