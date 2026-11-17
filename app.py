@@ -5,7 +5,7 @@ from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from flask import Flask, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, Response, jsonify, redirect, render_template, request, send_from_directory, session, url_for
 
 import blob
 import catalogo
@@ -85,7 +85,105 @@ def _contexto_sitio() -> dict:
         },
         "wa_pagina": _wa_pagina("rs"),
         "pixel": True,
+        "og_imagen": "img/og-portada.png",
     }
+
+
+# --- SEO técnico ---
+@app.before_request
+def _dominio_canonico():
+    """www.consultoriaclinica.cl respondía la misma página (contenido duplicado): 301 al dominio sin www."""
+    if request.host.split(":")[0].lower().startswith("www."):
+        return redirect(SITIO_URL + request.full_path.rstrip("?"), code=301)
+    return None
+
+
+_PAGINAS_SITEMAP = ("/", "/marcas", "/privacidad")
+
+
+@app.route("/robots.txt")
+def robots():
+    lineas = ["User-agent: *", "Disallow: /admin", "Disallow: /login", "Disallow: /logout", "Disallow: /api/",
+              "", f"Sitemap: {SITIO_URL}/sitemap.xml", ""]
+    return Response("\n".join(lineas), mimetype="text/plain")
+
+
+@app.route("/sitemap.xml")
+def sitemap():
+    urls = "".join(f"<url><loc>{SITIO_URL}{ruta}</loc></url>" for ruta in _PAGINAS_SITEMAP)
+    xml = ('<?xml version="1.0" encoding="UTF-8"?>'
+           f'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>')
+    return Response(xml, mimetype="application/xml")
+
+
+@app.route("/favicon.ico")
+def favicon():
+    return send_from_directory(_STATIC_DIR / "img", "favicon.ico", mimetype="image/vnd.microsoft.icon",
+                               max_age=60 * 60 * 24 * 30)
+
+
+def _absoluta(filename: str) -> str:
+    return SITIO_URL + url_for("static", filename=filename)
+
+
+def _organizacion() -> dict:
+    return {
+        "@type": "ProfessionalService",
+        "@id": f"{SITIO_URL}/#organizacion",
+        "name": MARCA,
+        "alternateName": "CCC",
+        "description": TAGLINE,
+        "url": f"{SITIO_URL}/",
+        "logo": _absoluta("img/icono-512.png"),
+        "image": _absoluta("img/og-portada.png"),
+        "telephone": "+" + catalogo.WHATSAPP,
+        "address": {"@type": "PostalAddress", "addressCountry": "CL"},
+        "areaServed": {"@type": "Country", "name": "Chile"},
+        "founder": {"@type": "Person", "name": "Salvador Ramírez"},
+        "sameAs": [INSTAGRAM],
+        "knowsAbout": ["Resolución Sanitaria", "Autorización sanitaria ante la SEREMI de Salud",
+                       "Registro de marca ante INAPI"],
+    }
+
+
+def _faq_schema(preguntas, ancla: str) -> dict:
+    return {
+        "@type": "FAQPage",
+        "@id": ancla,
+        "mainEntity": [{"@type": "Question", "name": p, "acceptedAnswer": {"@type": "Answer", "text": r}}
+                       for p, r in preguntas],
+    }
+
+
+def _jsonld_portada() -> dict:
+    organizacion = _organizacion()
+    ofertas = []
+    for s in catalogo.SERVICIOS:
+        oferta = {"@type": "Offer",
+                  "itemOffered": {"@type": "Service", "name": s.nombre, "description": s.para_quien,
+                                  "url": f"{SITIO_URL}/#servicio-{s.id}"}}
+        if s.precio:
+            oferta |= {"price": s.precio, "priceCurrency": "CLP"}
+        ofertas.append(oferta)
+    organizacion["hasOfferCatalog"] = {"@type": "OfferCatalog", "name": "Servicios", "itemListElement": ofertas}
+    return {"@context": "https://schema.org", "@graph": [
+        organizacion,
+        {"@type": "WebSite", "@id": f"{SITIO_URL}/#sitio", "url": f"{SITIO_URL}/", "name": MARCA,
+         "inLanguage": "es-CL", "publisher": {"@id": f"{SITIO_URL}/#organizacion"}},
+        _faq_schema(catalogo.FAQ_PORTADA, f"{SITIO_URL}/#preguntas"),
+    ]}
+
+
+def _jsonld_marcas() -> dict:
+    return {"@context": "https://schema.org", "@graph": [
+        _organizacion(),
+        {"@type": "Service", "@id": f"{SITIO_URL}/marcas#servicio", "name": "Registro de marca ante INAPI",
+         "serviceType": "Registro de marca comercial", "url": f"{SITIO_URL}/marcas",
+         "provider": {"@id": f"{SITIO_URL}/#organizacion"}, "areaServed": {"@type": "Country", "name": "Chile"},
+         "offers": [{"@type": "Offer", "name": p.nombre, "price": p.precio, "priceCurrency": "CLP"}
+                    for p in catalogo.PLANES_MARCA]},
+        _faq_schema(catalogo.FAQ_MARCAS, f"{SITIO_URL}/marcas#preguntas"),
+    ]}
 
 
 def _config() -> dict:
@@ -175,6 +273,7 @@ def index():
         wa_formulario=catalogo.WA_RS_FORMULARIO,
         wa_otros=catalogo.wa_link(catalogo.WA_OTROS),
         wa_pagina=_wa_pagina("rs", con_cambio=True),
+        jsonld=_jsonld_portada(),
     )
 
 
@@ -200,6 +299,8 @@ def marcas():
         faq=catalogo.FAQ_MARCAS,
         wa_revisar=catalogo.WA_MARCAS,
         wa_pagina=_wa_pagina("marcas"),
+        og_imagen="img/og-marcas.png",
+        jsonld=_jsonld_marcas(),
     )
 
 

@@ -116,5 +116,119 @@ class Tarjeta(unittest.TestCase):
         self.assertEqual(sitio.clp(1490000), "$1.490.000")
 
 
+def _texto_visible(html: str) -> str:
+    html = re.sub(r"<(script|style)\b.*?</\1>", " ", html, flags=re.S)
+    return unescape(re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html)))
+
+
+def _jsonld(html: str) -> dict:
+    bloques = re.findall(r'<script type="application/ld\+json">(.*?)</script>', html, re.S)
+    assert len(bloques) == 1, "debe haber un solo bloque JSON-LD"
+    return json.loads(bloques[0])
+
+
+class PaginasPublicas(unittest.TestCase):
+    PAGINAS = ("/", "/marcas", "/privacidad")
+    PROHIBIDO = ("4.9", "Valentina", "cupos", "150.000.000", "4.000.000.000", "plazas limitadas", "★",
+                 "74 días", "Con pacientes el primer mes", "proyectos nuevos al mes")
+
+    @classmethod
+    def setUpClass(cls):
+        cls.c = sitio.app.test_client()
+        cls.html = {ruta: cls.c.get(ruta).get_data(as_text=True) for ruta in cls.PAGINAS}
+
+    def test_rutas(self):
+        esperado = {"/": 200, "/marcas": 200, "/privacidad": 200, "/marcas/datos": 200, "/robots.txt": 200,
+                    "/sitemap.xml": 200, "/favicon.ico": 200, "/reserva": 302, "/diagnostico": 302}
+        for ruta, codigo in esperado.items():
+            with self.subTest(ruta=ruta):
+                self.assertEqual(self.c.get(ruta).status_code, codigo)
+        self.assertTrue(self.c.get("/reserva").headers["Location"].startswith("https://mpago.la/"))
+
+    def test_www_redirige_al_dominio(self):
+        r = self.c.get("/marcas?utm_source=x", headers={"Host": "www.consultoriaclinica.cl"})
+        self.assertEqual(r.status_code, 301)
+        self.assertEqual(r.headers["Location"], "https://consultoriaclinica.cl/marcas?utm_source=x")
+
+    def test_robots_y_sitemap(self):
+        robots = self.c.get("/robots.txt").get_data(as_text=True)
+        self.assertIn("Sitemap: https://consultoriaclinica.cl/sitemap.xml", robots)
+        self.assertIn("Disallow: /admin", robots)
+        sitemap = self.c.get("/sitemap.xml").get_data(as_text=True)
+        for ruta in self.PAGINAS:
+            self.assertIn(f"<loc>https://consultoriaclinica.cl{ruta}</loc>", sitemap)
+
+    def test_seo_de_cada_pagina(self):
+        for ruta, html in self.html.items():
+            with self.subTest(ruta=ruta):
+                self.assertEqual(html.count("<h1"), 1)
+                self.assertIn('<html lang="es-CL">', html)
+                titulo = re.search(r"<title>(.*?)</title>", html).group(1)
+                self.assertLessEqual(len(unescape(titulo)), 70, titulo)
+                descripcion = unescape(re.search(r'<meta name="description" content="([^"]*)"', html).group(1))
+                self.assertTrue(50 <= len(descripcion) <= 170, descripcion)
+                self.assertIn(f'<link rel="canonical" href="https://consultoriaclinica.cl{ruta}">', html)
+                imagen = re.search(r'<meta property="og:image" content="([^"]+)"', html).group(1)
+                self.assertTrue(imagen.startswith("https://consultoriaclinica.cl/static/img/og-"), imagen)
+                self.assertEqual(self.c.get(urlparse(imagen).path).status_code, 200)
+                self.assertIn('id="contenido"', html)
+
+    def test_estaticos_existen(self):
+        for ruta, html in self.html.items():
+            for ref in set(re.findall(r'(?:href|src)="(/static/[^"?]+)', html)):
+                with self.subTest(ruta=ruta, ref=ref):
+                    self.assertEqual(self.c.get(unescape(ref)).status_code, 200)
+
+    def test_schema_portada(self):
+        datos = _jsonld(self.html["/"])
+        tipos = {n["@type"] for n in datos["@graph"]}
+        self.assertTrue({"ProfessionalService", "WebSite", "FAQPage"} <= tipos)
+        faq = next(n for n in datos["@graph"] if n["@type"] == "FAQPage")
+        visibles = [unescape(p) for p in re.findall(r"<summary>(.*?)</summary>", self.html["/"])]
+        self.assertEqual([q["name"] for q in faq["mainEntity"]], visibles)
+        org = next(n for n in datos["@graph"] if n["@type"] == "ProfessionalService")
+        con_precio = {o["itemOffered"]["name"]: o["price"] for o in org["hasOfferCatalog"]["itemListElement"]
+                      if "price" in o}
+        self.assertEqual(con_precio, {"Diagnóstico sanitario express": 49990, "Registro de marca en INAPI": 147990})
+
+    def test_schema_marcas(self):
+        datos = _jsonld(self.html["/marcas"])
+        servicio = next(n for n in datos["@graph"] if n["@type"] == "Service")
+        self.assertEqual([o["price"] for o in servicio["offers"]], [p.precio for p in catalogo.PLANES_MARCA])
+        faq = next(n for n in datos["@graph"] if n["@type"] == "FAQPage")
+        visibles = [unescape(p) for p in re.findall(r"<summary>(.*?)</summary>", self.html["/marcas"])]
+        self.assertEqual([q["name"] for q in faq["mainEntity"]], visibles)
+
+    def test_enlaces_de_whatsapp(self):
+        for ruta in ("/", "/marcas"):
+            enlaces = re.findall(r'<a\b[^>]*href="(https://wa\.me/[^"]+)"[^>]*>', self.html[ruta])
+            self.assertGreater(len(enlaces), 3)
+            for etiqueta in re.findall(r'<a\b[^>]*href="https://wa\.me/[^"]+"[^>]*>', self.html[ruta]):
+                href = unescape(re.search(r'href="([^"]+)"', etiqueta).group(1))
+                linea = re.search(r'data-linea="([^"]+)"', etiqueta)
+                texto = parse_qs(urlparse(href).query).get("text", [""])[0]
+                with self.subTest(ruta=ruta, texto=texto):
+                    self.assertTrue(linea, f"falta data-linea en {etiqueta}")
+                    self.assertEqual(catalogo.revisar_texto(texto, linea.group(1)), [])
+        formulario = re.search(r'id="caso-form" data-texto="([^"]+)"', self.html["/"]).group(1)
+        self.assertEqual(unescape(formulario), catalogo.WA_RS_FORMULARIO)
+
+    def test_sin_cifras_ni_testimonios_sin_respaldo(self):
+        for ruta in ("/", "/marcas"):
+            texto = _texto_visible(self.html[ruta])
+            for frase in self.PROHIBIDO:
+                with self.subTest(ruta=ruta, frase=frase):
+                    self.assertNotIn(frase, texto)
+
+    def test_solo_precios_aprobados(self):
+        permitidos = {"/": {"$49.990", "$147.990"},
+                      "/marcas": {"$157.000", "$147.990", "$219.990", "$247.990", "$319.990", "$49.990",
+                                  "$72.151", "$144.302", "$216.453"}}
+        for ruta, aprobados in permitidos.items():
+            montos = set(re.findall(r"\$\d{1,3}(?:\.\d{3})+", _texto_visible(self.html[ruta])))
+            with self.subTest(ruta=ruta):
+                self.assertLessEqual(montos, aprobados)
+
+
 if __name__ == "__main__":
     unittest.main()

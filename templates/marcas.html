@@ -2,6 +2,8 @@
 {% from "_componentes.html" import monograma %}
 {% block title %}Registro de marca en INAPI | {{ sitio.marca }}{% endblock %}
 {% block description %}Revisamos gratis si el nombre de tu marca está disponible y lo registramos en INAPI por ti. Registro Completo desde {{ marca.precio|clp }}, tasas INAPI aparte.{% endblock %}
+{% block og_title %}Registra tu marca antes de que otro lo haga{% endblock %}
+{% block og_description %}Revisión gratis de tu marca y registro en INAPI desde {{ marca.precio|clp }}. Garantía de reintento.{% endblock %}
 {% block body_class %}pagina-marcas{% endblock %}
 
 {% block nav -%}

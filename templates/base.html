@@ -7,7 +7,24 @@
   <meta name="facebook-domain-verification" content="lxqoz11k5lp2uxr8ik7ak2dhobxdo0">
   <title>{% block title %}{{ sitio.marca }}{% endblock %}</title>
   <meta name="description" content="{% block description %}{{ sitio.descripcion }}{% endblock %}">
+  <link rel="canonical" href="{{ sitio.url }}{{ request.path }}">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_CL">
+  <meta property="og:site_name" content="{{ sitio.marca }}">
+  <meta property="og:url" content="{{ sitio.url }}{{ request.path }}">
+  <meta property="og:title" content="{% block og_title %}{{ self.title() }}{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}{{ self.description() }}{% endblock %}">
+  <meta property="og:image" content="{{ sitio.url }}{{ static_v(og_imagen) }}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="{{ sitio.marca }}: Resolución Sanitaria y registro de marca">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
   {%- block meta %}{% endblock %}
+  {%- if jsonld %}
+  <script type="application/ld+json">{{ jsonld|tojson }}</script>
+  {%- endif %}
   <meta name="theme-color" content="#123769">
   <script>document.documentElement.classList.add('js');</script>
   {%- if pixel %}
