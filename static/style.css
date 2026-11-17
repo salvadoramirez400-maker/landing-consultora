@@ -562,6 +562,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
 @media (max-width: 640px) {
   .err-hero { padding: calc(var(--nav-alto) + 48px) 0 72px; }
   .err-acciones .btn { width: 100%; justify-content: center; }
+}
 
 /* ===== AUTOTEST SANITARIO (/autotest) ===== */
 .at-wrap { max-width: 820px; margin: 0 auto; padding: 0 20px; }

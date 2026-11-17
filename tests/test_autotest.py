@@ -199,6 +199,17 @@ class Paginas(unittest.TestCase):
                     tipo, tuple(autotest.PROCEDIMIENTOS), ("laser", "rayos", "autoclave"), "7+", "casa"))
                 self.assertTrue(mapa_pdf.generar(res).startswith(b"%PDF"))
 
+    def test_css_con_llaves_balanceadas(self):
+        """Una llave sin cerrar (pasó al unir ramas el 17-nov) deja sin estilos todo lo que viene después."""
+        css = (RAIZ / "static" / "style.css").read_text()
+        sin_comentarios = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
+        profundidad = 0
+        for n, linea in enumerate(sin_comentarios.splitlines(), 1):
+            profundidad += linea.count("{") - linea.count("}")
+            self.assertGreaterEqual(profundidad, 0, f"llave de más en la línea {n}")
+        self.assertEqual(profundidad, 0)
+        self.assertIn(".at-opcion", css)
+
     def test_pdf_incompleto_vuelve_al_formulario(self):
         r = self.c.get("/autotest/mapa.pdf?tipo=dental")
         self.assertEqual(r.status_code, 302)
