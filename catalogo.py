@@ -140,7 +140,7 @@ SERVICIOS = (
         nombre="Diagnóstico sanitario express",
         para_quien="El primer paso: sabes qué necesita tu establecimiento antes de invertir.",
         incluye=(
-            "Revisión remota de fotos del local, planos (si existen) y lista de servicios",
+            "Evaluación de tu local, con informe por escrito",
             "Autorizaciones que necesitas y normativa aplicable",
             "Brechas y riesgos frente a una fiscalización (semáforo)",
             "Ruta y presupuesto para obtener la Resolución Sanitaria",
@@ -148,7 +148,7 @@ SERVICIOS = (
         precio=79990,
         precio_nota="Se descuenta completo si sigues con la resolución.",
         plazo="3 a 5 horas hábiles desde que recibimos el pago y el material.",
-        nota="Es remoto: no incluye visita al local.",
+        nota="100 % online, sin visita al local.",
         etiqueta="Para partir",
         destacado=True,
         cta="Quiero mi diagnóstico",
@@ -169,7 +169,7 @@ SERVICIOS = (
         para_quien="Para abrir o regularizar tu establecimiento ante la SEREMI de Salud.",
         incluye=(
             "Evaluación de antecedentes, infraestructura y prestaciones",
-            "Protocolos, manuales y consentimientos informados exigidos",
+            "Toda la documentación que exige la autoridad, hecha para tu establecimiento",
             "Armado e ingreso del expediente ante la SEREMI",
             "Respuesta a las observaciones de la autoridad",
             "Acompañamiento hasta el término del proceso",
@@ -244,29 +244,10 @@ SERVICIOS = (
 RESERVA_MARCA = 49990
 WA_RESERVA_PAGADA = "Hola, pagué la reserva del registro de marca en la página web y envío el comprobante."
 
-# Productos en preparación: NO se muestran. Precios y plazos al 17-nov-2026 ~14:27 (la Ruta RS quedó retirada).
+# La guía «Ruta RS» quedó retirada el 17-nov-2026 (no se vende nada que enseñe a hacer el trámite).
 # Productos en preparación: NO se muestran. Precios aprobados el 17-nov-2026 (tarifas.json → servicios.*);
 # se publican cuando exista el entregable, su link de pago y el bot de RS sepa de ellos (campo «requisitos»).
 BORRADORES = (
-    Servicio(
-        # tarifas.json → servicios.ruta_rs
-        id="ruta-rs",
-        linea="rs",
-        nombre="Ruta RS: guía por tipo de establecimiento",
-        para_quien="Para quien quiere entender o hacer por su cuenta el trámite de la resolución sanitaria.",
-        incluye=(
-            "Cuándo se necesita resolución según la norma, con la fuente al lado",
-            "Paso a paso en Seremi en línea",
-            "Checklist de antecedentes y requisitos de infraestructura de tu tipo",
-            "Observaciones frecuentes y cómo evitarlas",
-        ),
-        precio=24990,
-        precio_nota="Se descuenta si sigues con el diagnóstico, el kit o la resolución en 60 días.",
-        plazo="PDF con descarga inmediata y 12 meses de actualizaciones.",
-        cta="Quiero la guía",
-        whatsapp="Hola, vengo de la página web. Quiero la guía Ruta RS para la resolución sanitaria de mi establecimiento.",
-        publicado=False,
-    ),
     Servicio(
         # tarifas.json → servicios.kit_documental
         id="kit-documental",
@@ -467,18 +448,18 @@ FAQ_PORTADA = (
      "cuando presentamos tu solicitud te llega el número para que la verifiques tú en el buscador de INAPI. Las "
      "transferencias van a Auria SpA, la empresa que factura los servicios de Consultoría Clínica Chile."),
     ("¿Lo puedo hacer yo mismo?",
-     "Sí. La solicitud de resolución se presenta en Seremi en línea con ClaveÚnica, y para registrar una marca no "
-     "se necesita abogado. Lo que más se repite es que el trámite se alarga por antecedentes incompletos u "
-     "observaciones. Si quieres hacerlo por tu cuenta, el diagnóstico express igual te sirve: te quedas con las "
-     "autorizaciones que necesitas, las brechas y la ruta."),
+     "Puedes intentarlo. Lo que más se repite es que el trámite se alarga por antecedentes incompletos y "
+     "observaciones de la autoridad, y ese tiempo lo paga tu local. Nuestro trabajo es que tu solicitud entre "
+     "completa desde el primer día. Con tu marca pasa lo mismo: un error al presentarla cuesta el nombre o la tasa. "
+     "Parte por el diagnóstico express: sabes qué exige tu caso, qué te falta y cuánto cuesta dejarlo en regla."),
     ("¿Garantizan que la SEREMI apruebe mi resolución?",
      "No. La resolución la otorga la SEREMI y nadie puede garantizar su resultado ni su plazo. Garantizamos lo que "
      "depende de nosotros. En la modalidad Completa: ingresar tu solicitud dentro de 10 días hábiles con todos los "
      "antecedentes y responder las observaciones sin cobrar honorarios adicionales hasta terminar el "
      "proceso."),
     ("¿Atienden en regiones? ¿Tienen oficina?",
-     "Trabajamos 100 % online en todo Chile. El diagnóstico se hace con fotos del local y la lista de servicios, y "
-     "la presentación ante INAPI también es online."),
+     "Trabajamos 100 % online en todo Chile: el diagnóstico, la resolución sanitaria y el registro de tu marca se "
+     "hacen a distancia, desde cualquier región."),
     ("Me llegó un sumario o una fiscalización, ¿qué hago?",
      "Escríbenos hoy con la fecha de notificación y una foto del acta o la citación. Los plazos son cortos: la "
      "reposición, por ejemplo, se presenta dentro de 5 días hábiles desde la notificación. Revisamos tu caso con "

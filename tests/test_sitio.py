@@ -475,5 +475,13 @@ class PaginasPublicas(unittest.TestCase):
         for ref in fuentes:
             self.assertEqual(self.c.get(ref).status_code, 200, ref)
 
+    def test_la_portada_no_ensena_el_tramite(self):
+        """Salvador, 17-nov-2026: se vende la solución; nada dice cómo se hace el trabajo ni cómo hacerlo solo."""
+        texto = _texto_visible(self.c.get("/").get_data(as_text=True))
+        ensena = re.compile(r"Seremi en línea|ClaveÚnica|no se necesita abogado|por tu cuenta|fotos del local|"
+                            r"planos si tienes|revisión remota|paso a paso", re.I)
+        self.assertEqual(ensena.findall(texto), [])
+        self.assertNotIn("ruta-rs", {s.id for s in catalogo.BORRADORES})
+
 if __name__ == "__main__":
     unittest.main()
