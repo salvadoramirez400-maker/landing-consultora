@@ -230,7 +230,7 @@
     var uM = gl.getUniformLocation(prog, 'm'), uK = gl.getUniformLocation(prog, 'k');
     gl.uniform1f(uK, canvas.dataset.fondo === 'claro' ? 1 : 0);
 
-    var mx = 0.5, my = 0.5, tx = 0.5, ty = 0.5, visible = true, ultimo = 0, cuadro = null, inicio = performance.now();
+    var mx = 0.5, my = 0.5, tx = 0.5, ty = 0.5, visible = true, apagado = false, ultimo = 0, cuadro = null, inicio = performance.now();
     function medirLienzo() {
       // Se dibuja a baja resolución (máx. 720 px de ancho) y el navegador lo estira: es un fondo difuso.
       var escala = Math.min(0.5, 720 / Math.max(1, canvas.clientWidth));
@@ -240,7 +240,7 @@
     }
     function dibujar(ahora) {
       cuadro = null;
-      if (!visible || d.hidden) return;
+      if (!visible || d.hidden || apagado) return;
       cuadro = requestAnimationFrame(dibujar);
       if (ahora - ultimo < 33) return;   // ~30 cuadros por segundo
       ultimo = ahora;
@@ -249,7 +249,8 @@
       gl.uniform2f(uM, mx, my);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     }
-    function arrancar() { if (!cuadro && visible && !d.hidden) cuadro = requestAnimationFrame(dibujar); }
+    function arrancar() { if (!cuadro && visible && !d.hidden && !apagado) cuadro = requestAnimationFrame(dibujar); }
+    canvas.addEventListener('pausar', function () { apagado = true; });   // cuando el video de fondo ya se ve
     medirLienzo();
     w.addEventListener('resize', medirLienzo);
     if (conCursor) {
@@ -264,6 +265,32 @@
     requestAnimationFrame(function () { canvas.classList.add('listo'); });
   }
   d.querySelectorAll('canvas[data-fondo]').forEach(fondoVivo);
+
+  /* ---------- Videos de fondo: llegan después de la página y solo con buena conexión ---------- */
+  var conexion = navigator.connection || {};
+  var conexionLenta = !!conexion.saveData || /(^|-)2g$|^3g$/.test(conexion.effectiveType || '');
+  d.querySelectorAll('video[data-video]').forEach(function (v) {
+    if (quieto || conexionLenta || !('IntersectionObserver' in w)) return;   // queda el fondo animado
+    var seccion = v.parentElement, pedido = false;
+    function cargar() {
+      if (pedido) return;
+      pedido = true;
+      v.addEventListener('playing', function () {
+        v.classList.add('listo');
+        seccion.classList.add('con-video');
+        var lienzo = seccion.querySelector('canvas[data-fondo]');
+        if (lienzo) setTimeout(function () { lienzo.dispatchEvent(new Event('pausar')); }, 1800);
+      }, { once: true });
+      v.src = v.dataset.video;
+      var p = v.play();
+      if (p && p.catch) p.catch(function () {});   // ahorro de batería: no se reproduce y queda el fondo animado
+    }
+    new IntersectionObserver(function (en) {
+      var cerca = en[0].isIntersecting;
+      if (cerca && !pedido) { if (d.readyState === 'complete') cargar(); else w.addEventListener('load', cargar); }
+      else if (pedido) { if (cerca) { var p = v.play(); if (p && p.catch) p.catch(function () {}); } else v.pause(); }
+    }, { rootMargin: '300px' }).observe(v);
+  });
 
   /* ---------- Globo de chat junto al botón de WhatsApp ---------- */
   var teaser = d.getElementById('teaser');

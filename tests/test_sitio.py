@@ -390,5 +390,19 @@ class PaginasPublicas(unittest.TestCase):
                 with self.subTest(ruta=ruta, fin=fin):
                     self.assertEqual(int(visible.replace(".", "")), int(fin))
 
+    def test_videos_de_fondo(self):
+        """Los videos se cargan con JS (data-video), existen, pesan poco y no bloquean la página."""
+        refs = re.findall(r'<video\b[^>]*data-video="(/static/video/[^"?]+)\?v=[0-9a-f]+"[^>]*>', self.html["/"])
+        self.assertEqual(sorted(refs), ["/static/video/cierre.mp4", "/static/video/heroe.mp4"])
+        for etiqueta in re.findall(r"<video\b[^>]*>", self.html["/"]):
+            for atributo in ("muted", "loop", "playsinline", 'preload="none"', 'aria-hidden="true"'):
+                self.assertIn(atributo, etiqueta)
+            self.assertNotIn(" src=", etiqueta)
+            self.assertNotIn("autoplay", etiqueta)
+        for ref in refs:
+            archivo = RAIZ / ref.lstrip("/")
+            self.assertTrue(archivo.exists(), ref)
+            self.assertLess(archivo.stat().st_size, 1_500_000, ref)
+
 if __name__ == "__main__":
     unittest.main()

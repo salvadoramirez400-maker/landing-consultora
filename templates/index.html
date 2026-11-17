@@ -9,6 +9,9 @@
   <!-- HÉROE: fondo animado (WebGL, con degradado de respaldo) y las dos líneas de negocio, cada una con su WhatsApp -->
   <section class="hero" aria-labelledby="hero-titulo">
     <canvas class="fondo-vivo" data-fondo="oscuro" aria-hidden="true"></canvas>
+    {#- Video de fondo: montaje de 3 clips de Pexels (licencia libre, sin personas: 18203708, 6763242 y 14934108).
+        static/wow.js lo carga después de la página y solo con buena conexión; mientras, se ve el fondo animado. -#}
+    <video class="fondo-video" muted loop playsinline preload="none" aria-hidden="true" tabindex="-1" data-video="{{ static_v('video/heroe.mp4') }}"></video>
     <div class="hero-velo" aria-hidden="true"></div>
     <div class="hero-inner">
       <div class="hero-content">
@@ -243,6 +246,7 @@
 
   <!-- CIERRE: el formulario arma el mensaje de WhatsApp con los 2 datos que pide Andrea -->
   <section class="section section-cta" id="contacto">
+    <video class="fondo-video" muted loop playsinline preload="none" aria-hidden="true" tabindex="-1" data-video="{{ static_v('video/cierre.mp4') }}"></video>
     <div class="orbes" aria-hidden="true"><i></i><i></i><i></i></div>
     <div class="container">
       <div class="cta-inner reveal">

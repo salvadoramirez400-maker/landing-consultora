@@ -16,7 +16,7 @@
       "continue": true
     },
     {
-      "src": "/static/(.*\\.(?:css|js|woff2))",
+      "src": "/static/(.*\\.(?:css|js|woff2|mp4))",
       "headers": { "Cache-Control": "public, max-age=31536000, immutable" },
       "dest": "/static/$1"
     },
