@@ -2,9 +2,13 @@
 
 Reglas (vienen de consultoria-clinica-chile):
 - Precios y garantías: solo los vigentes de datos/tarifas.json. No se inventan.
-- En Resolución Sanitaria solo se publica el diagnóstico express ($49.990). La resolución, las
+- En Resolución Sanitaria solo se publica el precio del diagnóstico express ($49.990). La resolución, las
   observaciones y los sumarios se cotizan con el diagnóstico, igual que en el bot (decisión R2 B,
-  taller de flujos del 10-nov-2026).
+  taller de flujos del 10-nov-2026). Desde el 17-nov-2026 la resolución se ofrece en 3 modalidades
+  (Asistida, Completa y Completa + Apertura) y la Completa se paga 40/40/20; los montos de cada
+  modalidad van en el informe del diagnóstico mientras el bot de RS no los dé.
+- Productos nuevos de la escalera (17-nov-2026): sus precios están aprobados en tarifas.json, pero
+  quedan en BORRADORES hasta que exista el entregable, su link de pago y el bot de RS sepa de ellos.
 - Sin cifras de clientes, testimonios ni logos que no existan (commit a19d9c4).
 - Cada texto de WhatsApp tiene que activar el bot correcto de SendPulse y ningún otro: RS → Andrea,
   marcas → bot de marcas. tests/test_sitio.py lo revisa en todos los textos, también en los borradores.
@@ -159,9 +163,10 @@ SERVICIOS = (
             "Respuesta a las observaciones de la autoridad",
             "Acompañamiento hasta el término del proceso",
         ),
-        precio_texto="Según el tipo de establecimiento y sus recintos. Te lo entregamos con el diagnóstico.",
+        precio_texto="En 3 modalidades: Asistida (la ingresas tú, con el expediente listo), Completa (lo hacemos "
+                     "todo, con garantías) y Completa + Apertura. El valor de tu caso va con el diagnóstico.",
         plazo="90 a 120 días hábiles referenciales, según los antecedentes y los tiempos de la SEREMI.",
-        nota="Se paga en 3 partes: 60% al aceptar, 30% al ingresar la solicitud y 10% al obtenerla.",
+        nota="La Completa se paga en 3 partes: 40% al aceptar, 40% al ingresar la solicitud y 20% al obtenerla.",
         cta="Cotizar mi resolución",
         whatsapp="Hola, vengo de la página web. Quiero cotizar la resolución sanitaria de mi establecimiento.",
     ),
@@ -213,7 +218,7 @@ SERVICIOS = (
             "Garantía de reintento si INAPI no la acepta",
         ),
         precio=147990,
-        precio_nota="Registro Completo, precio oferta. Tasas de INAPI aparte.",
+        precio_nota="Registro Completo. Tasas de INAPI aparte.",
         plazo="Unos 5 meses si no hay observaciones ni oposiciones.",
         destacado=True,
         cta="Revisar mi marca gratis",
@@ -223,60 +228,109 @@ SERVICIOS = (
     ),
 )
 
-# Productos en preparación: NO se muestran. Faltan precio y alcance (decisión de Salvador).
+# Productos en preparación: NO se muestran. Precios aprobados el 17-nov-2026 (tarifas.json → servicios.*);
+# se publican cuando exista el entregable, su link de pago y el bot de RS sepa de ellos (campo «requisitos»).
 BORRADORES = (
     Servicio(
-        id="guia-rs",
+        # tarifas.json → servicios.ruta_rs
+        id="ruta-rs",
         linea="rs",
-        nombre="Guía para tramitar tu Resolución Sanitaria",
-        para_quien="Para quien prefiere presentar la solicitud por su cuenta. [definir alcance]",
+        nombre="Ruta RS: guía por tipo de establecimiento",
+        para_quien="Para quien quiere entender o hacer por su cuenta el trámite de la resolución sanitaria.",
         incluye=(
-            "[definir] Antecedentes que pide la SEREMI según el tipo de establecimiento",
-            "[definir] Modelos de protocolos y documentos",
-            "[definir] Paso a paso para Seremi en línea",
+            "Cuándo se necesita resolución según la norma, con la fuente al lado",
+            "Paso a paso en Seremi en línea",
+            "Checklist de antecedentes y requisitos de infraestructura de tu tipo",
+            "Observaciones frecuentes y cómo evitarlas",
         ),
-        precio_texto="[definir precio]",
+        precio=24990,
+        precio_nota="Se descuenta si sigues con el diagnóstico, el kit o la resolución en 60 días.",
+        plazo="PDF con descarga inmediata y 12 meses de actualizaciones.",
         cta="Quiero la guía",
-        whatsapp="Hola, vengo de la página web. Quiero la guía para tramitar la resolución sanitaria por mi cuenta.",
+        whatsapp="Hola, vengo de la página web. Quiero la guía Ruta RS para la resolución sanitaria de mi establecimiento.",
         publicado=False,
     ),
     Servicio(
+        # tarifas.json → servicios.kit_documental
+        id="kit-documental",
+        linea="rs",
+        nombre="Kit Documental Listo",
+        para_quien="Para tener al día los manuales, protocolos y consentimientos que pide la SEREMI.",
+        incluye=(
+            "Manual de organización y procedimientos",
+            "Protocolos de esterilización, aseo, IAAS, REAS y emergencias",
+            "Consentimientos informados por procedimiento",
+            "Reglamento interno y formatos de libros",
+        ),
+        precio=129990,
+        precio_nota="Personalizado con un formulario, en Word y PDF.",
+        plazo="72 horas hábiles desde el formulario completo.",
+        nota="Documentos modelo: el director técnico debe revisarlos y validarlos antes de usarlos.",
+        cta="Quiero el kit",
+        whatsapp="Hola, vengo de la página web. Quiero el kit documental para la resolución sanitaria de mi establecimiento.",
+        publicado=False,
+    ),
+    Servicio(
+        # tarifas.json → servicios.preauditoria_remota
         id="pre-auditoria-remota",
         linea="rs",
         nombre="Pre-auditoría remota",
-        para_quien="Para revisar tu establecimiento antes de una visita o fiscalización de la SEREMI. "
-                   "[definir alcance]",
+        para_quien="Para revisar todo tu establecimiento antes de ingresar o de una visita de la SEREMI.",
         incluye=(
-            "[definir] Revisión remota de cada recinto, con fotos o video",
-            "[definir] Brechas ordenadas por prioridad",
-            "[definir] Qué corregir antes de la visita",
+            "Pauta propia de 80 a 120 puntos según tu tipo de establecimiento",
+            "Revisión de fotos o video de cada recinto, planos y documentos",
+            "Informe de brechas con prioridad y cómo corregirlas",
+            "Segunda revisión de lo corregido dentro de 30 días",
         ),
-        precio_texto="[definir precio]",
+        precio=149990,
+        plazo="3 días hábiles.",
+        nota="Informe técnico privado: no es una certificación ni garantiza el resultado de una fiscalización.",
         cta="Quiero una pre-auditoría",
         whatsapp="Hola, vengo de la página web. Quiero una pre-auditoría antes de la visita de la SEREMI.",
         publicado=False,
     ),
     Servicio(
-        id="visita-inspectiva",
+        # tarifas.json → servicios.simulacro_presencial
+        id="simulacro-fiscalizacion",
         linea="rs",
-        nombre="Visita inspectiva",
-        para_quien="Para revisar el local en terreno antes de arrendar, habilitar o recibir a la SEREMI. "
-                   "[definir comunas y alcance]",
+        nombre="Simulacro de fiscalización",
+        para_quien="Para recibir a la SEREMI preparado: una visita en terreno con pauta tipo inspección.",
         incluye=(
-            "[definir] Visita presencial al local",
-            "[definir] Informe de brechas con fotos",
-            "[definir] Recomendaciones de obras y documentos",
+            "Visita de 1,5 a 2 horas a tu local",
+            "Revisión de recintos, esterilización, REAS, botiquín y libros",
+            "Informe con fotos y plan de corrección en 72 horas",
+            "Checklist para el día de la visita real",
         ),
-        precio_texto="[definir precio]",
-        cta="Pedir una visita",
-        whatsapp="Hola, vengo de la página web. Quiero una visita inspectiva para la resolución sanitaria de mi local.",
+        precio=290000,
+        precio_nota="Región Metropolitana. En regiones, más el traslado.",
+        cta="Pedir un simulacro",
+        whatsapp="Hola, vengo de la página web. Quiero un simulacro de fiscalización de la SEREMI en mi local.",
         publicado=False,
     ),
     Servicio(
-        # Precio aprobado en tarifas.json (servicios.mantencion, 28-oct-2026); falta decidir si se publica.
+        # tarifas.json → servicios.sos_fiscalizacion
+        id="sos-fiscalizacion",
+        linea="rs",
+        nombre="SOS Fiscalización 24 h",
+        para_quien="Si te llegó un acta, una citación o un sumario de la SEREMI.",
+        incluye=(
+            "Lectura del acta o la citación, con sus plazos",
+            "Qué hacer en las 48 horas siguientes",
+            "Borrador de descargos o de respuesta para que lo presentes",
+        ),
+        precio=99990,
+        precio_nota="Se descuenta del sumario o de la subsanación si los contratas en 5 días hábiles.",
+        plazo="Dentro de 24 horas hábiles.",
+        etiqueta="Urgente",
+        cta="Tengo un acta",
+        whatsapp="Hola, vengo de la página web. Me llegó un acta de la SEREMI y necesito ayuda con la resolución sanitaria.",
+        publicado=False,
+    ),
+    Servicio(
+        # tarifas.json → servicios.mantencion (vigente desde el 28-oct-2026); falta decidir si se publica.
         id="mantencion",
         linea="rs",
-        nombre="Mantención sanitaria mensual",
+        nombre="Plan Cumplimiento",
         para_quien="Para mantener tu establecimiento al día después de obtener la resolución.",
         incluye=(
             "Alertas de vencimientos: RS, REAS, autoclave, extintores, certificados y contratos",
@@ -285,9 +339,9 @@ BORRADORES = (
         ),
         precio=49990,
         precio_sufijo="/mes",
-        precio_nota="Remota, por WhatsApp.",
-        cta="Quiero la mantención",
-        whatsapp="Hola, vengo de la página web. Quiero la mantención mensual de mi resolución sanitaria.",
+        precio_nota="Remoto, por WhatsApp.",
+        cta="Quiero el plan",
+        whatsapp="Hola, vengo de la página web. Quiero el plan de cumplimiento de mi resolución sanitaria.",
         publicado=False,
     ),
 )
@@ -319,27 +373,29 @@ class Plan:
         return wa_link(self.whatsapp)
 
 
+# Orden de la web y el PDF (17-nov-2026): del más caro al más barato, con el Completo como recomendado.
+# Por WhatsApp solo se ofrecen el Completo y el PRO (tarifas.json → servicios.inapi.canales).
 PLANES_MARCA = (
     Plan(
-        id="asistido",
-        nombre="Registro Asistido",
-        lema="Hazlo tú, con nosotros al lado",
-        precio=157000,
+        id="pro",
+        nombre="Registro Completo PRO",
+        lema="Con defensa incluida",
+        precio=247990,
         precio_tachado=None,
         incluye=(
-            "Revisión de disponibilidad en INAPI",
-            "Textos legales listos para copiar en tu solicitud",
-            "Guía paso a paso para presentarla",
-            "Aviso de cada plazo",
+            "Todo lo del plan Completo",
+            "Defensa ante oposiciones, con abogado de propiedad industrial",
+            "Respuesta a observaciones de fondo",
+            "Atención prioritaria",
         ),
-        whatsapp="Hola, quiero revisar mi marca. Me interesa el Registro Asistido",
+        whatsapp="Hola, quiero revisar mi marca. Me interesa el Registro Completo PRO",
     ),
     Plan(
         id="completo",
         nombre="Registro Completo",
         lema="Lo hacemos por ti",
         precio=147990,
-        precio_tachado=219990,
+        precio_tachado=None,
         incluye=(
             "Estudio de estrategia: clases y riesgo de parecido",
             "Presentamos la solicitud ante INAPI",
@@ -351,18 +407,19 @@ PLANES_MARCA = (
         recomendado=True,
     ),
     Plan(
-        id="pro",
-        nombre="Registro Completo PRO",
-        lema="Con defensa incluida",
-        precio=247990,
-        precio_tachado=319990,
+        id="hazlo_tu",
+        nombre="Registro Hazlo Tú",
+        lema="Con nuestra guía paso a paso",
+        precio=79990,
+        precio_tachado=None,
         incluye=(
-            "Todo lo del plan Completo",
-            "Defensa ante oposiciones, con abogado de propiedad industrial",
-            "Respuesta a observaciones de fondo",
-            "Atención prioritaria",
+            "Revisión de disponibilidad en INAPI",
+            "Clases y textos legales listos para tu solicitud",
+            "La presentas tú, con tu ClaveÚnica",
+            "Revisamos tu solicitud antes de que la envíes",
+            "Si pasas al Completo antes de presentar, se descuenta",
         ),
-        whatsapp="Hola, quiero revisar mi marca. Me interesa el Registro Completo PRO",
+        whatsapp="Hola, quiero revisar mi marca. Me interesa el Registro Hazlo Tú",
     ),
 )
 
@@ -372,8 +429,9 @@ FAQ_PORTADA = (
     ("¿Cuánto cuesta la Resolución Sanitaria?",
      "Depende del tipo de establecimiento y de cuántos boxes, sillones o salas tiene. Por eso partimos con el "
      "diagnóstico express de $49.990: en 48 horas hábiles te entregamos qué autorizaciones necesitas, las brechas "
-     "y el presupuesto exacto. Si sigues con nosotros, esos $49.990 se descuentan completos. La resolución se paga "
-     "en 3 partes: 60% al aceptar, 30% al ingresar la solicitud y 10% al obtenerla."),
+     "y el presupuesto exacto en 3 modalidades: Asistida (la ingresas tú), Completa (lo hacemos todo) y Completa + "
+     "Apertura. Si sigues con nosotros, esos $49.990 se descuentan completos. La Completa se paga en 3 partes: "
+     "40% al aceptar, 40% al ingresar la solicitud y 20% al obtenerla."),
     ("¿Hay costos aparte?",
      "Sí, y te los decimos antes de partir. En la resolución van aparte los aranceles de la SEREMI y, si tu caso "
      "los necesita, planos, certificaciones (como el TE1), obras o equipamiento. En marcas, las tasas de INAPI y la "
@@ -384,9 +442,9 @@ FAQ_PORTADA = (
      "120 días hábiles, según las observaciones y los tiempos de la SEREMI. Un registro de marca toma unos 5 meses "
      "si nadie se opone."),
     ("¿Es seguro trabajar con ustedes?",
-     "Sí. Todo queda por escrito en WhatsApp y los pagos de la resolución van atados a avances: el 30% se paga "
-     "cuando la solicitud ya está ingresada y el 10% cuando la SEREMI la otorga. Si no ingresamos tu solicitud "
-     "dentro de 10 días hábiles desde que tenemos todos los antecedentes, te devolvemos el anticipo. En marcas, "
+     "Sí. Todo queda por escrito en WhatsApp y los pagos de la resolución van atados a avances: el segundo 40% se "
+     "paga cuando la solicitud ya está ingresada y el 20% final cuando la SEREMI la otorga. Si no ingresamos tu "
+     "solicitud dentro de 10 días hábiles desde que tenemos todos los antecedentes, te devolvemos el primer pago. En marcas, "
      "cuando presentamos tu solicitud te llega el número para que la verifiques tú en el buscador de INAPI. Las "
      "transferencias van a Auria SpA, la empresa que factura los servicios de Consultoría Clínica Chile."),
     ("¿Lo puedo hacer yo mismo?",
@@ -397,7 +455,7 @@ FAQ_PORTADA = (
     ("¿Garantizan que la SEREMI apruebe mi resolución?",
      "No. La resolución la otorga la SEREMI y nadie puede garantizar su resultado ni su plazo. Garantizamos lo que "
      "depende de nosotros: ingresar tu solicitud dentro de 10 días hábiles con todos los antecedentes (o te "
-     "devolvemos el anticipo) y responder las observaciones sin cobrar honorarios adicionales hasta terminar el "
+     "devolvemos el primer pago) y responder las observaciones sin cobrar honorarios adicionales hasta terminar el "
      "proceso."),
     ("¿Atienden en regiones? ¿Tienen oficina?",
      "Trabajamos 100 % online en todo Chile. El diagnóstico se hace con fotos del local y la lista de servicios, y "

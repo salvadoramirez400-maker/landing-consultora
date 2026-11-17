@@ -478,7 +478,6 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
 .mk-cinta { position: absolute; top: -13px; left: 24px; background: var(--accent); color: var(--white); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; padding: 4px 12px; border-radius: var(--r-full); }
 .mk-plan h3 { font-size: 1.25rem; }
 .mk-lema { color: var(--gray-500); font-size: 0.92rem; margin-bottom: 18px; }
-.mk-tachado { color: var(--gray-500); height: 1.5em; }
 .mk-precio { font-family: var(--font-display); font-size: 2.4rem; font-weight: 800; color: var(--near-black); line-height: 1; }
 .mk-precio small { display: block; font-family: var(--font-body); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; color: var(--accent); margin-top: 6px; }
 .mk-plan ul { margin: 22px 0 26px; display: flex; flex-direction: column; gap: 10px; flex: 1; }

@@ -22,7 +22,7 @@
   {#- Oferta: consultoria-clinica-chile/docs/marcas/oferta.md. Planes y preguntas: catalogo.py. -#}
   <section class="mk-hero" id="revisar">
     <div class="mk-wrap">
-      <span class="mk-badge">Precio oferta hasta el {{ oferta_hasta }}</span>
+      <span class="mk-badge">Revisión gratis en menos de 24 horas hábiles</span>
       <h1>Si tu marca no está registrada, <em>no es tuya.</em></h1>
       <p class="mk-sub">Revisamos gratis si tu marca está disponible y la registramos en INAPI por ti. Sin papeleo, en simple y con aviso en cada etapa.</p>
       <form class="mk-buscador" data-revisar>
@@ -47,7 +47,7 @@
   <section class="mk-sec" id="planes">
     <div class="mk-wrap">
       <h2>Elige tu plan</h2>
-      <p class="mk-lead">Precio oferta hasta el {{ oferta_hasta }}. Pagas al contratar, por transferencia.</p>
+      <p class="mk-lead">Partes con la reserva de $49.990 (tarjeta, cuotas o transferencia) y pagas el saldo para presentar. Las tasas de INAPI van aparte.</p>
       <div class="mk-planes">
         {%- for p in planes %}
         <div class="mk-plan{% if p.recomendado %} top{% endif %}">
@@ -56,8 +56,7 @@
           {%- endif %}
           <h3>{{ p.nombre }}</h3>
           <p class="mk-lema">{{ p.lema }}</p>
-          <div class="mk-tachado">{% if p.precio_tachado %}<span class="sr-only">Precio normal: </span><del>{{ p.precio_tachado|clp }}</del>{% endif %}</div>
-          <div class="mk-precio">{{ p.precio|clp }}<small>PRECIO OFERTA</small></div>
+          <div class="mk-precio">{{ p.precio|clp }}<small>+ TASAS DE INAPI</small></div>
           <ul>
             {%- for item in p.incluye %}
             <li>{{ item }}</li>

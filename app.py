@@ -1,7 +1,6 @@
-import calendar
 import hashlib
 import os
-from datetime import date, datetime
+from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
@@ -296,23 +295,11 @@ def index():
     )
 
 
-_MESES = ("enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto",
-          "septiembre", "octubre", "noviembre", "diciembre")
-
-
-def _oferta_hasta(hoy: date | None = None) -> str:
-    """Fin de la oferta de marcas: el 15 o el último día del mes, lo que venga primero (se renueva sola)."""
-    hoy = hoy or datetime.now(ZoneInfo("America/Santiago")).date()
-    dia = 15 if hoy.day <= 15 else calendar.monthrange(hoy.year, hoy.month)[1]
-    return f"{dia} de {_MESES[hoy.month - 1]}"
-
-
 @app.route("/marcas")
 def marcas():
     return render_template(
         "marcas.html",
         config=_config(),
-        oferta_hasta=_oferta_hasta(),
         planes=catalogo.PLANES_MARCA,
         marca=catalogo.servicio("registro-marca"),
         faq=catalogo.FAQ_MARCAS,
