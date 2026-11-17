@@ -2,7 +2,7 @@
 
 Reglas (vienen de consultoria-clinica-chile):
 - Precios y garantías: solo los vigentes de datos/tarifas.json. No se inventan.
-- En Resolución Sanitaria solo se publica el precio del diagnóstico express ($49.990). La resolución, las
+- En Resolución Sanitaria solo se publica el precio del diagnóstico express ($79.990 desde el 17-nov-2026; antes $49.990). La resolución, las
   observaciones y los sumarios se cotizan con el diagnóstico, igual que en el bot (decisión R2 B,
   taller de flujos del 10-nov-2026). Desde el 17-nov-2026 la resolución se ofrece en 3 modalidades
   (Asistida, Completa y Completa + Apertura) y la Completa se paga 40/40/20; los montos de cada
@@ -141,9 +141,9 @@ SERVICIOS = (
             "Brechas y riesgos frente a una fiscalización (semáforo)",
             "Ruta y presupuesto para obtener la Resolución Sanitaria",
         ),
-        precio=49990,
+        precio=79990,
         precio_nota="Se descuenta completo si sigues con la resolución.",
-        plazo="48 horas hábiles desde que recibimos el pago y el material.",
+        plazo="3 a 5 horas hábiles desde que recibimos el pago y el material.",
         nota="Es remoto: no incluye visita al local.",
         etiqueta="Para partir",
         destacado=True,
@@ -228,6 +228,7 @@ SERVICIOS = (
     ),
 )
 
+# Productos en preparación: NO se muestran. Precios y plazos al 17-nov-2026 ~14:27 (la Ruta RS quedó retirada).
 # Productos en preparación: NO se muestran. Precios aprobados el 17-nov-2026 (tarifas.json → servicios.*);
 # se publican cuando exista el entregable, su link de pago y el bot de RS sepa de ellos (campo «requisitos»).
 BORRADORES = (
@@ -262,9 +263,9 @@ BORRADORES = (
             "Consentimientos informados por procedimiento",
             "Reglamento interno y formatos de libros",
         ),
-        precio=129990,
+        precio=169990,
         precio_nota="Personalizado con un formulario, en Word y PDF.",
-        plazo="72 horas hábiles desde el formulario completo.",
+        plazo="24 horas hábiles desde el formulario completo.",
         nota="Documentos modelo: el director técnico debe revisarlos y validarlos antes de usarlos.",
         cta="Quiero el kit",
         whatsapp="Hola, vengo de la página web. Quiero el kit documental para la resolución sanitaria de mi establecimiento.",
@@ -283,7 +284,7 @@ BORRADORES = (
             "Segunda revisión de lo corregido dentro de 30 días",
         ),
         precio=149990,
-        plazo="3 días hábiles.",
+        plazo="48 horas hábiles.",
         nota="Informe técnico privado: no es una certificación ni garantiza el resultado de una fiscalización.",
         cta="Quiero una pre-auditoría",
         whatsapp="Hola, vengo de la página web. Quiero una pre-auditoría antes de la visita de la SEREMI.",
@@ -318,9 +319,9 @@ BORRADORES = (
             "Qué hacer en las 48 horas siguientes",
             "Borrador de descargos o de respuesta para que lo presentes",
         ),
-        precio=99990,
+        precio=149990,
         precio_nota="Se descuenta del sumario o de la subsanación si los contratas en 5 días hábiles.",
-        plazo="Dentro de 24 horas hábiles.",
+        plazo="El mismo día hábil si el pago y el documento llegan antes de las 13:00.",
         etiqueta="Urgente",
         cta="Tengo un acta",
         whatsapp="Hola, vengo de la página web. Me llegó un acta de la SEREMI y necesito ayuda con la resolución sanitaria.",
@@ -430,16 +431,16 @@ PLANES_MARCA = (
 FAQ_PORTADA = (
     ("¿Cuánto cuesta la Resolución Sanitaria?",
      "Depende del tipo de establecimiento y de cuántos boxes, sillones o salas tiene. Por eso partimos con el "
-     "diagnóstico express de $49.990: en 48 horas hábiles te entregamos qué autorizaciones necesitas, las brechas "
+     "diagnóstico express de $79.990: en 3 a 5 horas hábiles te entregamos qué autorizaciones necesitas, las brechas "
      "y el presupuesto exacto en 3 modalidades: Asistida (la ingresas tú), Completa (lo hacemos todo) y Completa + "
-     "Apertura. Si sigues con nosotros, esos $49.990 se descuentan completos. La Completa se paga en 3 partes: "
+     "Apertura. Si sigues con nosotros, esos $79.990 se descuentan completos. La Completa se paga en 3 partes: "
      "60% al aceptar, 30% al ingresar la solicitud y 10% al obtenerla."),
     ("¿Hay costos aparte?",
      "Sí, y te los decimos antes de partir. En la resolución van aparte los aranceles de la SEREMI y, si tu caso "
      "los necesita, planos, certificaciones (como el TE1), obras o equipamiento. En marcas, las tasas de INAPI y la "
      "publicación en el Diario Oficial."),
     ("¿Cuánto demora?",
-     "El diagnóstico, 48 horas hábiles desde que tenemos el pago y las fotos. En la modalidad Completa, con todos "
+     "El diagnóstico, 3 a 5 horas hábiles desde que tenemos el pago y las fotos. En la modalidad Completa, con todos "
      "los antecedentes, ingresamos tu solicitud a la SEREMI dentro de 10 días hábiles. El proceso completo suele tomar entre 90 y "
      "120 días hábiles, según las observaciones y los tiempos de la SEREMI. Un registro de marca toma unos 5 meses "
      "si nadie se opone."),

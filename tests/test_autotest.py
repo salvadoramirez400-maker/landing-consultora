@@ -182,9 +182,9 @@ class Paginas(unittest.TestCase):
         self.assertIn('<meta name="robots" content="noindex, nofollow">', html)
         self.assertEqual(html.count("<h1"), 1)
         self.assertIn("en Providencia", html)
-        self.assertIn("$49.990", html)
+        self.assertIn("$79.990", html)
         montos = set(re.findall(r"\$\d{1,3}(?:\.\d{3})+", test_sitio._texto_visible(html)))
-        self.assertLessEqual(montos, {"$49.990"})
+        self.assertLessEqual(montos, {"$79.990"})
         for etiqueta in re.findall(r'<a\b[^>]*href="https://wa\.me/[^"]+"[^>]*>', html):
             href = unescape(re.search(r'href="([^"]+)"', etiqueta).group(1))
             texto = parse_qs(urlparse(href).query).get("text", [""])[0]

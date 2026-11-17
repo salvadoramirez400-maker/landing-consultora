@@ -321,9 +321,9 @@ def index():
         wa_otros=catalogo.wa_link(catalogo.WA_OTROS),
         wa_pagina=_wa_pagina("rs", con_cambio=True),
         sumario=catalogo.servicio("sumario"),
-        anuncio={"id": "diagnostico-2026-11", "etiqueta": "Diagnóstico express",
-                 "texto": "En 48 horas hábiles sabes qué autorizaciones necesita tu local.",
-                 "corto": "Tu diagnóstico en 48 horas hábiles",
+        anuncio={"id": "diagnostico-2026-11b", "etiqueta": "Diagnóstico express",
+                 "texto": "En 3 a 5 horas hábiles sabes qué autorizaciones necesita tu local.",
+                 "corto": "Tu diagnóstico en 3 a 5 horas hábiles",
                  "href": catalogo.servicio("diagnostico-express").whatsapp_url, "linea": "rs"},
         teaser=_teaser("rs"),
         jsonld=_jsonld_portada(),
@@ -437,7 +437,9 @@ def api_marcas_titular_procesado(titular_id):
 
 _PAGOS = {
     "reserva": "https://mpago.la/1vm2Q8g",      # reserva de marca, $49.990
-    "diagnostico": "https://mpago.la/1FLwLEL",  # diagnóstico sanitario express, $49.990
+    # Diagnóstico express: desde el 17-nov-2026 cuesta $79.990 y el link antiguo (mpago.la/1FLwLEL) cobraba $49.990.
+    # Hasta que Salvador cree el link nuevo, /diagnostico lleva a WhatsApp para que nadie pague el monto viejo.
+    "diagnostico": catalogo.servicio("diagnostico-express").whatsapp_url,
 }
 
 
