@@ -1,123 +1,26 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Registro de marca en INAPI · {{ config.business_name }}</title>
-  <meta name="description" content="Revisamos gratis si el nombre de tu marca está disponible y lo registramos en INAPI por ti. Registro Completo desde $147.990, tasas INAPI aparte.">
-  <meta property="og:title" content="Registra tu marca antes de que otro lo haga">
-  <meta property="og:description" content="Revisión gratis de tu marca y registro en INAPI desde $147.990. Garantía de reintento.">
-  <meta property="og:type" content="website">
-  <meta property="og:locale" content="es_CL">
-  <!-- Meta Pixel «CCC · consultoriaclinica.cl», igual que en index.html: solo carga si aceptan el aviso de cookies.
-       Eventos: PageView, Contact (enlaces wa.me) y Lead (formulario «Revisar gratis»). -->
-  <script>
-    window.cccPixel = function(){
-      var FB_PIXEL_ID = '39876910071899964';
-      if (window.fbq) return;
-      !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
-      fbq('init', FB_PIXEL_ID); fbq('track','PageView');
-    };
-    try { if (localStorage.getItem('ccc-cookies') === 'si') window.cccPixel(); } catch (e) {}
-  </script>
-  <link rel="preload" href="{{ url_for('static', filename='fonts/Fustat-800-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="{{ url_for('static', filename='fonts/fonts.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <style>
-    /* Estilos propios de /marcas, inline porque style.css se cachea un año sin versión */
-    .cookie-banner { position: fixed; left: 24px; bottom: 24px; z-index: 1000; max-width: 420px; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; background: var(--white); color: var(--gray-700); border: 1px solid var(--gray-100); border-radius: var(--r-md); box-shadow: var(--shadow-lg); font-family: var(--font-body); font-size: 14px; line-height: 1.5; }
-    .cookie-banner[hidden] { display: none; }
-    .cookie-banner a { color: var(--accent); text-decoration: underline; }
-    .cookie-actions { display: flex; gap: 10px; justify-content: flex-end; }
-    @media (max-width: 600px) { .cookie-banner { left: 12px; right: 12px; bottom: 12px; max-width: none; } }
+{% extends "base.html" %}
+{% from "_componentes.html" import monograma %}
+{% block title %}Registro de marca en INAPI | {{ sitio.marca }}{% endblock %}
+{% block description %}Revisamos gratis si el nombre de tu marca está disponible y lo registramos en INAPI por ti. Registro Completo desde {{ marca.precio|clp }}, tasas INAPI aparte.{% endblock %}
+{% block og_title %}Registra tu marca antes de que otro lo haga{% endblock %}
+{% block og_description %}Revisión gratis de tu marca y registro en INAPI desde {{ marca.precio|clp }}. Garantía de reintento.{% endblock %}
+{% block body_class %}pagina-marcas{% endblock %}
 
-    .mk-wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
-    .mk-hero { padding: 140px 0 72px; background: radial-gradient(90% 70% at 50% 0%, #deeaff 0%, #ffffff 70%); }
-    .mk-badge { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: var(--r-full); background: #fff4e5; color: #9a5b00; font-weight: 600; font-size: 0.85rem; margin-bottom: 20px; }
-    .mk-badge:before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; }
-    .mk-hero h1 { font-size: clamp(2.1rem, 5.2vw, 3.6rem); letter-spacing: -0.02em; line-height: 1.07; max-width: 820px; text-wrap: balance; }
-    .mk-hero h1 em { font-style: normal; color: var(--accent); }
-    .mk-sub { font-size: clamp(1.05rem, 1.6vw, 1.2rem); color: var(--gray-500); max-width: 640px; margin: 18px 0 28px; }
-    .mk-buscador { display: flex; gap: 10px; max-width: 620px; padding: 8px; background: var(--white); border: 1px solid var(--gray-100); border-radius: var(--r-full); box-shadow: var(--shadow-lg); }
-    .mk-buscador input { flex: 1; min-width: 0; border: 0; outline: 0; font: inherit; font-size: 1.05rem; padding: 10px 16px; background: transparent; color: var(--near-black); }
-    .mk-buscador .btn { white-space: nowrap; }
-    .mk-nota { font-size: 0.9rem; color: var(--gray-500); margin-top: 12px; }
-    .mk-riesgo { background: var(--near-black); color: #e2e8f0; padding: 56px 0; }
-    .mk-riesgo h2 { color: var(--white); font-size: clamp(1.5rem, 3vw, 2.2rem); max-width: 760px; margin-bottom: 28px; text-wrap: balance; }
-    .mk-datos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
-    .mk-dato { border-top: 3px solid var(--accent); padding-top: 14px; }
-    .mk-dato b { display: block; font-family: var(--font-display); font-size: 1.9rem; color: var(--white); line-height: 1.1; margin-bottom: 6px; }
-    .mk-dato span { font-size: 0.95rem; line-height: 1.5; }
-    .mk-sec { padding: 80px 0; }
-    .mk-sec.off { background: var(--off-white); }
-    .mk-sec h2 { font-size: clamp(1.7rem, 3.4vw, 2.5rem); letter-spacing: -0.015em; margin-bottom: 10px; text-wrap: balance; }
-    .mk-lead { color: var(--gray-500); max-width: 640px; margin-bottom: 36px; }
-    .mk-planes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: stretch; }
-    .mk-plan { position: relative; display: flex; flex-direction: column; padding: 30px 26px; background: var(--white); border: 1px solid var(--gray-100); border-radius: var(--r-lg); box-shadow: var(--shadow-sm); }
-    .mk-plan.top { border: 2px solid var(--accent); box-shadow: var(--shadow-lg); }
-    .mk-cinta { position: absolute; top: -13px; left: 24px; background: var(--accent); color: #fff; font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; padding: 4px 12px; border-radius: var(--r-full); }
-    .mk-plan h3 { font-size: 1.25rem; }
-    .mk-lema { color: var(--gray-500); font-size: 0.92rem; margin-bottom: 18px; }
-    .mk-tachado { color: var(--gray-300); text-decoration: line-through; height: 1.5em; }
-    .mk-precio { font-family: var(--font-display); font-size: 2.4rem; font-weight: 800; color: var(--near-black); line-height: 1; }
-    .mk-precio small { display: block; font-family: var(--font-body); font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; color: var(--accent); margin-top: 6px; }
-    .mk-plan ul { list-style: none; margin: 22px 0 26px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
-    .mk-plan li { display: flex; gap: 10px; font-size: 0.95rem; line-height: 1.45; }
-    .mk-plan li:before { content: "✓"; flex: none; color: var(--accent); font-weight: 800; }
-    .mk-plan .btn { justify-content: center; }
-    .mk-tasas { margin-top: 22px; font-size: 0.92rem; color: var(--gray-500); }
-    .mk-garantia { display: flex; gap: 22px; align-items: center; margin-top: 36px; padding: 26px 28px; border-radius: var(--r-lg); background: var(--accent-light); }
-    .mk-sello { flex: none; width: 64px; height: 64px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 1.9rem; font-weight: 800; display: flex; align-items: center; justify-content: center; }
-    .mk-garantia b { display: block; color: var(--near-black); font-size: 1.1rem; margin-bottom: 4px; }
-    .mk-pasos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 22px; counter-reset: paso; }
-    .mk-paso { border-top: 3px solid var(--accent); padding-top: 16px; }
-    .mk-paso b { display: block; font-size: 0.8rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 6px; }
-    .mk-paso h3 { font-size: 1.1rem; margin-bottom: 6px; }
-    .mk-paso p { font-size: 0.95rem; color: var(--gray-500); line-height: 1.55; }
-    .mk-salud { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
-    .mk-card { padding: 24px; border: 1px solid var(--gray-100); border-radius: var(--r-md); background: var(--white); }
-    .mk-card h3 { font-size: 1.05rem; margin-bottom: 6px; }
-    .mk-card p { font-size: 0.95rem; color: var(--gray-500); line-height: 1.55; }
-    .mk-faq { max-width: 820px; display: flex; flex-direction: column; gap: 12px; }
-    .mk-faq details { border: 1px solid var(--gray-100); border-radius: var(--r-md); background: var(--white); padding: 18px 22px; }
-    .mk-faq summary { cursor: pointer; font-weight: 600; color: var(--near-black); list-style: none; display: flex; justify-content: space-between; gap: 16px; }
-    .mk-faq summary::-webkit-details-marker { display: none; }
-    .mk-faq summary:after { content: "+"; color: var(--accent); font-size: 1.3rem; line-height: 1; }
-    .mk-faq details[open] summary:after { content: "–"; }
-    .mk-faq p { margin-top: 10px; color: var(--gray-500); font-size: 0.97rem; line-height: 1.6; }
-    .mk-final { padding: 72px 0; background: var(--near-black); color: #cbd5e1; text-align: center; }
-    .mk-final h2 { color: var(--white); font-size: clamp(1.7rem, 3.4vw, 2.5rem); margin-bottom: 12px; text-wrap: balance; }
-    .mk-final .mk-buscador { margin: 26px auto 0; }
-    .mk-fuentes { font-size: 0.8rem; color: var(--gray-300); margin-top: 28px; }
-    @media (max-width: 900px) {
-      .mk-planes, .mk-datos { grid-template-columns: 1fr; }
-      .mk-pasos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .mk-plan.top { order: -1; }
-    }
-    @media (max-width: 600px) {
-      .nav .logo { font-size: 0.95rem; white-space: nowrap; }
-      .nav .btn-nav { padding: 8px 12px; font-size: 0.75rem; white-space: nowrap; }
-      .mk-hero { padding: 116px 0 56px; }
-      .mk-buscador { flex-direction: column; border-radius: var(--r-md); }
-      .mk-buscador .btn { justify-content: center; }
-      .mk-pasos, .mk-salud { grid-template-columns: 1fr; }
-      .mk-garantia { flex-direction: column; align-items: flex-start; }
-      .mk-sec { padding: 60px 0; }
-    }
-  </style>
-</head>
-<body>
-
-  <nav class="nav" id="nav">
+{% block nav -%}
+  <nav class="nav" aria-label="Principal">
     <div class="nav-inner">
-      <a href="/" class="logo">
-        {% if config.logo %}<img src="{{ config.logo }}" alt="{{ config.business_name }}" style="height:34px;">{% else %}{{ config.business_name }}{% endif %}
+      <a href="/" class="logo" aria-label="{{ sitio.marca }}, inicio">
+        {%- if config and config.logo %}<img src="{{ config.logo }}" alt="{{ sitio.marca }}" height="34">
+        {%- else %}{{ monograma() }}<span>{{ sitio.marca }}</span>{% endif -%}
       </a>
       <a href="#revisar" class="btn btn-sm btn-nav">Revisar gratis</a>
     </div>
   </nav>
+{%- endblock %}
 
-  <header class="mk-hero" id="revisar">
+{% block content %}
+  {#- Oferta: consultoria-clinica-chile/docs/marcas/oferta.md. Planes y preguntas: catalogo.py. -#}
+  <section class="mk-hero" id="revisar">
     <div class="mk-wrap">
       <span class="mk-badge">Precio oferta hasta el {{ oferta_hasta }}</span>
       <h1>Si tu marca no está registrada, <em>no es tuya.</em></h1>
@@ -128,7 +31,7 @@
       </form>
       <p class="mk-nota">Te respondemos por WhatsApp en menos de 24 horas hábiles.</p>
     </div>
-  </header>
+  </section>
 
   <section class="mk-riesgo">
     <div class="mk-wrap">
@@ -146,52 +49,28 @@
       <h2>Elige tu plan</h2>
       <p class="mk-lead">Precio oferta hasta el {{ oferta_hasta }}. Pagas al contratar, por transferencia.</p>
       <div class="mk-planes">
-        <div class="mk-plan">
-          <h3>Registro Asistido</h3>
-          <p class="mk-lema">Hazlo tú, con nosotros al lado</p>
-          <div class="mk-tachado"></div>
-          <div class="mk-precio">$157.000<small>PRECIO OFERTA</small></div>
-          <ul>
-            <li>Revisión de disponibilidad en INAPI</li>
-            <li>Textos legales listos para copiar en tu solicitud</li>
-            <li>Guía paso a paso para presentarla</li>
-            <li>Aviso de cada plazo</li>
-          </ul>
-          <a class="btn btn-outline-navy" href="https://wa.me/56930175070?text=Hola%2C+quiero+revisar+mi+marca.+Me+interesa+el+Registro+Asistido" target="_blank" rel="noopener">Quiero este plan</a>
-        </div>
-        <div class="mk-plan top">
+        {%- for p in planes %}
+        <div class="mk-plan{% if p.recomendado %} top{% endif %}">
+          {%- if p.recomendado %}
           <span class="mk-cinta">RECOMENDADO</span>
-          <h3>Registro Completo</h3>
-          <p class="mk-lema">Lo hacemos por ti</p>
-          <div class="mk-tachado">$219.990</div>
-          <div class="mk-precio">$147.990<small>PRECIO OFERTA</small></div>
+          {%- endif %}
+          <h3>{{ p.nombre }}</h3>
+          <p class="mk-lema">{{ p.lema }}</p>
+          <div class="mk-tachado">{% if p.precio_tachado %}<span class="sr-only">Precio normal: </span><del>{{ p.precio_tachado|clp }}</del>{% endif %}</div>
+          <div class="mk-precio">{{ p.precio|clp }}<small>PRECIO OFERTA</small></div>
           <ul>
-            <li>Estudio de estrategia: clases y riesgo de parecido</li>
-            <li>Presentamos la solicitud ante INAPI</li>
-            <li>Seguimiento completo y observaciones de forma</li>
-            <li>Aviso en cada etapa y respuesta en menos de 24 h hábiles</li>
-            <li>Garantía de reintento</li>
+            {%- for item in p.incluye %}
+            <li>{{ item }}</li>
+            {%- endfor %}
           </ul>
-          <a class="btn btn-primary" href="https://wa.me/56930175070?text=Hola%2C+quiero+revisar+mi+marca.+Me+interesa+el+Registro+Completo" target="_blank" rel="noopener">Quiero este plan</a>
+          <a class="btn {{ 'btn-primary' if p.recomendado else 'btn-outline-navy' }}" href="{{ p.whatsapp_url }}" target="_blank" rel="noopener" data-wa="plan-{{ p.id }}" data-linea="marcas">Quiero este plan</a>
         </div>
-        <div class="mk-plan">
-          <h3>Registro Completo PRO</h3>
-          <p class="mk-lema">Con defensa incluida</p>
-          <div class="mk-tachado">$319.990</div>
-          <div class="mk-precio">$247.990<small>PRECIO OFERTA</small></div>
-          <ul>
-            <li>Todo lo del plan Completo</li>
-            <li>Defensa ante oposiciones, con abogado de propiedad industrial</li>
-            <li>Respuesta a observaciones de fondo</li>
-            <li>Atención prioritaria</li>
-          </ul>
-          <a class="btn btn-outline-navy" href="https://wa.me/56930175070?text=Hola%2C+quiero+revisar+mi+marca.+Me+interesa+el+Registro+Completo+PRO" target="_blank" rel="noopener">Quiero este plan</a>
-        </div>
+        {%- endfor %}
       </div>
-      <p class="mk-tasas">Tasas de INAPI aparte: 1 UTM por clase al presentar ($72.151) y 2 UTM al aceptar ($144.302), más la publicación en el Diario Oficial. Clase adicional: $49.990. Te avisamos el monto exacto en cada etapa.</p>
+      <p class="mk-tasas">Tasas de INAPI aparte: 1 UTM por clase al presentar ($72.440) y 2 UTM al aceptar ($144.880), más la publicación en el Diario Oficial. Clase adicional: $49.990. Te avisamos el monto exacto en cada etapa.</p>
       <p class="mk-tasas"><b>¿Prefieres partir de a poco? Reserva tu marca con $49.990.</b> Hacemos el estudio formal y dejamos tu solicitud lista; se descuenta completa del plan y tienes 30 días para completar el saldo.</p>
       <div class="mk-garantia">
-        <div class="mk-sello">®</div>
+        <div class="mk-sello" aria-hidden="true">®</div>
         <div><b>Garantía de reintento</b>Si INAPI no acepta tu marca, la presentamos de nuevo sin cobrarte honorarios.</div>
       </div>
     </div>
@@ -227,15 +106,9 @@
     <div class="mk-wrap">
       <h2>Preguntas frecuentes</h2>
       <div class="mk-faq">
-        <details><summary>¿Cuánto demora el registro?</summary><p>Unos 5 meses si no hay observaciones ni oposiciones. INAPI informó un promedio de 5,5 meses para marcas nuevas a julio de 2026. Si alguien se opone, puede tomar bastante más.</p></details>
-        <details><summary>¿Cuánto dura?</summary><p>10 años desde el registro, y se renueva por periodos iguales sin límite.</p></details>
-        <details><summary>¿Necesito empresa o inicio de actividades?</summary><p>No. La marca la puede registrar una persona natural o una empresa.</p></details>
-        <details><summary>¿Las tasas de INAPI están incluidas?</summary><p>No. Son 1 UTM por clase al presentar y 2 UTM por clase cuando INAPI la acepta (unos $216.453 en total por clase), más la publicación en el Diario Oficial. Te avisamos el monto exacto en cada etapa.</p></details>
-        <details><summary>¿Puedo registrar mi apellido o el de otra persona?</summary><p>El tuyo, sí. El de otra persona, solo con su consentimiento (Ley 19.039, art. 20). Si la marca lleva el apellido de un socio, conviene dejarlo por escrito.</p></details>
-        <details><summary>¿En qué clase registro mi marca?</summary><p>Depende de lo que vendes: 25 ropa y calzado, 30 café y alimentos, 35 tienda y e-commerce, 43 restaurantes y cafeterías, 41 cursos, 44 salud y estética, 3 cosmética, 9 y 42 apps y software. Te lo decimos en la revisión gratis.</p></details>
-        <details><summary>¿Qué pasa si INAPI la rechaza?</summary><p>Aplica la garantía de reintento: la presentamos de nuevo sin cobrarte honorarios. Las tasas de INAPI del reintento las paga el titular.</p></details>
-        <details><summary>¿Puedo reservar mi marca sin pagar todo?</summary><p>Sí. Con $49.990 reservas tu marca: hacemos el estudio formal y dejamos la solicitud lista. Ese monto se descuenta completo del plan y tienes 30 días para completar el saldo. La reserva no es reembolsable, porque cubre el estudio y la solicitud, que te entregamos igual.</p></details>
-        <details><summary>¿Ustedes son parte de INAPI?</summary><p>No. Somos una consultora privada: preparamos y presentamos tu solicitud ante INAPI y hacemos el seguimiento por ti.</p></details>
+        {%- for pregunta, respuesta in faq %}
+        <details><summary>{{ pregunta }}</summary><p>{{ respuesta }}</p></details>
+        {%- endfor %}
       </div>
     </div>
   </section>
@@ -248,57 +121,22 @@
         <input type="text" name="marca" placeholder="Escribe el nombre de tu marca" aria-label="Nombre de tu marca" autocomplete="off" required>
         <button type="submit" class="btn btn-primary">Revisar gratis</button>
       </form>
-      <p class="mk-fuentes">Tasas según inapi.cl, al valor de la UTM de octubre de 2026 ($72.151). Multa: Ley 19.039, art. 28 (25 a 1.000 UTM). Volumen de solicitudes: INAPI, enero a julio de 2026.</p>
+      <p class="mk-fuentes">Tasas según inapi.cl, al valor de la UTM de noviembre de 2026 ($72.440). Multa: Ley 19.039, art. 28 (25 a 1.000 UTM). Volumen de solicitudes: INAPI, enero a julio de 2026.</p>
     </div>
   </section>
+{% endblock %}
 
-  <footer class="footer">
-    <div class="container">
-      <div class="footer-bottom">
-        <span>&copy; 2026 {{ config.business_name }}. Todos los derechos reservados.</span>
-        <a href="/privacidad" class="footer-link">Política de privacidad</a>
-      </div>
-    </div>
-  </footer>
-
-  <a href="https://wa.me/56930175070?text=Hola%2C+quiero+revisar+mi+marca" target="_blank" rel="noopener" class="whatsapp-float" aria-label="WhatsApp">
-    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-  </a>
-
-  <div class="cookie-banner" id="cookie-banner" role="region" aria-label="Aviso de cookies" hidden>
-    <p>Usamos cookies de medición de Meta para saber cómo llegan nuestras visitas y mejorar nuestros anuncios. <a href="/privacidad">Política de privacidad</a></p>
-    <div class="cookie-actions">
-      <button type="button" class="btn btn-sm btn-outline-navy" data-cookies="no">Rechazar</button>
-      <button type="button" class="btn btn-sm btn-primary" data-cookies="si">Aceptar</button>
-    </div>
-  </div>
-
+{% block scripts %}
   <script>
     // «Revisar gratis»: abre WhatsApp con la marca escrita. El texto contiene «revisar mi marca», que activa el bot de marcas.
-    document.querySelectorAll('[data-revisar]').forEach(form => form.addEventListener('submit', e => {
-      e.preventDefault();
-      const marca = form.marca.value.trim();
-      if (!marca) return;
-      const msg = encodeURIComponent(`Hola, quiero revisar mi marca: ${marca}`);
-      window.open(`https://wa.me/56930175070?text=${msg}`, '_blank');
-      if (typeof fbq !== 'undefined') fbq('track', 'Lead', {content_name: 'marcas'});
-    }));
-
-    // Aviso de cookies + evento Contact en los enlaces de WhatsApp
-    (function() {
-      const banner = document.getElementById('cookie-banner');
-      let eleccion = null;
-      try { eleccion = localStorage.getItem('ccc-cookies'); } catch (e) {}
-      if (!eleccion) banner.hidden = false;
-      banner.querySelectorAll('[data-cookies]').forEach(b => b.addEventListener('click', () => {
-        try { localStorage.setItem('ccc-cookies', b.dataset.cookies); } catch (e) {}
-        banner.hidden = true;
-        if (b.dataset.cookies === 'si') window.cccPixel();
-      }));
-      document.addEventListener('click', e => {
-        if (e.target.closest('a[href*="wa.me"]') && typeof fbq !== 'undefined') fbq('track', 'Contact', {content_name: 'marcas'});
+    document.querySelectorAll('[data-revisar]').forEach(function (form) {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        var marca = form.marca.value.trim();
+        if (!marca) return;
+        window.open({{ ""|wa|tojson }} + '?text=' + encodeURIComponent({{ wa_revisar|tojson }} + ': ' + marca), '_blank', 'noopener');
+        window.cccLead('revisar-marca', 'marcas');
       });
-    })();
+    });
   </script>
-</body>
-</html>
+{% endblock %}

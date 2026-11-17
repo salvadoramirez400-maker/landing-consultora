@@ -2,8 +2,14 @@
 los subsets `latin` y `latin-ext`, baja los woff2 referenciados a
 static/fonts/ y reescribe las URLs a rutas locales.
 
+Pide rangos de peso (600..800, 300..700): Fustat e Inter son fuentes
+variables, así que Google devuelve un solo woff2 por familia y subset
+(`Fustat-latin.woff2`) con `font-weight: 600 800`. Pedir pesos sueltos
+devolvía el mismo archivo varias veces y el navegador lo bajaba repetido.
+
 Idempotente: vuelve a generar `fonts.css` y solo descarga los woff2 que
-no existan aún.
+no existan aún. El encabezado de comentarios de `fonts.css` se pierde al
+regenerarlo.
 
 Uso:
     python3 scripts/fetch_fonts.py
@@ -20,8 +26,8 @@ FONTS_DIR = ROOT / "static" / "fonts"
 CSS_OUT = FONTS_DIR / "fonts.css"
 GOOGLE_URL = (
     "https://fonts.googleapis.com/css2"
-    "?family=Fustat:wght@600;700;800"
-    "&family=Inter:wght@300;400;500;600;700"
+    "?family=Fustat:wght@600..800"
+    "&family=Inter:wght@300..700"
     "&display=swap"
 )
 # UA moderno para que Google sirva woff2 (con UAs simples manda ttf).
@@ -52,11 +58,10 @@ def main() -> None:
             continue
         m_url = re.search(r"url\((https://fonts\.gstatic\.com/[^)]+)\)", body)
         m_fam = re.search(r"font-family:\s*'([^']+)'", body)
-        m_wt = re.search(r"font-weight:\s*(\d+)", body)
-        if not (m_url and m_fam and m_wt):
+        if not (m_url and m_fam):
             continue
         url = m_url.group(1)
-        local_name = f"{m_fam.group(1)}-{m_wt.group(1)}-{subset}.woff2"
+        local_name = f"{m_fam.group(1)}-{subset}.woff2"
         dst = FONTS_DIR / local_name
         if not dst.exists():
             print(f"  fetch {local_name}")

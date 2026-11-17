@@ -1,19 +1,198 @@
 import calendar
+import hashlib
 import os
 from datetime import date, datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from flask import Flask, jsonify, redirect, render_template, request, session, url_for
+from flask import Flask, Response, jsonify, redirect, render_template, request, send_from_directory, session, url_for
 
-import db
 import blob
+import catalogo
+import db
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-key-change-in-production")
 
 _STATIC_DIR = Path(app.static_folder)
 _WEBP_WIDTHS = (400, 800, 1200)
+_VERSIONES: dict[str, str] = {}
+
+
+def static_v(filename: str) -> str:
+    """URL de un archivo de /static con ?v=<hash del contenido>.
+
+    Traefik cachea /static un año como «immutable»: sin la versión en la URL, un cambio en
+    style.css no le llega a quien ya visitó el sitio. Si el archivo no existe, va sin versión.
+    """
+    version = _VERSIONES.get(filename)
+    if version is None:
+        try:
+            version = hashlib.sha256((_STATIC_DIR / filename).read_bytes()).hexdigest()[:10]
+        except OSError:
+            version = ""
+        if not app.debug:
+            _VERSIONES[filename] = version
+    if version:
+        return url_for("static", filename=filename, v=version)
+    return url_for("static", filename=filename)
+
+
+app.jinja_env.globals["static_v"] = static_v
+app.jinja_env.filters["wa"] = catalogo.wa_link
+
+
+@app.template_filter("clp")
+def clp(monto: int) -> str:
+    """49990 → "$49.990"."""
+    return "$" + f"{monto:,}".replace(",", ".")
+
+
+# --- Datos fijos del sitio (marca, contacto) ---
+SITIO_URL = os.environ.get("SITIO_URL", "https://consultoriaclinica.cl").rstrip("/")
+MARCA = "Consultoría Clínica Chile"
+TAGLINE = "Expertos en desarrollo de establecimientos de salud, arquitectura sanitaria y habilitación clínica."
+DESCRIPCION = ("Te ayudamos con la Resolución Sanitaria de tu clínica o centro de salud ante la SEREMI y con el "
+               "registro de tu marca en INAPI. 100 % online, en todo Chile.")
+INSTAGRAM = "https://www.instagram.com/consultoriaclinica_/"
+
+
+def _wa_pagina(linea: str, con_cambio: bool = False) -> dict:
+    """WhatsApp del menú, el pie y el botón flotante de una página («rs» o «marcas»).
+
+    Con `con_cambio`, el botón flotante pasa al texto de marcas mientras se ve la sección de marcas.
+    """
+    texto = catalogo.WA_MARCAS if linea == "marcas" else catalogo.WA_RS
+    datos = {"href": catalogo.wa_link(texto), "linea": linea}
+    if con_cambio:
+        datos["href_marcas"] = catalogo.wa_link(catalogo.WA_MARCAS)
+    return datos
+
+
+@app.context_processor
+def _contexto_sitio() -> dict:
+    """Valores comunes. Una ruta puede reemplazarlos pasando la misma clave a render_template."""
+    return {
+        "sitio": {
+            "marca": MARCA,
+            "url": SITIO_URL,
+            "tagline": TAGLINE,
+            "descripcion": DESCRIPCION,
+            "whatsapp_visible": catalogo.WHATSAPP_VISIBLE,
+            "instagram": INSTAGRAM,
+            "instagram_usuario": "@consultoriaclinica_",
+            "anio": datetime.now(ZoneInfo("America/Santiago")).year,
+        },
+        "wa_pagina": _wa_pagina("rs"),
+        "pixel": True,
+        "og_imagen": "img/og-portada.png",
+    }
+
+
+# --- SEO técnico ---
+@app.before_request
+def _dominio_canonico():
+    """www.consultoriaclinica.cl respondía la misma página (contenido duplicado): 301 al dominio sin www."""
+    if request.host.split(":")[0].lower().startswith("www."):
+        return redirect(SITIO_URL + request.full_path.rstrip("?"), code=301)
+    return None
+
+
+_PAGINAS_SITEMAP = ("/", "/marcas", "/privacidad")
+
+
+@app.route("/robots.txt")
+def robots():
+    lineas = ["User-agent: *", "Disallow: /admin", "Disallow: /login", "Disallow: /logout", "Disallow: /api/",
+              "", f"Sitemap: {SITIO_URL}/sitemap.xml", ""]
+    return Response("\n".join(lineas), mimetype="text/plain")
+
+
+@app.route("/sitemap.xml")
+def sitemap():
+    urls = "".join(f"<url><loc>{SITIO_URL}{ruta}</loc></url>" for ruta in _PAGINAS_SITEMAP)
+    xml = ('<?xml version="1.0" encoding="UTF-8"?>'
+           f'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{urls}</urlset>')
+    return Response(xml, mimetype="application/xml")
+
+
+@app.route("/favicon.ico")
+def favicon():
+    return send_from_directory(_STATIC_DIR / "img", "favicon.ico", mimetype="image/vnd.microsoft.icon",
+                               max_age=60 * 60 * 24 * 30)
+
+
+def _absoluta(filename: str) -> str:
+    return SITIO_URL + url_for("static", filename=filename)
+
+
+def _organizacion() -> dict:
+    return {
+        "@type": "ProfessionalService",
+        "@id": f"{SITIO_URL}/#organizacion",
+        "name": MARCA,
+        "alternateName": "CCC",
+        "description": TAGLINE,
+        "url": f"{SITIO_URL}/",
+        "logo": _absoluta("img/icono-512.png"),
+        "image": _absoluta("img/og-portada.png"),
+        "telephone": "+" + catalogo.WHATSAPP,
+        "address": {"@type": "PostalAddress", "addressCountry": "CL"},
+        "areaServed": {"@type": "Country", "name": "Chile"},
+        "founder": {"@type": "Person", "name": "Salvador Ramírez"},
+        "sameAs": [INSTAGRAM],
+        "knowsAbout": ["Resolución Sanitaria", "Autorización sanitaria ante la SEREMI de Salud",
+                       "Registro de marca ante INAPI"],
+    }
+
+
+def _faq_schema(preguntas, ancla: str) -> dict:
+    return {
+        "@type": "FAQPage",
+        "@id": ancla,
+        "mainEntity": [{"@type": "Question", "name": p, "acceptedAnswer": {"@type": "Answer", "text": r}}
+                       for p, r in preguntas],
+    }
+
+
+def _jsonld_portada() -> dict:
+    organizacion = _organizacion()
+    ofertas = []
+    for s in catalogo.SERVICIOS:
+        oferta = {"@type": "Offer",
+                  "itemOffered": {"@type": "Service", "name": s.nombre, "description": s.para_quien,
+                                  "url": f"{SITIO_URL}/#servicio-{s.id}"}}
+        if s.precio:
+            oferta |= {"price": s.precio, "priceCurrency": "CLP"}
+        ofertas.append(oferta)
+    organizacion["hasOfferCatalog"] = {"@type": "OfferCatalog", "name": "Servicios", "itemListElement": ofertas}
+    return {"@context": "https://schema.org", "@graph": [
+        organizacion,
+        {"@type": "WebSite", "@id": f"{SITIO_URL}/#sitio", "url": f"{SITIO_URL}/", "name": MARCA,
+         "inLanguage": "es-CL", "publisher": {"@id": f"{SITIO_URL}/#organizacion"}},
+        _faq_schema(catalogo.FAQ_PORTADA, f"{SITIO_URL}/#preguntas"),
+    ]}
+
+
+def _jsonld_marcas() -> dict:
+    return {"@context": "https://schema.org", "@graph": [
+        _organizacion(),
+        {"@type": "Service", "@id": f"{SITIO_URL}/marcas#servicio", "name": "Registro de marca ante INAPI",
+         "serviceType": "Registro de marca comercial", "url": f"{SITIO_URL}/marcas",
+         "provider": {"@id": f"{SITIO_URL}/#organizacion"}, "areaServed": {"@type": "Country", "name": "Chile"},
+         "offers": [{"@type": "Offer", "name": p.nombre, "price": p.precio, "priceCurrency": "CLP"}
+                    for p in catalogo.PLANES_MARCA]},
+        _faq_schema(catalogo.FAQ_MARCAS, f"{SITIO_URL}/marcas#preguntas"),
+    ]}
+
+
+def _config() -> dict:
+    """site_config desde la base (logo). Si la base falla, la página pública igual se muestra."""
+    try:
+        return db.load_config()
+    except Exception:
+        app.logger.exception("No se pudo leer site_config; se usan los valores por defecto")
+        return dict(db.DEFAULT_CONFIG)
 
 
 @app.template_filter("video_poster")
@@ -81,7 +260,21 @@ def _authenticate(username: str, password: str) -> bool:
 
 @app.route("/")
 def index():
-    return render_template("index.html", config=db.load_config(), content=db.load_content())
+    """Portada. Los textos viven en catalogo.py y templates/index.html, no en la base (site_content)."""
+    return render_template(
+        "index.html",
+        config=_config(),
+        servicios_rs=catalogo.publicados("rs"),
+        diagnostico=catalogo.servicio("diagnostico-express"),
+        marca=catalogo.servicio("registro-marca"),
+        faq=catalogo.FAQ_PORTADA,
+        fotos=catalogo.FOTOS_PROYECTOS,
+        tipos=catalogo.TIPOS_ESTABLECIMIENTO,
+        wa_formulario=catalogo.WA_RS_FORMULARIO,
+        wa_otros=catalogo.wa_link(catalogo.WA_OTROS),
+        wa_pagina=_wa_pagina("rs", con_cambio=True),
+        jsonld=_jsonld_portada(),
+    )
 
 
 _MESES = ("enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto",
@@ -97,7 +290,18 @@ def _oferta_hasta(hoy: date | None = None) -> str:
 
 @app.route("/marcas")
 def marcas():
-    return render_template("marcas.html", config=db.load_config(), oferta_hasta=_oferta_hasta())
+    return render_template(
+        "marcas.html",
+        config=_config(),
+        oferta_hasta=_oferta_hasta(),
+        planes=catalogo.PLANES_MARCA,
+        marca=catalogo.servicio("registro-marca"),
+        faq=catalogo.FAQ_MARCAS,
+        wa_revisar=catalogo.WA_MARCAS,
+        wa_pagina=_wa_pagina("marcas"),
+        og_imagen="img/og-marcas.png",
+        jsonld=_jsonld_marcas(),
+    )
 
 
 def _rut_valido(rut: str) -> bool:
@@ -175,12 +379,11 @@ def api_marcas_titular_procesado(titular_id):
 
 _PAGOS = {
     "reserva": "https://mpago.la/1vm2Q8g",      # reserva de marca, $49.990
-    "presentar": "https://mpago.la/1fv8Re1",    # registro de marca, 1 clase, $220.141
     "diagnostico": "https://mpago.la/1FLwLEL",  # diagnóstico sanitario express, $49.990
 }
 
 
-@app.route("/<any(reserva, presentar, diagnostico):destino>")
+@app.route("/<any(reserva, diagnostico):destino>")
 def pago(destino):
     """Link corto con el dominio propio hacia el link de pago de Mercado Pago (302: se puede cambiar sin caché)."""
     return redirect(_PAGOS[destino], code=302)
@@ -188,7 +391,7 @@ def pago(destino):
 
 @app.route("/privacidad")
 def privacidad():
-    return render_template("privacy.html", config=db.load_config(), content=db.load_content())
+    return render_template("privacy.html", config=_config())
 
 
 @app.route("/contacto", methods=["POST"])

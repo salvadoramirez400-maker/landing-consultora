@@ -1,0 +1,177 @@
+{%- from "_componentes.html" import icono_whatsapp, monograma -%}
+<!DOCTYPE html>
+<html lang="es-CL">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="facebook-domain-verification" content="lxqoz11k5lp2uxr8ik7ak2dhobxdo0">
+  <title>{% block title %}{{ sitio.marca }}{% endblock %}</title>
+  <meta name="description" content="{% block description %}{{ sitio.descripcion }}{% endblock %}">
+  <link rel="canonical" href="{{ sitio.url }}{{ request.path }}">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="es_CL">
+  <meta property="og:site_name" content="{{ sitio.marca }}">
+  <meta property="og:url" content="{{ sitio.url }}{{ request.path }}">
+  <meta property="og:title" content="{% block og_title %}{{ self.title() }}{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}{{ self.description() }}{% endblock %}">
+  <meta property="og:image" content="{{ sitio.url }}{{ static_v(og_imagen) }}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="{{ sitio.marca }}: Resolución Sanitaria y registro de marca">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="apple-touch-icon" href="{{ url_for('static', filename='img/apple-touch-icon.png') }}">
+  {%- block meta %}{% endblock %}
+  {%- if jsonld %}
+  <script type="application/ld+json">{{ jsonld|tojson }}</script>
+  {%- endif %}
+  <meta name="theme-color" content="#123769">
+  <script>document.documentElement.classList.add('js');</script>
+  {%- if pixel %}
+  <!-- Meta Pixel «CCC · consultoriaclinica.cl». Solo se carga si el visitante acepta el aviso de cookies.
+       Eventos: PageView; Contact en cada enlace a WhatsApp (content_name = botón, content_category = rs | marcas);
+       Lead en los formularios que abren WhatsApp. -->
+  <script>
+    window.cccPixel = function () {
+      var FB_PIXEL_ID = '39876910071899964';
+      if (window.fbq) return;
+      !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', FB_PIXEL_ID); fbq('track', 'PageView');
+    };
+    try { if (localStorage.getItem('ccc-cookies') === 'si') window.cccPixel(); } catch (e) {}
+  </script>
+  {%- endif %}
+  <link rel="preload" href="{{ url_for('static', filename='fonts/Fustat-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="{{ url_for('static', filename='fonts/Inter-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{{ static_v('fonts/fonts.css') }}">
+  <link rel="stylesheet" href="{{ static_v('style.css') }}">
+  {%- block head %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+  <a class="saltar" href="#contenido">Saltar al contenido</a>
+
+  {% block nav -%}
+  <nav class="nav" aria-label="Principal">
+    <div class="nav-inner">
+      <a href="/" class="logo" aria-label="{{ sitio.marca }}, inicio">
+        {%- if config and config.logo %}<img src="{{ config.logo }}" alt="{{ sitio.marca }}" height="34">
+        {%- else %}{{ monograma() }}<span>{{ sitio.marca }}</span>{% endif -%}
+      </a>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="/#resolucion">Resolución Sanitaria</a></li>
+        <li><a href="/marcas">Registro de marca</a></li>
+        <li><a href="/#como-trabajamos">Cómo trabajamos</a></li>
+        <li><a href="/#preguntas">Preguntas</a></li>
+      </ul>
+      <a class="btn btn-sm btn-nav" href="{{ wa_pagina.href }}" target="_blank" rel="noopener" data-wa="nav" data-linea="{{ wa_pagina.linea }}">{{ icono_whatsapp(16) }}<span>WhatsApp</span></a>
+      <button class="nav-toggle" type="button" aria-label="Abrir menú" aria-expanded="false" aria-controls="nav-links"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+  {%- endblock %}
+
+  <main id="contenido">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block footer -%}
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-marca">
+          <div class="footer-brand">{{ monograma() }}<span>{{ sitio.marca }}</span></div>
+          <p class="footer-text">{{ sitio.tagline }} Registro de marcas ante INAPI para pymes de todo Chile.</p>
+        </div>
+        <nav class="footer-nav" aria-label="Pie de página">
+          <a href="/#resolucion">Resolución Sanitaria</a>
+          <a href="/marcas">Registro de marca</a>
+          <a href="/#como-trabajamos">Cómo trabajamos</a>
+          <a href="/#preguntas">Preguntas frecuentes</a>
+        </nav>
+        <div class="footer-contacto">
+          <a class="btn btn-sm btn-primary" href="{{ wa_pagina.href }}" target="_blank" rel="noopener" data-wa="pie" data-linea="{{ wa_pagina.linea }}">{{ icono_whatsapp(16) }}<span>WhatsApp {{ sitio.whatsapp_visible }}</span></a>
+          <a class="footer-link" href="{{ sitio.instagram }}" target="_blank" rel="noopener">Instagram {{ sitio.instagram_usuario }}</a>
+          <span>100 % online, en todo Chile</span>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; {{ sitio.anio }} {{ sitio.marca }}. Consultora privada: no somos parte de la SEREMI de Salud ni de INAPI.</span>
+        <a href="/privacidad" class="footer-link">Política de privacidad</a>
+      </div>
+    </div>
+  </footer>
+  {%- endblock %}
+
+  {% block flotante -%}
+  <a class="whatsapp-float" href="{{ wa_pagina.href }}" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp" data-wa="flotante" data-linea="{{ wa_pagina.linea }}"{% if wa_pagina.href_marcas %} data-href-rs="{{ wa_pagina.href }}" data-href-marcas="{{ wa_pagina.href_marcas }}"{% endif %}>
+    {{ icono_whatsapp(26) }}<span class="whatsapp-float-texto">WhatsApp</span>
+  </a>
+  {%- endblock %}
+
+  {% if pixel -%}
+  <div class="cookie-banner" id="cookie-banner" role="region" aria-label="Aviso de cookies" hidden>
+    <p>Usamos cookies de medición de Meta para saber cómo llegan nuestras visitas y mejorar nuestros anuncios. <a href="/privacidad">Política de privacidad</a></p>
+    <div class="cookie-actions">
+      <button type="button" class="btn btn-sm btn-outline-navy" data-cookies="no">Rechazar</button>
+      <button type="button" class="btn btn-sm btn-primary" data-cookies="si">Aceptar</button>
+    </div>
+  </div>
+  {%- endif %}
+
+  <script>
+    (function () {
+      // Menú en móvil
+      var toggle = document.querySelector('.nav-toggle');
+      var links = document.getElementById('nav-links');
+      function menu(abierto) {
+        links.classList.toggle('open', abierto);
+        toggle.setAttribute('aria-expanded', abierto ? 'true' : 'false');
+        toggle.setAttribute('aria-label', abierto ? 'Cerrar menú' : 'Abrir menú');
+      }
+      if (toggle && links) {
+        toggle.addEventListener('click', function () { menu(!links.classList.contains('open')); });
+        links.addEventListener('click', function (e) { if (e.target.closest('a')) menu(false); });
+        document.addEventListener('keydown', function (e) { if (e.key === 'Escape') menu(false); });
+      }
+
+      // Aparición al hacer scroll. Sin JS o con «reducir movimiento», todo se ve desde el inicio.
+      var reveal = document.querySelectorAll('.reveal');
+      if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        var obs = new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('visible'); obs.unobserve(en.target); } });
+        }, { threshold: 0.08, rootMargin: '0px 0px -32px 0px' });
+        reveal.forEach(function (el) { obs.observe(el); });
+      } else {
+        reveal.forEach(function (el) { el.classList.add('visible'); });
+      }
+
+      // Meta Pixel: Contact en cada clic a WhatsApp y Lead en los formularios (window.cccLead)
+      document.addEventListener('click', function (e) {
+        var a = e.target.closest('a[href*="wa.me"]');
+        if (a && typeof fbq !== 'undefined') {
+          fbq('track', 'Contact', { content_name: a.dataset.wa || 'whatsapp', content_category: a.dataset.linea || 'general' });
+        }
+      });
+      window.cccLead = function (nombre, linea) {
+        if (typeof fbq !== 'undefined') fbq('track', 'Lead', { content_name: nombre, content_category: linea });
+      };
+
+      // Aviso de cookies (mientras está visible, en móvil se oculta el botón flotante para que no se tapen)
+      var banner = document.getElementById('cookie-banner');
+      if (banner) {
+        var eleccion = null;
+        try { eleccion = localStorage.getItem('ccc-cookies'); } catch (e) {}
+        if (!eleccion) { banner.hidden = false; document.body.classList.add('con-aviso-cookies'); }
+        banner.querySelectorAll('[data-cookies]').forEach(function (b) {
+          b.addEventListener('click', function () {
+            try { localStorage.setItem('ccc-cookies', b.dataset.cookies); } catch (e) {}
+            banner.hidden = true;
+            document.body.classList.remove('con-aviso-cookies');
+            if (b.dataset.cookies === 'si') window.cccPixel();
+          });
+        });
+      }
+    })();
+  </script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
