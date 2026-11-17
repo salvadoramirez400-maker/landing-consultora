@@ -336,12 +336,31 @@ class PaginasPublicas(unittest.TestCase):
                 self.assertNotIn("data-modal-salida", html)
                 self.assertNotIn('id="teaser"', html)
 
+    def test_marcas_datos_sin_pixel_ni_cookies(self):
+        """/marcas/datos lleva RUT y dirección: sin píxel de Meta, sin aviso de cookies y fuera de Google."""
+        html = self.c.get("/marcas/datos").get_data(as_text=True)
+        for prohibido in ("fbevents", "cccPixel = function", 'id="cookie-banner"', "footer-boton"):
+            self.assertFalse(prohibido in html, prohibido)
+        self.assertIn('<meta name="robots" content="noindex, nofollow">', html)
+        self.assertEqual(html.count("<h1"), 1)
+        self.assertIn('action="/marcas/datos"', html)
+
+    def test_autotest_enlazado_si_esta_publicado(self):
+        html = self.html["/"]
+        enlaces = re.findall(r'<a\b[^>]*href="/autotest"[^>]*data-autotest="([^"]+)"', html)
+        if sitio.autotest.PUBLICO:
+            self.assertEqual(sorted(enlaces), ["pie", "popup", "seccion-rs"])
+            self.assertIn("<loc>https://consultoriaclinica.cl/autotest</loc>", self.c.get("/sitemap.xml").get_data(as_text=True))
+        else:
+            self.assertEqual(enlaces, [])
+
     def test_formularios_que_abren_whatsapp(self):
         """wow.js arma el mensaje con data-texto y data-whatsapp: tienen que venir en cada formulario."""
         for form in re.findall(r"<form\b[^>]*data-caso[^>]*>", self.html["/"]):
             self.assertIn(f'data-texto="{catalogo.WA_RS_FORMULARIO}"', unescape(form))
             self.assertIn('data-whatsapp="https://wa.me/56930175070"', form)
-        self.assertEqual(len(re.findall(r"<form\b[^>]*data-caso", self.html["/"])), 2)
+        # Con el autotest publicado, el pop-up de salida lleva al autotest en vez del formulario.
+        self.assertEqual(len(re.findall(r"<form\b[^>]*data-caso", self.html["/"])), 1 if sitio.autotest.PUBLICO else 2)
         revisar = re.findall(r"<form\b[^>]*data-revisar[^>]*>", self.html["/marcas"])
         self.assertEqual(len(revisar), 3)
         for form in revisar:

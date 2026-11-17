@@ -1,8 +1,9 @@
 {% extends "base.html" %}
 {%- from "_componentes.html" import icono_whatsapp -%}
 
-{% block title %}Autotest sanitario gratis: ¿qué permisos necesita tu centro de salud? · {{ sitio.marca }}{% endblock %}
-{% block description %}Responde 6 preguntas y descubre qué autorizaciones de la SEREMI probablemente necesita tu centro de salud, los 3 riesgos más comunes de tu tipo de local y tu Mapa de permisos en PDF. Gratis y sin dejar tus datos.{% endblock %}
+{% block title %}Autotest sanitario gratis | {{ sitio.marca }}{% endblock %}
+{% block og_title %}Autotest sanitario gratis: ¿qué permisos necesita tu centro de salud?{% endblock %}
+{% block description %}Responde 6 preguntas y descubre qué autorizaciones de la SEREMI probablemente necesita tu centro de salud. Gratis, en 2 minutos y sin dejar tus datos.{% endblock %}
 {% block meta %}
   {%- if not publico %}
   <meta name="robots" content="noindex, nofollow">
@@ -10,12 +11,16 @@
 {% endblock %}
 {% block body_class %}pagina-autotest{% endblock %}
 
+{#- Sin botón flotante: taparía las opciones. El WhatsApp va al final, en el resultado. -#}
+{% block flotante %}{% endblock %}
+
 {% block content %}
 <section class="at-hero">
+  <canvas class="fondo-vivo" data-fondo="claro" aria-hidden="true"></canvas>
   <div class="at-wrap">
-    <p class="eyebrow">Autotest sanitario · gratis</p>
-    <h1>¿Qué permisos necesita tu centro de salud?</h1>
-    <p class="at-sub">6 preguntas, 2 minutos. Te mostramos qué autorizaciones probablemente necesitas, los 3 riesgos más comunes en tu tipo de local y tu Mapa de permisos en PDF. Sin registrarte y sin dejar tus datos.</p>
+    <p class="eyebrow entra" style="--i:0">Autotest sanitario · gratis</p>
+    <h1><span class="w" style="--i:1">¿Qué</span> <span class="w" style="--i:2">permisos</span> <span class="w" style="--i:3">necesita</span> <span class="w" style="--i:4">tu</span> <span class="w" style="--i:5">centro</span> <span class="w" style="--i:6">de</span> <span class="w" style="--i:7">salud?</span></h1>
+    <p class="at-sub entra" style="--i:8">6 preguntas, 2 minutos. Te mostramos qué autorizaciones probablemente necesitas, los 3 riesgos más comunes en tu tipo de local y tu Mapa de permisos en PDF. Sin registrarte y sin dejar tus datos.</p>
   </div>
 </section>
 
@@ -27,7 +32,7 @@
     </div>
     {%- endif %}
 
-    <form class="at-form" id="at-form" method="get" action="/autotest/resultado" novalidate>
+    <form class="at-form entra" style="--i:10" id="at-form" method="get" action="/autotest/resultado" novalidate>
       <div class="at-progreso" aria-hidden="true"><span id="at-barra"></span></div>
       <p class="at-paso-n" id="at-paso-n" aria-live="polite"></p>
 

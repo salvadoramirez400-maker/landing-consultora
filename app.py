@@ -86,6 +86,7 @@ def _contexto_sitio() -> dict:
             "anio": datetime.now(ZoneInfo("America/Santiago")).year,
         },
         "wa_pagina": _wa_pagina("rs"),
+        "autotest_publico": autotest.PUBLICO,
         "pixel": True,
         "og_imagen": "img/og-portada.png",
     }
@@ -367,10 +368,10 @@ def _rut_valido(rut: str) -> bool:
 def marcas_datos():
     """Datos del titular para presentar la marca en INAPI. Los recibe Salvador en /admin."""
     if request.method == "GET":
-        return render_template("marcas_datos.html", config=_config(), errores=[], datos={})
+        return render_template("marcas_datos.html", config=_config(), pixel=False, wa_pagina=_wa_pagina("marcas"), errores=[], datos={})
     if request.form.get("sitio_web"):  # campo trampa: solo lo llenan los robots
         app.logger.warning("Envío de /marcas/datos descartado por el campo trampa")
-        return render_template("marcas_datos.html", config=_config(), errores=[], datos={}, enviado=True)
+        return render_template("marcas_datos.html", config=_config(), pixel=False, wa_pagina=_wa_pagina("marcas"), errores=[], datos={}, enviado=True)
     f = {k: request.form.get(k, "").strip() for k in (
         "marca", "titular_tipo", "nombre", "rut", "razon_social", "rut_empresa", "cargo",
         "domicilio", "comuna", "correo", "telefono", "productos")}
@@ -397,14 +398,14 @@ def marcas_datos():
     if not f["autoriza"]:
         errores.append("Para presentar tu marca necesitamos tu autorización (la casilla del final).")
     if errores:
-        return render_template("marcas_datos.html", config=_config(), errores=errores, datos=f), 400
+        return render_template("marcas_datos.html", config=_config(), pixel=False, wa_pagina=_wa_pagina("marcas"), errores=errores, datos=f), 400
     try:
         db.insert_titular(f)
     except Exception:
         app.logger.exception("No se pudo guardar el titular de marca")
         aviso = ["No pudimos guardar tus datos. Escríbenos por WhatsApp al +56 9 3017 5070 y los recibimos por ahí."]
-        return render_template("marcas_datos.html", config=_config(), errores=aviso, datos=f), 503
-    return render_template("marcas_datos.html", config=_config(), errores=[], datos={}, enviado=True)
+        return render_template("marcas_datos.html", config=_config(), pixel=False, wa_pagina=_wa_pagina("marcas"), errores=aviso, datos=f), 503
+    return render_template("marcas_datos.html", config=_config(), pixel=False, wa_pagina=_wa_pagina("marcas"), errores=[], datos={}, enviado=True)
 
 
 def _token_marcas_ok() -> bool:
@@ -452,7 +453,7 @@ def no_encontrada(_error):
                            marca=catalogo.servicio("registro-marca")), 404
 
 
-_PAGINAS_CACHEABLES = {"/", "/marcas", "/privacidad"}
+_PAGINAS_CACHEABLES = {"/", "/marcas", "/privacidad", "/autotest"}
 
 
 @app.after_request

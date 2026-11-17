@@ -158,6 +158,15 @@ class Paginas(unittest.TestCase):
             self.assertIn('<meta name="robots" content="noindex, nofollow">', html)
             self.assertNotIn("/autotest", self.c.get("/sitemap.xml").get_data(as_text=True))
             self.assertNotIn('href="/autotest"', self.c.get("/").get_data(as_text=True))
+        else:
+            self.assertNotIn("noindex", html)
+            self.assertIn('<link rel="canonical" href="https://consultoriaclinica.cl/autotest">', html)
+            titulo = unescape(re.search(r"<title>(.*?)</title>", html).group(1))
+            self.assertLessEqual(len(titulo), 70, titulo)
+            descripcion = unescape(re.search(r'<meta name="description" content="([^"]*)"', html).group(1))
+            self.assertTrue(50 <= len(descripcion) <= 170, descripcion)
+            self.assertIn("s-maxage=300", r.headers.get("Cache-Control", ""))
+        self.assertNotIn("s-maxage", self.c.get("/autotest/resultado?" + self.CONSULTA).headers.get("Cache-Control", ""))
 
     def test_formulario_incompleto_muestra_errores(self):
         r = self.c.get("/autotest/resultado?tipo=dental")

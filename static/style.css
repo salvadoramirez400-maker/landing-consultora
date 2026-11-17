@@ -385,9 +385,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
 .cookie-actions { display: flex; gap: 10px; justify-content: flex-end; }
 
 /* ===== PRIVACIDAD ===== */
-.privacy-section { padding: 120px 0 64px; max-width: 820px; margin: 0 auto; }
-.privacy-section h1 { font-size: 2rem; margin-bottom: 8px; }
-.privacy-section .date { color: var(--gray-500); font-size: 0.9rem; margin-bottom: 32px; }
+.privacy-section { padding: 8px 0 72px; }
 .privacy-section h2 { font-size: 1.3rem; margin: 32px 0 12px; }
 .privacy-section p, .privacy-section li { font-size: 0.95rem; line-height: 1.7; color: var(--gray-700); margin-bottom: 12px; }
 .privacy-section ul { padding-left: 24px; list-style: disc; }
@@ -551,6 +549,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
 /* ===== PÁGINA 404 ===== */
 .err-wrap { max-width: 820px; margin: 0 auto; padding: 0 20px; }
 .err-hero {
+  position: relative; isolation: isolate; overflow: hidden;
   margin-top: calc(-1 * var(--nav-alto) - 14px);
   padding: calc(var(--nav-alto) + 110px) 0 110px;
   background: radial-gradient(90% 70% at 50% 0%, var(--accent-light) 0%, var(--white) 70%);
@@ -567,6 +566,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
 /* ===== AUTOTEST SANITARIO (/autotest) ===== */
 .at-wrap { max-width: 820px; margin: 0 auto; padding: 0 20px; }
 .at-hero {
+  position: relative; isolation: isolate; overflow: hidden;
   margin-top: calc(-1 * var(--nav-alto));
   padding: calc(var(--nav-alto) + 96px) 0 40px;
   background: radial-gradient(90% 70% at 50% 0%, var(--accent-light) 0%, var(--white) 70%);
@@ -624,7 +624,7 @@ a:focus-visible, button:focus-visible, summary:focus-visible, input:focus-visibl
 .at-riesgos { display: grid; gap: 10px; padding-left: 22px; margin-top: 12px; }
 .at-riesgos li { line-height: 1.55; padding-left: 4px; }
 .at-riesgos li::marker { color: var(--accent); font-weight: 700; }
-.at-siguiente { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: end; margin-top: 40px; padding: 28px; border-radius: var(--r-lg); background: var(--navy); color: var(--texto-claro); }
+.at-siguiente { position: relative; isolation: isolate; overflow: hidden; background: linear-gradient(135deg, #0c2647 0%, #123769 60%, #1b4d8c 100%); display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 24px; align-items: end; margin-top: 40px; padding: 28px; border-radius: var(--r-lg); color: var(--texto-claro); }
 .at-siguiente h2 { color: var(--white); font-size: clamp(1.3rem, 2.6vw, 1.65rem); margin-bottom: 8px; }
 .at-siguiente .eyebrow { color: var(--celeste); }
 .at-siguiente .at-nota { color: var(--texto-claro); }
@@ -981,4 +981,49 @@ body.con-modal { overflow: hidden; }
 @media (max-width: 560px) and (max-height: 760px) {
   .hero-sub { display: none; }
   .hero-title { margin-bottom: 4px; }
+}
+
+/* ----- Llamado al autotest (portada) ----- */
+.autotest-cta {
+  position: relative; display: flex; align-items: center; gap: 18px; margin-bottom: 28px; padding: 18px 22px;
+  border: 2px solid transparent; border-radius: var(--r-lg);
+  background: linear-gradient(var(--white), var(--white)) padding-box,
+    conic-gradient(from var(--giro), #2368B0, #7EC8E3, #123769, #2D7BCB, #2368B0) border-box;
+  box-shadow: var(--shadow-sm); animation: giro 7s linear infinite;
+}
+.js .autotest-cta.reveal { transition: opacity 0.6s var(--ease-out), transform 0.6s var(--ease-out), translate 0.3s var(--ease-out), box-shadow 0.3s var(--ease); }
+.autotest-cta:hover { translate: 0 -3px; box-shadow: var(--shadow-lg); }
+.autotest-cta-etiqueta { flex: none; padding: 5px 12px; border-radius: var(--r-full); background: var(--accent-light); color: var(--navy); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; }
+.autotest-cta-texto { flex: 1; font-size: 0.96rem; line-height: 1.5; color: var(--gray-700); }
+.autotest-cta-texto b { color: var(--navy); }
+.autotest-cta-flecha { flex: none; font-weight: 700; color: var(--accent); white-space: nowrap; }
+.autotest-cta-flecha i { display: inline-block; font-style: normal; transition: translate 0.2s var(--ease); }
+.autotest-cta:hover .autotest-cta-flecha i { translate: 4px 0; }
+
+/* ----- Pop-up: variante con el autotest ----- */
+.modal-accion { width: 100%; }
+.modal-alterna { display: block; margin-top: 12px; text-align: center; font-size: 0.92rem; font-weight: 600; color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
+
+/* ----- Páginas secundarias: encabezado claro con fondo animado ----- */
+.legal-ancho { max-width: 860px; }
+.legal-hero {
+  position: relative; isolation: isolate; overflow: hidden;
+  margin-top: calc(-1 * var(--nav-alto) - 14px); padding: calc(var(--nav-alto) + 96px) 0 44px;
+  background: radial-gradient(90% 70% at 50% 0%, var(--accent-light) 0%, var(--white) 70%);
+}
+.legal-hero h1 { font-size: clamp(2rem, 4.4vw, 2.9rem); font-weight: 800; letter-spacing: -0.02em; margin-bottom: 8px; }
+.legal-hero .date { color: var(--gray-500); font-size: 0.92rem; }
+.legal-hero .container, .at-hero .at-wrap, .err-hero .err-wrap { position: relative; }
+.at-form { position: relative; }
+.at-opcion { transition: border-color 0.15s var(--ease), background 0.15s var(--ease), translate 0.2s var(--ease-out), box-shadow 0.2s var(--ease); }
+.at-opcion:hover { translate: 0 -2px; box-shadow: var(--shadow-sm); }
+.at-permiso { transition: translate 0.3s var(--ease-out), box-shadow 0.3s var(--ease); }
+.at-permiso:hover { translate: 4px 0; box-shadow: var(--shadow-md); }
+
+@media (max-width: 760px) {
+  .autotest-cta { flex-direction: column; align-items: flex-start; gap: 10px; padding: 18px; }
+  .legal-hero { padding: calc(var(--nav-alto) + 56px) 0 30px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .autotest-cta { animation: none !important; }
 }

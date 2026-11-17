@@ -9,11 +9,12 @@
 
 {% block content %}
 <section class="err-hero">
+  <canvas class="fondo-vivo" data-fondo="claro" aria-hidden="true"></canvas>
   <div class="err-wrap">
-    <p class="eyebrow">Error 404</p>
-    <h1>Esta página no existe o cambió de dirección</h1>
-    <p class="err-sub">Si llegaste desde un link que te mandamos, escríbenos por WhatsApp y te respondemos por ahí.</p>
-    <div class="err-acciones">
+    <p class="eyebrow entra" style="--i:0">Error 404</p>
+    <h1 class="entra" style="--i:2">Esta página no existe o cambió de dirección</h1>
+    <p class="err-sub entra" style="--i:4">Si llegaste desde un link que te mandamos, escríbenos por WhatsApp y te respondemos por ahí.</p>
+    <div class="err-acciones entra" style="--i:6">
       <a class="btn btn-primary" href="{{ diagnostico.whatsapp_url }}" target="_blank" rel="noopener" data-wa="404-rs" data-linea="rs">{{ icono_whatsapp(18) }}<span>Resolución sanitaria</span></a>
       <a class="btn btn-primary" href="{{ marca.whatsapp_url }}" target="_blank" rel="noopener" data-wa="404-marcas" data-linea="marcas">{{ icono_whatsapp(18) }}<span>Registro de marca</span></a>
       <a class="btn btn-outline-navy" href="/">Ir al inicio</a>

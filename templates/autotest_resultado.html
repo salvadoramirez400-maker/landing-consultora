@@ -9,15 +9,16 @@
 
 {% block content %}
 <section class="at-hero at-hero--resultado">
+  <canvas class="fondo-vivo" data-fondo="claro" aria-hidden="true"></canvas>
   <div class="at-wrap">
-    <p class="eyebrow">Autotest sanitario · tu resultado</p>
+    <p class="eyebrow entra" style="--i:0">Autotest sanitario · tu resultado</p>
     <h1>{{ at.TIPOS[res.respuestas.tipo][0] }}{% if res.respuestas.comuna %} en {{ res.respuestas.comuna }}{% endif %}</h1>
-    <ol class="at-lineas">
+    <ol class="at-lineas entra" style="--i:3">
       {%- for linea in res.lineas %}
       <li>{{ linea }}</li>
       {%- endfor %}
     </ol>
-    <div class="at-cta-arriba">
+    <div class="at-cta-arriba entra" style="--i:6">
       <a class="btn btn-primary" href="{{ wa }}" target="_blank" rel="noopener" data-wa="autotest" data-linea="rs">{{ icono_whatsapp(18) }}<span>Quiero el diagnóstico de mi caso</span></a>
       <a class="btn btn-outline-navy" href="{{ pdf_url }}" data-pdf>Descargar mi Mapa de permisos (PDF)</a>
     </div>
@@ -28,7 +29,7 @@
   <div class="at-wrap">
     <h2 class="at-h2">Tu Mapa de permisos</h2>
     <p class="at-intro">Lo que probablemente te pedirá la SEREMI y lo que conviene tener listo antes de ingresar la solicitud.</p>
-    <ul class="at-permisos">
+    <ul class="at-permisos reveal" data-escalonar>
       {%- for p in res.permisos %}
       <li class="at-permiso at-permiso--{{ p.estado|replace(' ', '-') }}">
         <div class="at-permiso-top">
@@ -42,13 +43,14 @@
     </ul>
 
     <h2 class="at-h2">Los 3 riesgos más comunes en tu tipo de local</h2>
-    <ol class="at-riesgos">
+    <ol class="at-riesgos reveal" data-escalonar>
       {%- for r in res.riesgos %}
       <li>{{ r }}</li>
       {%- endfor %}
     </ol>
 
-    <div class="at-siguiente" id="siguiente-paso">
+    <div class="at-siguiente reveal" id="siguiente-paso">
+      <div class="orbes" aria-hidden="true"><i></i><i></i><i></i></div>
       <div>
         <p class="eyebrow">Siguiente paso</p>
         <h2>{{ diag.nombre }} · {{ diag.precio|clp }}</h2>

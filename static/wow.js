@@ -46,6 +46,11 @@
       if (w.cccLead) w.cccLead(form.dataset.revisar || 'revisar-marca', 'marcas');
     });
   });
+  // Medición: de dónde vienen los clics al autotest (banner de la sección, pop-up o pie).
+  d.addEventListener('click', function (e) {
+    var a = e.target.closest('a[data-autotest]');
+    if (a) medir('ClicAutotest', { content_name: a.dataset.autotest, content_category: 'rs' });
+  });
   // Quien ya abrió WhatsApp no vuelve a ver pop-ups en esta visita.
   d.addEventListener('click', function (e) { if (e.target.closest('a[href*="wa.me"]')) sesion('ccc-wa', '1'); });
 
@@ -327,7 +332,7 @@
       modal.hidden = false;
       d.body.classList.add('con-modal');
       requestAnimationFrame(function () { requestAnimationFrame(function () { modal.classList.add('abierto'); }); });
-      var primero = caja.querySelector('select, input');
+      var primero = caja.querySelector('select, input, a.btn');
       if (primero && conCursor) setTimeout(function () { primero.focus(); }, 120);
       medir('PopupSalida', { content_category: modal.dataset.modalSalida });
     };

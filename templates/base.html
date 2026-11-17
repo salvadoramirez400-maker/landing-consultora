@@ -101,6 +101,9 @@
         <nav class="footer-nav" aria-label="Pie de página">
           <a href="/#resolucion">Resolución Sanitaria</a>
           <a href="/marcas">Registro de marca</a>
+          {%- if autotest_publico %}
+          <a href="/autotest" data-autotest="pie">Autotest sanitario gratis</a>
+          {%- endif %}
           <a href="/#como-trabajamos">Cómo trabajamos</a>
           <a href="{{ '/marcas#preguntas' if request.path == '/marcas' else '/#preguntas' }}">Preguntas frecuentes</a>
         </nav>

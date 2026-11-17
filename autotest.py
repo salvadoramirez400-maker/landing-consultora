@@ -19,8 +19,9 @@ from dataclasses import dataclass, field
 
 import catalogo
 
-# Mientras Salvador no apruebe las reglas, la página existe pero no se enlaza, no va al sitemap y lleva noindex.
-PUBLICO = False
+# Publicado el 17-nov-2026 (Salvador: «Publicar el autotest» y «Usar el autotest en el pop-up»). Con False, la página
+# existe pero no se enlaza, no va al sitemap y lleva noindex.
+PUBLICO = True
 
 REVISION_NORMATIVA = "17-oct-2026"
 

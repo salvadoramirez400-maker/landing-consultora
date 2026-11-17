@@ -82,6 +82,13 @@
           <li>Laboratorios, ELEAM y otros</li>
         </ul>
       </div>
+      {%- if autotest_publico %}
+      <a class="autotest-cta reveal" href="/autotest" data-autotest="seccion-rs">
+        <span class="autotest-cta-etiqueta">Gratis · 2 minutos</span>
+        <span class="autotest-cta-texto"><b>¿No sabes qué permisos necesita tu local?</b> Haz el autotest: 6 preguntas y te mostramos las autorizaciones probables, los riesgos más comunes de tu tipo de local y tu Mapa de permisos en PDF.</span>
+        <span class="autotest-cta-flecha">Hacer el autotest <i aria-hidden="true">→</i></span>
+      </a>
+      {%- endif %}
       <div class="servicios-grid reveal" data-escalonar>
         {%- for s in servicios_rs %}
         {{ tarjeta_servicio(s) }}
@@ -272,6 +279,12 @@
     <div class="modal-caja" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
       <button type="button" class="modal-cerrar" data-cerrar aria-label="Cerrar">×</button>
       <span class="eyebrow">Antes de irte</span>
+      {%- if autotest_publico %}
+      <h2 id="modal-titulo">¿Sabes qué permisos necesita tu local?</h2>
+      <p>Responde 6 preguntas y te mostramos qué autorizaciones probablemente necesitas, los 3 riesgos más comunes de tu tipo de local y tu Mapa de permisos en PDF. Gratis, en 2 minutos y sin dejar tus datos.</p>
+      <a class="btn btn-primary modal-accion" href="/autotest" data-autotest="popup">Hacer el autotest gratis</a>
+      <a class="modal-alterna" href="{{ wa_pagina.href }}" target="_blank" rel="noopener" data-wa="popup-rs" data-linea="rs">Prefiero escribir por WhatsApp</a>
+      {%- else %}
       <h2 id="modal-titulo">¿Sabes qué autorizaciones necesita tu local?</h2>
       <p>Dinos el tipo de establecimiento y la comuna, y te orientamos por WhatsApp, por escrito.</p>
       <form class="modal-form" data-texto="{{ wa_formulario }}" data-whatsapp="{{ ''|wa }}" data-caso="popup-rs">
@@ -286,6 +299,7 @@
         <input type="text" id="modal-comuna" name="comuna" placeholder="Comuna" autocomplete="address-level2" maxlength="60">
         <button type="submit" class="btn btn-primary">{{ icono_whatsapp(18) }}<span>Orientarme por WhatsApp</span></button>
       </form>
+      {%- endif %}
       <button type="button" class="modal-no" data-cerrar>Ahora no</button>
     </div>
   </div>
