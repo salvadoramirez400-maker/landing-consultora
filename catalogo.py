@@ -120,6 +120,9 @@ class Servicio:
     etiqueta: str = ""           # cinta: «Para partir», «Urgente»
     enlace_texto: str = ""       # enlace secundario (opcional)
     enlace_url: str = ""
+    pago_url: str = ""           # link corto de pago con tarjeta (app.py → _PAGOS); vacío = solo WhatsApp
+    pago_nota: str = ""          # qué pasa después de pagar
+    pago_whatsapp: str = ""      # texto precargado para mandar el comprobante (revisar_texto lo valida)
     destacado: bool = False
     publicado: bool = True
 
@@ -150,6 +153,13 @@ SERVICIOS = (
         cta="Quiero mi diagnóstico",
         whatsapp="Hola, vengo de la página web. Quiero el diagnóstico express para la resolución sanitaria "
                  "de mi establecimiento.",
+        # Pago con tarjeta desde la web (Salvador, 17-nov-2026). Link de Mercado Pago: hasta 12 cuotas, con el
+        # interés a cargo del comprador.
+        pago_url="/diagnostico",
+        pago_nota="Pago por Mercado Pago, con tarjeta y hasta 12 cuotas (el interés lo cobra tu tarjeta). "
+                  "Después de pagar, mándanos el comprobante y las fotos de tu local por WhatsApp.",
+        pago_whatsapp="Hola, vengo de la página web. Pagué el diagnóstico express para la resolución sanitaria "
+                      "de mi establecimiento y envío el comprobante.",
     ),
     Servicio(
         id="resolucion-sanitaria",

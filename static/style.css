@@ -1072,3 +1072,8 @@ body.con-modal { overflow: hidden; }
 .mk-riesgo h2 { color: var(--navy); }
 .mk-dato { border-top-color: var(--azul); }
 .mk-dato b { color: var(--navy); }
+
+/* ----- Pago con tarjeta en la ficha del diagnóstico ----- */
+.servicio-pago-nota { font-size: 0.82rem; line-height: 1.5; color: var(--gray-500); }
+.servicio-pago-nota a { color: var(--accent); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; white-space: nowrap; }
+.at-pago { color: var(--white); font-size: 0.9rem; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }

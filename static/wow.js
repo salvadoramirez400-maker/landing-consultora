@@ -51,6 +51,13 @@
     var a = e.target.closest('a[data-autotest]');
     if (a) medir('ClicAutotest', { content_name: a.dataset.autotest, content_category: 'rs' });
   });
+  // Medición: clic en «Pagar con tarjeta» (va al link corto de Mercado Pago).
+  d.addEventListener('click', function (e) {
+    var a = e.target.closest('a[data-pago]');
+    if (!a) return;
+    sesion('ccc-wa', '1');   // ya está comprando: sin pop-ups
+    if (typeof fbq !== 'undefined') fbq('track', 'InitiateCheckout', { content_name: a.dataset.pago, content_category: 'rs', value: Number(a.dataset.valor) || 0, currency: 'CLP' });
+  });
   // Quien ya abrió WhatsApp no vuelve a ver pop-ups en esta visita.
   d.addEventListener('click', function (e) { if (e.target.closest('a[href*="wa.me"]')) sesion('ccc-wa', '1'); });
 

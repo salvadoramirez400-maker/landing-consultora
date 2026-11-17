@@ -59,6 +59,9 @@
       </div>
       <div class="at-siguiente-acciones">
         <a class="btn btn-primary" href="{{ wa }}" target="_blank" rel="noopener" data-wa="autotest-diagnostico" data-linea="rs">{{ icono_whatsapp(18) }}<span>Pedir mi diagnóstico</span></a>
+        {%- if diag.pago_url %}
+        <a class="at-pago" href="{{ diag.pago_url }}" target="_blank" rel="noopener" data-pago="autotest-diagnostico" data-valor="{{ diag.precio }}">o pagar con tarjeta ahora</a>
+        {%- endif %}
         <a class="servicio-enlace" href="/autotest">Volver a hacer el autotest</a>
       </div>
     </div>

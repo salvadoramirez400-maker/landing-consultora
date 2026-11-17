@@ -11,6 +11,7 @@ Eventos que manda el sitio (templates/base.html y static/wow.js), solo si el vis
 - Contact: clic en cualquier enlace a WhatsApp. content_name = botón (data-wa), content_category = rs | marcas.
 - Lead: formularios que abren WhatsApp y autotest terminado. content_name = formulario-rs | popup-rs |
   revisar-marca | popup-marcas | autotest.
+- InitiateCheckout: clic en «Pagar con tarjeta». content_name = diagnostico-express | autotest-diagnostico.
 - Personalizados: PopupSalida, GloboChat, ClicAutotest (content_name = seccion-rs | popup | pie), MapaPermisos.
 """
 import json
@@ -43,6 +44,8 @@ CONVERSIONES = [
     ("Web · Contact · Pop-up de salida", "CONTACT", _y("Contact", {"content_name": {"i_contains": "popup"}})),
     ("Web · Lead · Pop-up de salida", "LEAD", _y("Lead", {"content_name": {"i_contains": "popup"}})),
     ("Web · Lead · Autotest terminado", "LEAD", _y("Lead", {"content_name": {"eq": "autotest"}})),
+    ("Web · Pago con tarjeta iniciado · Diagnóstico", "INITIATED_CHECKOUT",
+     _y("InitiateCheckout", {"content_name": {"i_contains": "diagnostico"}})),
     # Los eventos propios necesitan una condición además del nombre: se usa el dominio del sitio.
     ("Web · Clic al autotest", "OTHER", _y("ClicAutotest", {"URL": {"i_contains": DOMINIO}})),
     ("Web · Pop-up de salida visto", "OTHER", _y("PopupSalida", {"URL": {"i_contains": DOMINIO}})),

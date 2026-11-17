@@ -448,18 +448,34 @@ def api_marcas_titular_procesado(titular_id):
     return jsonify({"ok": True})
 
 
+# Links cortos con el dominio propio hacia los links de pago de Mercado Pago (302: se pueden cambiar sin caché).
+# Fuente y montos: consultoria-clinica-chile/docs/ventas/mercado-pago-links.md. Cada uno se verificó el 17-nov-2026:
+# la página de pago muestra el monto anotado. /presentar no existe a propósito (cambia cada mes con la UTM).
 _PAGOS = {
-    "reserva": "https://mpago.la/1vm2Q8g",      # reserva de marca, $49.990
-    # Diagnóstico sanitario express, $79.990 (link del 17-nov-2026, referencia CCC-RS-DIAGNOSTICO-79990;
-    # consultoria-clinica-chile/docs/ventas/mercado-pago-links.md). El anterior, mpago.la/1FLwLEL, cobraba $49.990.
-    "diagnostico": "https://mpago.la/28ZgKho",
+    "reserva": "https://mpago.la/1vm2Q8g",            # reserva de marca, $49.990
+    "diagnostico": "https://mpago.la/28ZgKho",        # diagnóstico sanitario express, $79.990 (antes mpago.la/1FLwLEL, $49.990)
+    "kit": "https://mpago.la/1PmthvM",                # Kit Documental, $169.990
+    "preauditoria": "https://mpago.la/1HUE5Qe",       # Pre-auditoría Remota, $149.990
+    "sos": "https://mpago.la/2jznxZN",                # SOS Fiscalización, $149.990
+    "simulacro": "https://mpago.la/1s8TMEf",          # Simulacro de Fiscalización, $290.000
+    "plan": "https://mpago.la/1MHCFex",               # Plan Cumplimiento, un mes, $49.990
+    "asistida-box": "https://mpago.la/1DuxSoX",       # RS Asistida, box único, 50%: $245.000
+    "asistida-consulta": "https://mpago.la/1H6Gtd2",  # RS Asistida, consulta, 50%: $345.000
+    "asistida-dental": "https://mpago.la/27RvXiD",    # RS Asistida, dental y otros, 50%: $395.000
+    "asistida-tatuajes": "https://mpago.la/2ENEgBT",  # RS Asistida, tatuajes, 50%: $145.000
+    "hazlotu": "https://mpago.la/2awpJrq",            # Registro de marca Hazlo Tú, $79.990
+    "cuota": "https://mpago.la/1n5DPne",              # Registro de marca, cuota de $54.000
 }
 
 
-@app.route("/<any(reserva, diagnostico):destino>")
-def pago(destino):
-    """Link corto con el dominio propio hacia el link de pago de Mercado Pago (302: se puede cambiar sin caché)."""
-    return redirect(_PAGOS[destino], code=302)
+def _ruta_de_pago(nombre: str):
+    def pago():
+        return redirect(_PAGOS[nombre], code=302)
+    return pago
+
+
+for _nombre in _PAGOS:
+    app.add_url_rule(f"/{_nombre}", f"pago_{_nombre}", _ruta_de_pago(_nombre))
 
 
 @app.errorhandler(404)

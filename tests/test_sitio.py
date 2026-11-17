@@ -45,6 +45,8 @@ def _textos_whatsapp():
         yield nombre, texto, linea
     for s in catalogo.SERVICIOS + catalogo.BORRADORES:
         yield s.id, s.whatsapp, s.linea
+        if s.pago_whatsapp:
+            yield f"{s.id} (comprobante)", s.pago_whatsapp, s.linea
     for p in catalogo.PLANES_MARCA:
         if p.whatsapp:
             yield f"plan-{p.id}", p.whatsapp, "marcas"
@@ -151,6 +153,26 @@ class PaginasPublicas(unittest.TestCase):
                 self.assertEqual(self.c.get(ruta).status_code, codigo)
         self.assertTrue(self.c.get("/reserva").headers["Location"].startswith("https://mpago.la/"))
         self.assertEqual(self.c.get("/diagnostico").headers["Location"], "https://mpago.la/28ZgKho")  # $79.990
+
+    def test_links_cortos_de_pago(self):
+        for nombre, destino in sitio._PAGOS.items():
+            with self.subTest(nombre=nombre):
+                r = self.c.get("/" + nombre)
+                self.assertEqual(r.status_code, 302)
+                self.assertEqual(r.headers["Location"], destino)
+                self.assertRegex(destino, r"^https://mpago\.la/[0-9A-Za-z]+$")
+        self.assertEqual(len(set(sitio._PAGOS.values())), len(sitio._PAGOS))
+        self.assertEqual(self.c.get("/presentar").status_code, 404)
+
+    def test_pago_con_tarjeta_en_el_diagnostico(self):
+        html = self.html["/"]
+        botones = re.findall(r'<a\b[^>]*data-pago="([^"]+)"[^>]*>', html)
+        self.assertEqual(botones, ["diagnostico-express"])
+        etiqueta = re.search(r'<a\b[^>]*data-pago="diagnostico-express"[^>]*>', html).group(0)
+        self.assertIn('href="/diagnostico"', etiqueta)
+        self.assertIn('data-valor="79990"', etiqueta)
+        self.assertIn("diagnostico", sitio._PAGOS)
+        self.assertIn("Después de pagar", _texto_visible(html))
 
     def test_www_redirige_al_dominio(self):
         r = self.c.get("/marcas?utm_source=x", headers={"Host": "www.consultoriaclinica.cl"})
