@@ -283,7 +283,8 @@ class PaginasPublicas(unittest.TestCase):
 
     def test_sin_cifras_ni_testimonios_sin_respaldo(self):
         for ruta in ("/", "/marcas"):
-            texto = _texto_visible(self.html[ruta])
+            # Los precios no cuentan: «$14.990» contiene «4.9», que aquí busca notas inventadas («4.9 de 5»).
+            texto = re.sub(r"\$\d{1,3}(?:\.\d{3})+", "$", _texto_visible(self.html[ruta]))
             for frase in self.PROHIBIDO:
                 with self.subTest(ruta=ruta, frase=frase):
                     self.assertNotIn(frase, texto)
@@ -292,7 +293,9 @@ class PaginasPublicas(unittest.TestCase):
         permitidos = {"/": {"$79.990", "$147.990"},
                       "/marcas": {"$79.990", "$147.990", "$247.990", "$49.990",
                                   "$72.440", "$144.880", "$217.320"}}
+        revision = {catalogo._REV_PRECIO} if catalogo.REVISION_PAGADA else set()
         for ruta, aprobados in permitidos.items():
+            aprobados = aprobados | revision
             montos = set(re.findall(r"\$\d{1,3}(?:\.\d{3})+", _texto_visible(self.html[ruta])))
             with self.subTest(ruta=ruta):
                 self.assertLessEqual(montos, aprobados)

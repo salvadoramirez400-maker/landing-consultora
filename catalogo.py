@@ -85,7 +85,7 @@ WA_MARCAS = "Hola, quiero revisar mi marca"
 # tarifas.json → servicios.inapi.revision_marca. Web y bot cambian juntos: poner REVISION_PAGADA = True SOLO cuando
 # «CCC - general» avise que el bot de marcas v3 está activo en SendPulse. Con eso cambian todos los textos de abajo
 # y aparece consultoriaclinica.cl/revision (app.py). Los anuncios de Meta se cambian aparte.
-REVISION_PAGADA = False
+REVISION_PAGADA = True
 REVISION_MARCA = 14990
 REVISION_PAGO = "https://mpago.la/2fVhWTT"   # verificado el 17-nov-2026: la página de pago muestra $14.990
 _REV_PRECIO = "$" + f"{REVISION_MARCA:,}".replace(",", ".")

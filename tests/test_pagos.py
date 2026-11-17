@@ -194,7 +194,8 @@ class Pagos(unittest.TestCase):
         self.assertNotIn('name="tipo"', html)
         self.assertIn("Pide primero la revisión", html)
         montos = set(re.findall(r"\$\d{1,3}(?:\.\d{3})+", test_sitio._texto_visible(html)))
-        self.assertEqual(montos, {"$49.990"})
+        revision = {test_sitio.catalogo._REV_PRECIO} if test_sitio.catalogo.REVISION_PAGADA else set()
+        self.assertEqual(montos, {"$49.990"} | revision)
         self.assertIsNone(re.search(r"devol|reembols", test_sitio._texto_visible(html), re.I))
 
     def test_reserva_pide_la_marca(self):
