@@ -29,6 +29,8 @@
     .md-empresa[hidden] { display: none; }
     .md-autoriza { display: flex; gap: 10px; align-items: flex-start; font-size: .9rem; color: var(--gray-700); line-height: 1.5; }
     .md-autoriza input { margin-top: 4px; width: 18px; height: 18px; flex: none; }
+    .md-autoriza a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+    .md-trampa { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
     .md-errores { background: #fdecea; color: #8a1f17; border-radius: var(--r-sm); padding: 12px 16px; margin: 0 0 16px; }
     .md-errores ul { margin: 6px 0 0 18px; padding: 0; }
     .md-ok { background: var(--white); border: 1px solid var(--gray-100); border-radius: var(--r-md); padding: 28px 24px; display: grid; gap: 10px; }
@@ -53,6 +55,7 @@
         <div class="md-errores" role="alert"><strong>Revisa estos datos:</strong><ul>{% for e in errores %}<li>{{ e }}</li>{% endfor %}</ul></div>
       {% endif %}
       <form class="md-form" method="post" action="/marcas/datos" novalidate>
+        <div class="md-trampa" aria-hidden="true"><label for="sitio_web">No completes este campo</label><input id="sitio_web" name="sitio_web" tabindex="-1" autocomplete="off"></div>
         <div class="md-campo">
           <label for="marca">Nombre de la marca, tal como la quieres registrar</label>
           <input id="marca" name="marca" value="{{ datos.marca or '' }}" required maxlength="120">

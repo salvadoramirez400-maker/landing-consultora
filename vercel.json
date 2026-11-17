@@ -5,7 +5,26 @@
     { "src": "static/**", "use": "@vercel/static" }
   ],
   "routes": [
-    { "src": "/static/(.*)", "dest": "/static/$1" },
+    {
+      "src": "/(.*)",
+      "headers": {
+        "X-Content-Type-Options": "nosniff",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "X-Frame-Options": "SAMEORIGIN",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=()"
+      },
+      "continue": true
+    },
+    {
+      "src": "/static/(.*\\.(?:css|woff2))",
+      "headers": { "Cache-Control": "public, max-age=31536000, immutable" },
+      "dest": "/static/$1"
+    },
+    {
+      "src": "/static/(.*)",
+      "headers": { "Cache-Control": "public, max-age=86400" },
+      "dest": "/static/$1"
+    },
     { "src": "/(.*)", "dest": "/api/index.py" }
   ]
 }

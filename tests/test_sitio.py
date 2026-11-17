@@ -230,5 +230,75 @@ class PaginasPublicas(unittest.TestCase):
                 self.assertLessEqual(montos, aprobados)
 
 
+    def test_garantias_de_rs_acotadas_a_la_completa(self):
+        """tarifas.json → garantias._regla: las garantías son de la RS Completa; la Asistida no las tiene."""
+        texto = _texto_visible(self.html["/"])
+        for frase in ("Ingreso en 10 días hábiles (RS Completa)", "Observaciones sin costo (RS Completa)",
+                      "En la RS Asistida la solicitud la ingresas tú"):
+            self.assertIn(frase, texto)
+        for pregunta, respuesta in catalogo.FAQ_PORTADA:
+            if "10 días hábiles" in respuesta and "devolvemos" in respuesta:
+                with self.subTest(pregunta=pregunta):
+                    self.assertIn("modalidad Completa", respuesta)
+
+    def test_reintento_de_marcas_excluye_hazlo_tu(self):
+        texto = _texto_visible(self.html["/marcas"])
+        self.assertIn("Con los planes Completo y PRO, si INAPI no acepta tu marca", texto)
+        rechazo = dict(catalogo.FAQ_MARCAS)["¿Qué pasa si INAPI la rechaza?"]
+        self.assertIn("Completo y PRO", rechazo)
+        self.assertIn("Hazlo Tú no incluye el reintento", rechazo)
+
+    def test_desde_es_el_plan_mas_barato(self):
+        minimo = min(p.precio for p in catalogo.PLANES_MARCA)
+        for ruta, html in self.html.items():
+            for monto in re.findall(r"[Dd]esde\s+(?:<b>)?(\$[\d.]+)", unescape(html)):
+                with self.subTest(ruta=ruta, monto=monto):
+                    self.assertEqual(int(monto[1:].replace(".", "")), minimo)
+
+    def test_404_en_espanol(self):
+        r = self.c.get("/no-existe")
+        self.assertEqual(r.status_code, 404)
+        html = r.get_data(as_text=True)
+        self.assertIn("Esta página no existe", html)
+        self.assertIn('content="noindex"', html)
+        self.assertEqual(self.c.get("/presentar").status_code, 404)
+
+    def test_cache_de_borde_solo_en_paginas_publicas(self):
+        for ruta in self.PAGINAS:
+            with self.subTest(ruta=ruta):
+                self.assertIn("s-maxage=300", self.c.get(ruta).headers.get("Cache-Control", ""))
+        self.assertNotIn("s-maxage", self.c.get("/marcas/datos").headers.get("Cache-Control", ""))
+        self.assertNotIn("s-maxage", self.c.get("/login").headers.get("Cache-Control", ""))
+
+    def test_contacto_antiguo_eliminado(self):
+        self.assertIn(self.c.post("/contacto", data={"nombre": "a", "telefono": "1", "email": "b"}).status_code,
+                      (404, 405))
+
+    def test_marcas_datos_campo_trampa_y_validaciones(self):
+        datos = {"marca": "Prueba", "titular_tipo": "persona", "nombre": "Ana Pérez", "rut": "11.111.111-1",
+                 "domicilio": "Calle 1", "comuna": "Ñuñoa", "correo": "sin-arroba", "telefono": "12",
+                 "autoriza": "si"}
+        html = self.c.post("/marcas/datos", data=datos).get_data(as_text=True)
+        self.assertIn("El correo no parece válido", html)
+        self.assertIn("El teléfono no parece válido", html)
+        guardados = []
+        anterior = sitio.db.insert_titular
+        sitio.db.insert_titular = lambda f: guardados.append(f) or 1
+        try:
+            r = self.c.post("/marcas/datos", data=dict(datos, correo="ana@correo.cl", telefono="+56 9 1234 5678",
+                                                       sitio_web="http://spam.example"))
+            self.assertEqual(r.status_code, 200)
+            self.assertEqual(guardados, [])
+            r = self.c.post("/marcas/datos", data=dict(datos, correo="ana@correo.cl", telefono="+56 9 1234 5678"))
+            self.assertEqual(r.status_code, 200)
+            self.assertEqual(len(guardados), 1)
+        finally:
+            sitio.db.insert_titular = anterior
+
+    def test_preferencias_de_cookies_en_el_pie(self):
+        for ruta in self.PAGINAS:
+            with self.subTest(ruta=ruta):
+                self.assertIn("data-cookies-abrir", self.html[ruta])
+
 if __name__ == "__main__":
     unittest.main()

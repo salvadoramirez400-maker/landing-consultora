@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{%- from "_componentes.html" import icono_whatsapp -%}
+
+{% block title %}Página no encontrada · {{ sitio.marca }}{% endblock %}
+{% block description %}La página que buscas no existe o cambió de dirección. Escríbenos por WhatsApp y te ayudamos con tu resolución sanitaria o tu marca.{% endblock %}
+{% block meta %}
+  <meta name="robots" content="noindex">
+{% endblock %}
+
+{% block content %}
+<section class="err-hero">
+  <div class="err-wrap">
+    <p class="eyebrow">Error 404</p>
+    <h1>Esta página no existe o cambió de dirección</h1>
+    <p class="err-sub">Si llegaste desde un link que te mandamos, escríbenos por WhatsApp y te respondemos por ahí.</p>
+    <div class="err-acciones">
+      <a class="btn btn-primary" href="{{ diagnostico.whatsapp_url }}" target="_blank" rel="noopener" data-wa="404-rs" data-linea="rs">{{ icono_whatsapp(18) }}<span>Resolución sanitaria</span></a>
+      <a class="btn btn-primary" href="{{ marca.whatsapp_url }}" target="_blank" rel="noopener" data-wa="404-marcas" data-linea="marcas">{{ icono_whatsapp(18) }}<span>Registro de marca</span></a>
+      <a class="btn btn-outline-navy" href="/">Ir al inicio</a>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

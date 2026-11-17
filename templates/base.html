@@ -85,7 +85,7 @@
           <a href="/#resolucion">Resolución Sanitaria</a>
           <a href="/marcas">Registro de marca</a>
           <a href="/#como-trabajamos">Cómo trabajamos</a>
-          <a href="/#preguntas">Preguntas frecuentes</a>
+          <a href="{{ '/marcas#preguntas' if request.path == '/marcas' else '/#preguntas' }}">Preguntas frecuentes</a>
         </nav>
         <div class="footer-contacto">
           <a class="btn btn-sm btn-primary" href="{{ wa_pagina.href }}" target="_blank" rel="noopener" data-wa="pie" data-linea="{{ wa_pagina.linea }}">{{ icono_whatsapp(16) }}<span>WhatsApp {{ sitio.whatsapp_visible }}</span></a>
@@ -95,7 +95,12 @@
       </div>
       <div class="footer-bottom">
         <span>&copy; {{ sitio.anio }} {{ sitio.marca }}. Consultora privada: no somos parte de la SEREMI de Salud ni de INAPI.</span>
-        <a href="/privacidad" class="footer-link">Política de privacidad</a>
+        <span class="footer-legal">
+          <a href="/privacidad" class="footer-link">Política de privacidad</a>
+          {%- if pixel %}
+          <button type="button" class="footer-link footer-boton" data-cookies-abrir>Preferencias de cookies</button>
+          {%- endif %}
+        </span>
       </div>
     </div>
   </footer>
@@ -161,6 +166,16 @@
         var eleccion = null;
         try { eleccion = localStorage.getItem('ccc-cookies'); } catch (e) {}
         if (!eleccion) { banner.hidden = false; document.body.classList.add('con-aviso-cookies'); }
+        // «Preferencias de cookies» (pie): vuelve a mostrar el aviso para cambiar la elección.
+        document.querySelectorAll('[data-cookies-abrir]').forEach(function (b) {
+          b.addEventListener('click', function () {
+            try { localStorage.removeItem('ccc-cookies'); } catch (e) {}
+            banner.hidden = false;
+            document.body.classList.add('con-aviso-cookies');
+            var primero = banner.querySelector('button');
+            if (primero) primero.focus();
+          });
+        });
         banner.querySelectorAll('[data-cookies]').forEach(function (b) {
           b.addEventListener('click', function () {
             try { localStorage.setItem('ccc-cookies', b.dataset.cookies); } catch (e) {}

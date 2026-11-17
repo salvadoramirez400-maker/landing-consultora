@@ -1,5 +1,7 @@
 import hashlib
 import os
+import re
+import time
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -204,13 +206,26 @@ def _jsonld_marcas() -> dict:
     ]}
 
 
+_CONFIG_CACHE: dict = {"datos": None, "hasta": 0.0}
+_CONFIG_TTL = 600  # segundos
+
+
 def _config() -> dict:
-    """site_config desde la base (logo). Si la base falla, la página pública igual se muestra."""
+    """site_config desde la base (logo). Si la base falla, la página pública igual se muestra.
+
+    Se guarda 10 minutos en memoria: antes cada visita abría una conexión a Postgres solo para leer el logo
+    (1,35 s de respuesta contra 0,32 s de robots.txt, revisión del 17-nov-2026). /admin/config la limpia al guardar.
+    """
+    ahora = time.monotonic()
+    if _CONFIG_CACHE["datos"] is not None and ahora < _CONFIG_CACHE["hasta"]:
+        return dict(_CONFIG_CACHE["datos"])
     try:
-        return db.load_config()
+        datos = db.load_config()
     except Exception:
         app.logger.exception("No se pudo leer site_config; se usan los valores por defecto")
         return dict(db.DEFAULT_CONFIG)
+    _CONFIG_CACHE.update(datos=dict(datos), hasta=ahora + _CONFIG_TTL)
+    return dict(datos)
 
 
 @app.template_filter("video_poster")
@@ -329,6 +344,9 @@ def marcas_datos():
     """Datos del titular para presentar la marca en INAPI. Los recibe Salvador en /admin."""
     if request.method == "GET":
         return render_template("marcas_datos.html", config=_config(), errores=[], datos={})
+    if request.form.get("sitio_web"):  # campo trampa: solo lo llenan los robots
+        app.logger.warning("Envío de /marcas/datos descartado por el campo trampa")
+        return render_template("marcas_datos.html", config=_config(), errores=[], datos={}, enviado=True)
     f = {k: request.form.get(k, "").strip() for k in (
         "marca", "titular_tipo", "nombre", "rut", "razon_social", "rut_empresa", "cargo",
         "domicilio", "comuna", "correo", "telefono", "productos")}
@@ -339,6 +357,10 @@ def marcas_datos():
                          ("telefono", "tu teléfono")):
         if not f[campo]:
             errores.append(f"Falta {texto}.")
+    if f["correo"] and not re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", f["correo"]):
+        errores.append("El correo no parece válido: revisa que tenga @ y dominio.")
+    if f["telefono"] and not 8 <= len(re.sub(r"\D", "", f["telefono"])) <= 12:
+        errores.append("El teléfono no parece válido: escríbelo con código, por ejemplo +56 9 1234 5678.")
     if f["titular_tipo"] not in ("persona", "empresa"):
         errores.append("Indica si la marca queda a nombre de una persona o de una empresa.")
     if f["rut"] and not _rut_valido(f["rut"]):
@@ -400,22 +422,28 @@ def pago(destino):
     return redirect(_PAGOS[destino], code=302)
 
 
+@app.errorhandler(404)
+def no_encontrada(_error):
+    return render_template("404.html", config=_config(), diagnostico=catalogo.servicio("diagnostico-express"),
+                           marca=catalogo.servicio("registro-marca")), 404
+
+
+_PAGINAS_CACHEABLES = {"/", "/marcas", "/privacidad"}
+
+
+@app.after_request
+def _cache_de_borde(resp):
+    """Páginas públicas sin datos del visitante: el borde de Vercel las guarda 5 minutos y sirve la copia vieja
+    mientras refresca. El navegador siempre pregunta (max-age=0). Un deploy nuevo limpia la caché."""
+    if (request.method == "GET" and resp.status_code == 200 and request.path in _PAGINAS_CACHEABLES
+            and "Set-Cookie" not in resp.headers):
+        resp.headers["Cache-Control"] = "public, max-age=0, s-maxage=300, stale-while-revalidate=86400"
+    return resp
+
+
 @app.route("/privacidad")
 def privacidad():
     return render_template("privacy.html", config=_config())
-
-
-@app.route("/contacto", methods=["POST"])
-def contacto():
-    nombre = request.form.get("nombre", "").strip()
-    telefono = request.form.get("telefono", "").strip()
-    email = request.form.get("email", "").strip()
-
-    if not all([nombre, telefono, email]):
-        return jsonify({"ok": False, "error": "Todos los campos son obligatorios"}), 400
-
-    db.insert_lead(nombre, telefono, email)
-    return jsonify({"ok": True, "message": "Mensaje enviado correctamente"})
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -489,6 +517,7 @@ def admin_config():
             if logo and logo.filename:
                 logo_url = blob.upload(logo.filename, logo.read())
         db.save_config(business_name=business_name, logo_url=logo_url)
+        _CONFIG_CACHE.update(datos=None, hasta=0.0)
         return redirect(url_for("admin"))
 
     return render_template("config.html", config=db.load_config())

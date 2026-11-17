@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% from "_componentes.html" import monograma %}
 {% block title %}Registro de marca en INAPI | {{ sitio.marca }}{% endblock %}
-{% block description %}Revisamos gratis si el nombre de tu marca está disponible y lo registramos en INAPI por ti. Registro Completo desde {{ marca.precio|clp }}, tasas INAPI aparte.{% endblock %}
+{% block description %}Revisamos gratis si el nombre de tu marca está disponible y lo registramos en INAPI por ti. Registro Completo a {{ marca.precio|clp }}, tasas INAPI aparte.{% endblock %}
 {% block og_title %}Registra tu marca antes de que otro lo haga{% endblock %}
-{% block og_description %}Revisión gratis de tu marca y registro en INAPI desde {{ marca.precio|clp }}. Garantía de reintento.{% endblock %}
+{% block og_description %}Revisión gratis de tu marca y registro en INAPI desde $79.990. Garantía de reintento en los planes Completo y PRO.{% endblock %}
 {% block body_class %}pagina-marcas{% endblock %}
 
 {% block nav -%}
@@ -37,7 +37,7 @@
     <div class="mk-wrap">
       <h2>Si otra persona inscribe tu nombre primero, deja de ser tuyo.</h2>
       <div class="mk-datos">
-        <div class="mk-dato"><b>Hasta $72 millones</b><span>de multa por usar con fines comerciales una marca igual o parecida a una inscrita (Ley 19.039, art. 28).</span></div>
+        <div class="mk-dato"><b>Hasta $72 millones</b><span>de multa por usar maliciosamente, con fines comerciales, una marca igual o parecida a una inscrita (Ley 19.039, art. 28).</span></div>
         <div class="mk-dato"><b>+4.000 al mes</b><span>marcas se pidieron en Chile en 2026. El primero que inscribe un nombre, se lo queda.</span></div>
         <div class="mk-dato"><b>10 años</b><span>de protección en todo Chile, renovables sin límite. Ni el dominio .cl ni Instagram te dan ese derecho.</span></div>
       </div>
@@ -47,7 +47,7 @@
   <section class="mk-sec" id="planes">
     <div class="mk-wrap">
       <h2>Elige tu plan</h2>
-      <p class="mk-lead">Partes con la reserva de $49.990 (tarjeta, cuotas o transferencia) y pagas el saldo para presentar. Las tasas de INAPI van aparte.</p>
+      <p class="mk-lead">En los planes Completo y PRO partes con la reserva de $49.990 (tarjeta, cuotas o transferencia) y pagas el saldo para presentar. Las tasas de INAPI van aparte.</p>
       <div class="mk-planes">
         {%- for p in planes %}
         <div class="mk-plan{% if p.recomendado %} top{% endif %}">
@@ -66,11 +66,11 @@
         </div>
         {%- endfor %}
       </div>
-      <p class="mk-tasas">Tasas de INAPI aparte: 1 UTM por clase al presentar ($72.440) y 2 UTM al aceptar ($144.880), más la publicación en el Diario Oficial. Clase adicional: $49.990. Te avisamos el monto exacto en cada etapa.</p>
+      <p class="mk-tasas">Tasas de INAPI aparte: 1 UTM por clase al presentar ($72.440) y 2 UTM por clase al aceptar ($144.880), más la publicación en el Diario Oficial. Clase adicional: $49.990. Te avisamos el monto exacto en cada etapa.</p>
       <p class="mk-tasas"><b>¿Prefieres partir de a poco? Reserva tu marca con $49.990.</b> Hacemos el estudio formal y dejamos tu solicitud lista; se descuenta completa del plan y tienes 30 días para completar el saldo.</p>
       <div class="mk-garantia">
         <div class="mk-sello" aria-hidden="true">®</div>
-        <div><b>Garantía de reintento</b>Si INAPI no acepta tu marca, la presentamos de nuevo sin cobrarte honorarios.</div>
+        <div><b>Garantía de reintento</b>Con los planes Completo y PRO, si INAPI no acepta tu marca, la presentamos de nuevo sin cobrarte honorarios.</div>
       </div>
     </div>
   </section>
@@ -81,8 +81,8 @@
       <p class="mk-lead">Unos 5 meses de principio a fin si nadie se opone. Tú no tienes que estar revisando INAPI: te avisamos nosotros.</p>
       <div class="mk-pasos">
         <div class="mk-paso"><b>Paso 1 · Gratis</b><h3>Revisamos tu marca</h3><p>Te decimos si está disponible y en qué clases conviene registrarla.</p></div>
-        <div class="mk-paso"><b>Paso 2</b><h3>Eliges tu plan</h3><p>Pagas o reservas con $49.990, completas una ficha corta y firmas un poder simple.</p></div>
-        <div class="mk-paso"><b>Paso 3</b><h3>Presentamos</h3><p>Si pagas antes de las 15:00, presentamos tu solicitud en INAPI ese mismo día hábil.</p></div>
+        <div class="mk-paso"><b>Paso 2</b><h3>Eliges tu plan</h3><p>Pagas o reservas con $49.990, completas una ficha corta y firmas un poder simple. Con Hazlo Tú te guiamos para que la presentes tú.</p></div>
+        <div class="mk-paso"><b>Paso 3</b><h3>Presentamos</h3><p>Con los planes Completo y PRO, si pagas antes de las 15:00, presentamos tu solicitud en INAPI ese mismo día hábil.</p></div>
         <div class="mk-paso"><b>Paso 4</b><h3>Tu marca registrada</h3><p>Te avisamos en cada etapa hasta que tienes el registro.</p></div>
       </div>
     </div>

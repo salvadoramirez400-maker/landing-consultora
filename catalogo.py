@@ -219,7 +219,7 @@ SERVICIOS = (
         ),
         precio=147990,
         precio_nota="Registro Completo. Tasas de INAPI aparte.",
-        plazo="Unos 5 meses si no hay observaciones ni oposiciones.",
+        plazo="unos 5 meses si no hay observaciones ni oposiciones.",
         destacado=True,
         cta="Revisar mi marca gratis",
         whatsapp=WA_MARCAS,
@@ -417,7 +417,7 @@ PLANES_MARCA = (
             "Clases y textos legales listos para tu solicitud",
             "La presentas tú, con tu ClaveÚnica",
             "Revisamos tu solicitud antes de que la envíes",
-            "Si pasas al Completo antes de presentar, se descuenta",
+            "Si pasas al Completo antes de presentar, se descuenta el 100 %",
         ),
         whatsapp="Hola, quiero revisar mi marca. Me interesa el Registro Hazlo Tú",
     ),
@@ -443,19 +443,19 @@ FAQ_PORTADA = (
      "si nadie se opone."),
     ("¿Es seguro trabajar con ustedes?",
      "Sí. Todo queda por escrito en WhatsApp y los pagos de la resolución van atados a avances: el segundo 40% se "
-     "paga cuando la solicitud ya está ingresada y el 20% final cuando la SEREMI la otorga. Si no ingresamos tu "
-     "solicitud dentro de 10 días hábiles desde que tenemos todos los antecedentes, te devolvemos el primer pago. En marcas, "
+     "paga cuando la solicitud ya está ingresada y el 20% final cuando la SEREMI la otorga. En la modalidad Completa, si "
+     "no ingresamos tu solicitud dentro de 10 días hábiles desde que tenemos todos los antecedentes, te devolvemos el primer pago. En marcas, "
      "cuando presentamos tu solicitud te llega el número para que la verifiques tú en el buscador de INAPI. Las "
      "transferencias van a Auria SpA, la empresa que factura los servicios de Consultoría Clínica Chile."),
     ("¿Lo puedo hacer yo mismo?",
-     "Sí. La solicitud de resolución se presenta en Seremi en línea con Clave Única, y para registrar una marca no "
+     "Sí. La solicitud de resolución se presenta en Seremi en línea con ClaveÚnica, y para registrar una marca no "
      "se necesita abogado. Lo que más se repite es que el trámite se alarga por antecedentes incompletos u "
      "observaciones. Si quieres hacerlo por tu cuenta, el diagnóstico express igual te sirve: te quedas con las "
      "autorizaciones que necesitas, las brechas y la ruta."),
     ("¿Garantizan que la SEREMI apruebe mi resolución?",
      "No. La resolución la otorga la SEREMI y nadie puede garantizar su resultado ni su plazo. Garantizamos lo que "
-     "depende de nosotros: ingresar tu solicitud dentro de 10 días hábiles con todos los antecedentes (o te "
-     "devolvemos el primer pago) y responder las observaciones sin cobrar honorarios adicionales hasta terminar el "
+     "depende de nosotros. En la modalidad Completa: ingresar tu solicitud dentro de 10 días hábiles con todos los "
+     "antecedentes (o te devolvemos el primer pago) y responder las observaciones sin cobrar honorarios adicionales hasta terminar el "
      "proceso."),
     ("¿Atienden en regiones? ¿Tienen oficina?",
      "Trabajamos 100 % online en todo Chile. El diagnóstico se hace con fotos del local y la lista de servicios, y "
@@ -489,8 +489,8 @@ FAQ_MARCAS = (
      "cafeterías, 41 cursos, 44 salud y estética, 3 cosmética, 9 y 42 apps y software. Te lo decimos en la "
      "revisión gratis."),
     ("¿Qué pasa si INAPI la rechaza?",
-     "Aplica la garantía de reintento: la presentamos de nuevo sin cobrarte honorarios. Las tasas de INAPI del "
-     "reintento las paga el titular."),
+     "Con los planes Completo y PRO aplica la garantía de reintento: la presentamos de nuevo sin cobrarte "
+     "honorarios. Las tasas de INAPI del reintento las paga el titular. El plan Hazlo Tú no incluye el reintento."),
     ("¿Puedo reservar mi marca sin pagar todo?",
      "Sí. Con $49.990 reservas tu marca: hacemos el estudio formal y dejamos la solicitud lista. Ese monto se "
      "descuenta completo del plan y tienes 30 días para completar el saldo. La reserva no es reembolsable, porque "
