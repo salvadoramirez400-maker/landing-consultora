@@ -94,6 +94,11 @@ class Catalogo(unittest.TestCase):
         mantencion = next(s for s in catalogo.BORRADORES if s.id == "mantencion")
         self.assertEqual(mantencion.precio, t["mantencion"]["precio_mensual"])
         self.assertEqual(t["inapi"]["reserva"]["precio"], 49990)  # la reserva que se nombra en /marcas
+        # Borradores ocultos: que no queden con precios viejos el día que se publiquen.
+        for id_, clave in (("kit-documental", "kit_documental"), ("pre-auditoria-remota", "preauditoria_remota"),
+                           ("sos-fiscalizacion", "sos_fiscalizacion")):
+            with self.subTest(borrador=id_):
+                self.assertEqual(next(s for s in catalogo.BORRADORES if s.id == id_).precio, t[clave]["precio"])
 
 
 class Tarjeta(unittest.TestCase):
@@ -190,7 +195,7 @@ class PaginasPublicas(unittest.TestCase):
         org = next(n for n in datos["@graph"] if n["@type"] == "ProfessionalService")
         con_precio = {o["itemOffered"]["name"]: o["price"] for o in org["hasOfferCatalog"]["itemListElement"]
                       if "price" in o}
-        self.assertEqual(con_precio, {"Diagnóstico sanitario express": 49990, "Registro de marca en INAPI": 147990})
+        self.assertEqual(con_precio, {"Diagnóstico sanitario express": 79990, "Registro de marca en INAPI": 147990})
 
     def test_schema_marcas(self):
         datos = _jsonld(self.html["/marcas"])
@@ -222,7 +227,7 @@ class PaginasPublicas(unittest.TestCase):
                     self.assertNotIn(frase, texto)
 
     def test_solo_precios_aprobados(self):
-        permitidos = {"/": {"$49.990", "$147.990"},
+        permitidos = {"/": {"$79.990", "$147.990"},
                       "/marcas": {"$79.990", "$147.990", "$247.990", "$49.990",
                                   "$72.440", "$144.880", "$217.320"}}
         for ruta, aprobados in permitidos.items():
@@ -399,7 +404,9 @@ class PaginasPublicas(unittest.TestCase):
                 self.assertIn(atributo, etiqueta)
             self.assertNotIn(" src=", etiqueta)
             self.assertNotIn("autoplay", etiqueta)
-        for ref in refs:
+        marcas = re.findall(r'<video\b[^>]*data-video="(/static/video/[^"?]+)\?v=[0-9a-f]+"[^>]*>', self.html["/marcas"])
+        self.assertEqual(marcas, ["/static/video/marcas.mp4"])
+        for ref in refs + marcas:
             archivo = RAIZ / ref.lstrip("/")
             self.assertTrue(archivo.exists(), ref)
             self.assertLess(archivo.stat().st_size, 1_500_000, ref)

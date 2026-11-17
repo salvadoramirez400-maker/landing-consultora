@@ -20,8 +20,11 @@
 
 {% block content %}
   {#- Oferta: consultoria-clinica-chile/docs/marcas/oferta.md. Planes y preguntas: catalogo.py. -#}
-  <section class="mk-hero" id="revisar">
-    <canvas class="fondo-vivo" data-fondo="claro" aria-hidden="true"></canvas>
+  <section class="mk-hero mk-hero--oscuro" id="revisar">
+    <canvas class="fondo-vivo" data-fondo="oscuro" aria-hidden="true"></canvas>
+    {#- Video de fondo: montaje de 2 clips de Pexels (licencia libre, sin caras: 16328807 y 4517354). Lo carga wow.js. -#}
+    <video class="fondo-video" muted loop playsinline preload="none" aria-hidden="true" tabindex="-1" data-video="{{ static_v('video/marcas.mp4') }}"></video>
+    <div class="hero-velo" aria-hidden="true"></div>
     {#- Símbolos ® flotando: decorativos. -#}
     <div class="mk-flotan" aria-hidden="true"><i>®</i><i>®</i><i>™</i><i>®</i></div>
     <div class="mk-wrap">
