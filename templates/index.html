@@ -41,8 +41,8 @@
         <article class="puerta foco entra" style="--i:8" data-inclinar>
           <p class="puerta-para">Para pymes y emprendedores</p>
           <h2 class="puerta-titulo">Registro de marca en INAPI</h2>
-          <p class="puerta-texto">Revisamos gratis si tu marca está disponible y la registramos por ti. Registro Completo: <b>{{ marca.precio|clp }}</b> + tasas de INAPI, con garantía de reintento.</p>
-          <a class="btn btn-luz" href="{{ marca.whatsapp_url }}" target="_blank" rel="noopener" data-wa="portada-marcas" data-linea="marcas">{{ icono_whatsapp(18) }}<span>Revisar mi marca gratis</span></a>
+          <p class="puerta-texto">{{ rev("puerta") }} Registro Completo: <b>{{ marca.precio|clp }}</b> + tasas de INAPI, con garantía de reintento.</p>
+          <a class="btn btn-luz" href="{{ marca.whatsapp_url }}" target="_blank" rel="noopener" data-wa="portada-marcas" data-linea="marcas">{{ icono_whatsapp(18) }}<span>{{ rev("boton_largo") }}</span></a>
           <a class="puerta-enlace" href="/marcas">Ver planes y precios</a>
         </article>
       </div>
@@ -164,9 +164,9 @@
       <div class="marcas-texto reveal" data-anim="izquierda">
         <span class="eyebrow">Registro de marca</span>
         <h2 class="section-title">Si tu marca no está registrada, no es tuya</h2>
-        <p class="section-lead">En Chile, la marca se le da al primero que la pide en INAPI. Ni el dominio .cl ni tu cuenta de Instagram te dan ese derecho. Revisamos gratis si tu nombre está disponible y lo registramos por ti, para cualquier rubro.</p>
+        <p class="section-lead">En Chile, la marca se le da al primero que la pide en INAPI. Ni el dominio .cl ni tu cuenta de Instagram te dan ese derecho. {{ rev("seccion") }}</p>
         <ol class="marcas-pasos">
-          <li>Revisamos gratis tu marca y te decimos en qué clases conviene registrarla.</li>
+          <li>{{ rev("seccion_paso") }}</li>
           <li>Eliges tu plan y presentamos la solicitud ante INAPI.</li>
           <li>Te avisamos en cada etapa hasta que tienes el registro.</li>
         </ol>
@@ -269,7 +269,7 @@
           </div>
           <button type="submit" class="btn btn-luz">{{ icono_whatsapp(18) }}<span>Seguir en WhatsApp</span></button>
         </form>
-        <p class="cta-alterna">¿Es por una marca? <a href="{{ marca.whatsapp_url }}" target="_blank" rel="noopener" data-wa="cierre-marcas" data-linea="marcas">Revisa tu marca gratis por WhatsApp</a></p>
+        <p class="cta-alterna">¿Es por una marca? <a href="{{ marca.whatsapp_url }}" target="_blank" rel="noopener" data-wa="cierre-marcas" data-linea="marcas">{{ rev("enlace") }}</a></p>
       </div>
     </div>
   </section>

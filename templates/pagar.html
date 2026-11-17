@@ -29,7 +29,7 @@
       <span>{{ prod.resumen }}</span>
     </div>
     {%- if prod.aviso %}
-    <p class="pg-aviso entra" style="--i:5">{{ prod.aviso }} <a href="{{ wa_revisar }}" target="_blank" rel="noopener" data-wa="pagar-revisar" data-linea="marcas">Revisar mi marca gratis</a></p>
+    <p class="pg-aviso entra" style="--i:5">{{ prod.aviso }} <a href="{{ wa_revisar }}" target="_blank" rel="noopener" data-wa="pagar-revisar" data-linea="marcas">{{ rev("boton_largo") }}</a></p>
     {%- endif %}
 
     {%- if errores %}

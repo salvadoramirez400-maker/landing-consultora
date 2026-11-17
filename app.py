@@ -47,6 +47,7 @@ def static_v(filename: str) -> str:
 
 app.jinja_env.globals["static_v"] = static_v
 app.jinja_env.filters["wa"] = catalogo.wa_link
+app.jinja_env.globals["rev"] = catalogo.rev
 
 
 @app.template_filter("clp")
@@ -223,7 +224,7 @@ def _jsonld_marcas() -> dict:
          "provider": {"@id": f"{SITIO_URL}/#organizacion"}, "areaServed": {"@type": "Country", "name": "Chile"},
          "offers": [{"@type": "Offer", "name": p.nombre, "price": p.precio, "priceCurrency": "CLP"}
                     for p in catalogo.PLANES_MARCA]},
-        _faq_schema(catalogo.FAQ_MARCAS, f"{SITIO_URL}/marcas#preguntas"),
+        _faq_schema(catalogo.faq_marcas(), f"{SITIO_URL}/marcas#preguntas"),
     ]}
 
 
@@ -318,8 +319,8 @@ def _teaser(linea: str) -> dict:
     marcas = {"id": "teaser-marcas", "linea": "marcas", "texto": "Registrar mi marca",
               "href": catalogo.wa_link(catalogo.WA_MARCAS)}
     if linea == "marcas":
-        return {"mensaje": "Hola. ¿Revisamos gratis si tu marca está disponible?",
-                "opciones": [dict(marcas, texto="Revisar mi marca gratis")]}
+        return {"mensaje": "Hola. " + catalogo.rev("pregunta"),
+                "opciones": [dict(marcas, texto=catalogo.rev("boton_largo"))]}
     return {"mensaje": "Hola. ¿En qué te ayudamos?", "opciones": [rs, marcas]}
 
 
@@ -355,7 +356,7 @@ def marcas():
         config=_config(),
         planes=catalogo.PLANES_MARCA,
         marca=catalogo.servicio("registro-marca"),
-        faq=catalogo.FAQ_MARCAS,
+        faq=catalogo.faq_marcas(),
         wa_revisar=catalogo.WA_MARCAS,
         wa_pagina=_wa_pagina("marcas"),
         anuncio={"id": "reserva-2026-11", "etiqueta": "Reserva tu marca",
@@ -455,7 +456,7 @@ def api_marcas_titular_procesado(titular_id):
 
 # Links cortos con el dominio propio hacia los links de pago de Mercado Pago (302: se pueden cambiar sin caché).
 # Fuente y montos: consultoria-clinica-chile/docs/ventas/mercado-pago-links.md. Cada uno se verificó el 17-nov-2026:
-# la página de pago muestra el monto anotado. /presentar no existe a propósito (cambia cada mes con la UTM).
+# la página de pago muestra el monto anotado. /presentar cambia cada mes con la UTM: aquí se cambia su destino.
 _PAGOS = {
     "reserva": "https://mpago.la/1vm2Q8g",            # reserva de marca, $49.990
     "diagnostico": "https://mpago.la/28ZgKho",        # diagnóstico sanitario express, $79.990 (antes mpago.la/1FLwLEL, $49.990)
@@ -470,7 +471,12 @@ _PAGOS = {
     "asistida-tatuajes": "https://mpago.la/2ENEgBT",  # RS Asistida, tatuajes, 50%: $145.000
     "hazlotu": "https://mpago.la/2awpJrq",            # Registro de marca Hazlo Tú, $79.990
     "cuota": "https://mpago.la/1n5DPne",              # Registro de marca, cuota de $54.000
+    # Registro Completo de 1 clase + tasa de presentación de INAPI, con la UTM de noviembre de 2026 ($72.440).
+    # Salvador, 17-nov-2026 («soluciona ambos»). En diciembre la UTM es $72.802: link nuevo y monto nuevo.
+    "presentar": "https://mpago.la/2hgTYGw",          # Registro de marca, 1 clase, $220.430
 }
+if catalogo.REVISION_PAGADA:   # la revisión pagada parte junto con el bot de marcas v3 (catalogo.py)
+    _PAGOS["revision"] = catalogo.REVISION_PAGO   # Revisión de marca, $14.990
 
 
 def _ruta_de_pago(nombre: str):
@@ -514,8 +520,7 @@ def _productos_pago() -> dict:
                       "Hacemos el estudio formal (clases y riesgo) y dejamos tu solicitud lista. Tienes 30 días para "
                       "completar el saldo del plan; la reserva sola no presenta la marca."],
             "enlace_paso": ("/marcas/datos", "Completar los datos del titular"),
-            "aviso": "¿Todavía no revisamos tu marca? Pide primero la revisión gratis: te decimos si está disponible "
-                     "antes de que pagues.",
+            "aviso": catalogo.rev("aviso_reserva"),
         },
     }
 

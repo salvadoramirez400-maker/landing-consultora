@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% from "_componentes.html" import monograma, icono_whatsapp, icono_tarjeta %}
 {% block title %}Registro de marca en INAPI | {{ sitio.marca }}{% endblock %}
-{% block description %}Revisamos gratis si el nombre de tu marca está disponible y lo registramos en INAPI por ti. Registro Completo a {{ marca.precio|clp }}, tasas INAPI aparte.{% endblock %}
+{% block description %}{{ rev("descripcion") }} Registro Completo a {{ marca.precio|clp }}, tasas INAPI aparte.{% endblock %}
 {% block og_title %}Registra tu marca antes de que otro lo haga{% endblock %}
-{% block og_description %}Revisión gratis de tu marca y registro en INAPI desde $79.990. Garantía de reintento en los planes Completo y PRO.{% endblock %}
+{% block og_description %}{{ rev("og") }} Garantía de reintento en los planes Completo y PRO.{% endblock %}
 {% block body_class %}pagina-marcas{% endblock %}
 
 {% block nav -%}
@@ -13,7 +13,7 @@
         {%- if config and config.logo %}<img src="{{ config.logo }}" alt="{{ sitio.marca }}" height="34">
         {%- else %}{{ monograma() }}<span>{{ sitio.marca }}</span>{% endif -%}
       </a>
-      <a href="#revisar" class="btn btn-sm btn-nav">Revisar gratis</a>
+      <a href="#revisar" class="btn btn-sm btn-nav">{{ rev("boton") }}</a>
     </div>
   </nav>
 {%- endblock %}
@@ -28,12 +28,12 @@
     {#- Símbolos ® flotando: decorativos. -#}
     <div class="mk-flotan" aria-hidden="true"><i>®</i><i>®</i><i>™</i><i>®</i></div>
     <div class="mk-wrap">
-      <span class="mk-badge entra" style="--i:0">Revisión gratis en menos de 24 horas hábiles</span>
+      <span class="mk-badge entra" style="--i:0">{{ rev("insignia") }}</span>
       <h1><span class="w" style="--i:1">Si</span> <span class="w" style="--i:2">tu</span> <span class="w" style="--i:3">marca</span> <span class="w" style="--i:4">no</span> <span class="w" style="--i:5">está</span> <span class="w" style="--i:6">registrada,</span> <em><span class="w" style="--i:8">no</span> <span class="w" style="--i:9">es</span> <span class="w" style="--i:10">tuya.</span></em></h1>
-      <p class="mk-sub entra" style="--i:9">Revisamos gratis si tu marca está disponible y la registramos en INAPI por ti. Sin papeleo, en simple y con aviso en cada etapa.</p>
+      <p class="mk-sub entra" style="--i:9">{{ rev("heroe") }}</p>
       <form class="mk-buscador entra" style="--i:11" data-revisar data-texto="{{ wa_revisar }}" data-whatsapp="{{ ''|wa }}">
         <input type="text" name="marca" placeholder="Escribe el nombre de tu marca" data-escribir="Café Aurora|Estudio Nómade|Panadería La Ronda|Kine Activa|Tienda Pulpo" aria-label="Nombre de tu marca" autocomplete="off" required>
-        <button type="submit" class="btn btn-primary">Revisar gratis</button>
+        <button type="submit" class="btn btn-primary">{{ rev("boton") }}</button>
       </form>
       <p class="mk-nota entra" style="--i:12">Te respondemos por WhatsApp en menos de 24 horas hábiles.</p>
     </div>
@@ -91,7 +91,7 @@
       <h2 class="reveal">Cómo funciona</h2>
       <p class="mk-lead reveal">Unos 5 meses de principio a fin si nadie se opone. Tú no tienes que estar revisando INAPI: te avisamos nosotros.</p>
       <div class="mk-pasos" data-linea-tiempo>
-        <div class="mk-paso"><b>Paso 1 · Gratis</b><h3>Revisamos tu marca</h3><p>Te decimos si está disponible y en qué clases conviene registrarla.</p></div>
+        <div class="mk-paso"><b>{{ rev("paso_etiqueta") }}</b><h3>Revisamos tu marca</h3><p>{{ rev("paso_texto") }}</p></div>
         <div class="mk-paso"><b>Paso 2</b><h3>Eliges tu plan</h3><p>Pagas o reservas con $49.990, completas una ficha corta y firmas un poder simple. Con Hazlo Tú te guiamos para que la presentes tú.</p></div>
         <div class="mk-paso"><b>Paso 3</b><h3>Presentamos</h3><p>Con los planes Completo y PRO, si pagas antes de las 15:00, presentamos tu solicitud en INAPI ese mismo día hábil.</p></div>
         <div class="mk-paso"><b>Paso 4</b><h3>Tu marca registrada</h3><p>Te avisamos en cada etapa hasta que tienes el registro.</p></div>
@@ -127,10 +127,10 @@
     <div class="orbes" aria-hidden="true"><i></i><i></i><i></i></div>
     <div class="mk-wrap reveal">
       <h2>¿El nombre de tu marca es tuyo?</h2>
-      <p>Escríbelo y te decimos gratis si está disponible.</p>
+      <p>{{ rev("cierre") }}</p>
       <form class="mk-buscador" data-revisar data-texto="{{ wa_revisar }}" data-whatsapp="{{ ''|wa }}">
         <input type="text" name="marca" placeholder="Escribe el nombre de tu marca" aria-label="Nombre de tu marca" autocomplete="off" required>
-        <button type="submit" class="btn btn-primary">Revisar gratis</button>
+        <button type="submit" class="btn btn-primary">{{ rev("boton") }}</button>
       </form>
       <p class="mk-fuentes">Tasas según inapi.cl, al valor de la UTM de noviembre de 2026 ($72.440). Multa: Ley 19.039, art. 28 (25 a 1.000 UTM). Volumen de solicitudes: INAPI, enero a julio de 2026.</p>
     </div>
@@ -144,12 +144,12 @@
     <div class="modal-caja" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
       <button type="button" class="modal-cerrar" data-cerrar aria-label="Cerrar">×</button>
       <span class="eyebrow">Antes de irte</span>
-      <h2 id="modal-titulo">¿Revisamos gratis si tu marca está disponible?</h2>
+      <h2 id="modal-titulo">{{ rev("pregunta") }}</h2>
       <p>Escribe el nombre y te respondemos por WhatsApp en menos de 24 horas hábiles.</p>
       <form class="modal-form" data-revisar="popup-marcas" data-texto="{{ wa_revisar }}" data-whatsapp="{{ ''|wa }}">
         <label class="sr-only" for="modal-marca">Nombre de tu marca</label>
         <input type="text" id="modal-marca" name="marca" placeholder="Nombre de tu marca" autocomplete="off" required>
-        <button type="submit" class="btn btn-primary">{{ icono_whatsapp(18) }}<span>Revisar gratis</span></button>
+        <button type="submit" class="btn btn-primary">{{ icono_whatsapp(18) }}<span>{{ rev("boton") }}</span></button>
       </form>
       <button type="button" class="modal-no" data-cerrar>Ahora no</button>
     </div>

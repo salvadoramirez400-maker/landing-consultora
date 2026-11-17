@@ -192,7 +192,7 @@ class Pagos(unittest.TestCase):
         self.assertIn("$49.990", html)
         self.assertIn('name="marca"', html)
         self.assertNotIn('name="tipo"', html)
-        self.assertIn("Pide primero la revisión gratis", html)
+        self.assertIn("Pide primero la revisión", html)
         montos = set(re.findall(r"\$\d{1,3}(?:\.\d{3})+", test_sitio._texto_visible(html)))
         self.assertEqual(montos, {"$49.990"})
         self.assertIsNone(re.search(r"devol|reembols", test_sitio._texto_visible(html), re.I))

@@ -24,7 +24,7 @@ Para sumar un producto nuevo (guía de RS, pre-auditoría remota, visita inspect
 """
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from urllib.parse import quote
 
 WHATSAPP = "56930175070"
@@ -80,6 +80,58 @@ WA_RS = "Hola, vengo de la página web. Quiero información sobre la resolución
 WA_RS_FORMULARIO = "Hola, vengo de la página web. Quiero información sobre la resolución sanitaria"
 WA_OTROS = "Hola, vengo de la página web. Quiero asesoría para mi centro de salud."
 WA_MARCAS = "Hola, quiero revisar mi marca"
+
+# --- Revisión de marca: gratis hoy, $14.990 con el bot de marcas v3 ---
+# tarifas.json → servicios.inapi.revision_marca. Web y bot cambian juntos: poner REVISION_PAGADA = True SOLO cuando
+# «CCC - general» avise que el bot de marcas v3 está activo en SendPulse. Con eso cambian todos los textos de abajo
+# y aparece consultoriaclinica.cl/revision (app.py). Los anuncios de Meta se cambian aparte.
+REVISION_PAGADA = False
+REVISION_MARCA = 14990
+REVISION_PAGO = "https://mpago.la/2fVhWTT"   # verificado el 17-nov-2026: la página de pago muestra $14.990
+_REV_PRECIO = "$" + f"{REVISION_MARCA:,}".replace(",", ".")
+_REV_DESCUENTO = "se descuenta del plan si registras dentro de 30 días"
+
+# clave → (texto con la revisión gratis, texto con la revisión pagada)
+REVISION_TEXTOS = {
+    "boton": ("Revisar gratis", "Revisar mi marca"),
+    "boton_largo": ("Revisar mi marca gratis", "Revisar mi marca"),
+    "enlace": ("Revisa tu marca gratis por WhatsApp", "Revisa tu marca por WhatsApp"),
+    "pregunta": ("¿Revisamos gratis si tu marca está disponible?", "¿Revisamos si tu marca está disponible?"),
+    "incluye": ("Revisión gratis de disponibilidad, por WhatsApp",
+                f"Revisión de tu marca con informe ({_REV_PRECIO}, descontable del plan)"),
+    "descripcion": ("Revisamos gratis si el nombre de tu marca está disponible y lo registramos en INAPI por ti.",
+                    f"Revisamos si el nombre de tu marca está disponible ({_REV_PRECIO}, descontable del plan) y lo "
+                    "registramos en INAPI por ti."),
+    "og": ("Revisión gratis de tu marca y registro en INAPI desde $79.990.",
+           f"Revisión de tu marca por {_REV_PRECIO}, descontable del plan, y registro en INAPI desde $79.990."),
+    "insignia": ("Revisión gratis en menos de 24 horas hábiles", "Informe de tu marca el mismo día hábil"),
+    "heroe": ("Revisamos gratis si tu marca está disponible y la registramos en INAPI por ti. Sin papeleo, en simple "
+              "y con aviso en cada etapa.",
+              f"Revisamos si tu marca está disponible y la registramos en INAPI por ti. La revisión cuesta "
+              f"{_REV_PRECIO} y {_REV_DESCUENTO}."),
+    "paso_etiqueta": ("Paso 1 · Gratis", f"Paso 1 · {_REV_PRECIO}"),
+    "paso_texto": ("Te decimos si está disponible y en qué clases conviene registrarla.",
+                   "Recibes el informe de tu marca el mismo día hábil si pagas antes de las 15:00. "
+                   f"Lo que pagas {_REV_DESCUENTO}."),
+    "cierre": ("Escríbelo y te decimos gratis si está disponible.",
+               f"Escríbelo y revisamos si está disponible. La revisión cuesta {_REV_PRECIO} y {_REV_DESCUENTO}."),
+    "puerta": ("Revisamos gratis si tu marca está disponible y la registramos por ti.",
+               "Revisamos si tu marca está disponible y la registramos por ti."),
+    "seccion": ("Revisamos gratis si tu nombre está disponible y lo registramos por ti, para cualquier rubro.",
+                "Revisamos si tu nombre está disponible y lo registramos por ti, para cualquier rubro."),
+    "seccion_paso": ("Revisamos gratis tu marca y te decimos en qué clases conviene registrarla.",
+                     f"Revisamos tu marca por {_REV_PRECIO}: lo que pagas {_REV_DESCUENTO}."),
+    "aviso_reserva": ("¿Todavía no revisamos tu marca? Pide primero la revisión gratis: te decimos si está disponible "
+                      "antes de que pagues.",
+                      f"¿Todavía no revisamos tu marca? Pide primero la revisión ({_REV_PRECIO}, descontable del "
+                      "plan): sabes si está disponible antes de reservar."),
+    "faq_clases": ("Te lo decimos en la revisión gratis.", "Te lo decimos en la revisión de tu marca."),
+}
+
+
+def rev(clave: str) -> str:
+    """Texto de la revisión de marca según el interruptor REVISION_PAGADA."""
+    return REVISION_TEXTOS[clave][1 if REVISION_PAGADA else 0]
 
 TEXTOS_WHATSAPP = {
     "WA_RS": (WA_RS, "rs"),
@@ -222,7 +274,7 @@ SERVICIOS = (
         nombre="Registro de marca en INAPI",
         para_quien="Para emprendedores y pymes de cualquier rubro, en todo Chile.",
         incluye=(
-            "Revisión gratis de disponibilidad, por WhatsApp",
+            REVISION_TEXTOS["incluye"][0],
             "Estudio de estrategia: clases, riesgo de parecido y redacción",
             "Presentación de la solicitud ante INAPI",
             "Seguimiento del expediente y aviso en cada etapa",
@@ -232,7 +284,7 @@ SERVICIOS = (
         precio_nota="Registro Completo. Tasas de INAPI aparte.",
         plazo="unos 5 meses si no hay observaciones ni oposiciones.",
         destacado=True,
-        cta="Revisar mi marca gratis",
+        cta=REVISION_TEXTOS["boton_largo"][0],
         whatsapp=WA_MARCAS,
         enlace_texto="Ver los 3 planes y precios",
         enlace_url="/marcas#planes",
@@ -345,13 +397,27 @@ BORRADORES = (
 )
 
 
+def _al_dia(s: Servicio) -> Servicio:
+    """El registro de marca con los textos de la revisión que correspondan (gratis o pagada)."""
+    if s.id != "registro-marca" or not REVISION_PAGADA:
+        return s
+    viejo = REVISION_TEXTOS["incluye"][0]
+    return replace(s, cta=rev("boton_largo"), incluye=tuple(rev("incluye") if i == viejo else i for i in s.incluye))
+
+
 def publicados(linea: str) -> list[Servicio]:
     """Servicios visibles de una línea, en el orden del catálogo."""
-    return [s for s in SERVICIOS if s.linea == linea and s.publicado]
+    return [_al_dia(s) for s in SERVICIOS if s.linea == linea and s.publicado]
 
 
 def servicio(id_: str) -> Servicio:
-    return next(s for s in SERVICIOS if s.id == id_)
+    return _al_dia(next(s for s in SERVICIOS if s.id == id_))
+
+
+def faq_marcas() -> tuple:
+    """FAQ de /marcas con la frase de la revisión que corresponda."""
+    viejo = REVISION_TEXTOS["faq_clases"][0]
+    return tuple((p, r.replace(viejo, rev("faq_clases"))) for p, r in FAQ_MARCAS)
 
 
 # --- Planes de registro de marca (página /marcas; tarifas.json → servicios.inapi.planes) ---

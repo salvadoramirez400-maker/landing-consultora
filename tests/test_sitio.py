@@ -191,7 +191,14 @@ class PaginasPublicas(unittest.TestCase):
                 self.assertEqual(r.headers["Location"], destino)
                 self.assertRegex(destino, r"^https://mpago\.la/[0-9A-Za-z]+$")
         self.assertEqual(len(set(sitio._PAGOS.values())), len(sitio._PAGOS))
-        self.assertEqual(self.c.get("/presentar").status_code, 404)
+        # /presentar: Completo de 1 clase + tasa de presentación (tarifas.json), decisión de Salvador del 17-nov-2026.
+        if TARIFAS.exists():
+            tasas = json.loads(TARIFAS.read_text(encoding="utf-8"))["servicios"]["inapi"]["tasas_inapi"]
+            self.assertEqual(sitio._PAGOS["presentar"], tasas["link_presentar_hoy_completo_1_clase"])
+        # /revision solo existe cuando la revisión de marca es pagada (junto con el bot de marcas v3).
+        self.assertEqual("revision" in sitio._PAGOS, catalogo.REVISION_PAGADA)
+        if not catalogo.REVISION_PAGADA:
+            self.assertEqual(self.c.get("/revision").status_code, 404)
 
     def test_pago_con_tarjeta_en_el_diagnostico(self):
         html = self.html["/"]
@@ -337,7 +344,6 @@ class PaginasPublicas(unittest.TestCase):
         html = r.get_data(as_text=True)
         self.assertIn("Esta página no existe", html)
         self.assertIn('content="noindex"', html)
-        self.assertEqual(self.c.get("/presentar").status_code, 404)
 
     def test_cache_de_borde_solo_en_paginas_publicas(self):
         for ruta in self.PAGINAS:
@@ -482,6 +488,38 @@ class PaginasPublicas(unittest.TestCase):
                             r"planos si tienes|revisión remota|paso a paso", re.I)
         self.assertEqual(ensena.findall(texto), [])
         self.assertNotIn("ruta-rs", {s.id for s in catalogo.BORRADORES})
+
+    def test_revision_de_marca_gratis_o_pagada(self):
+        """Un solo interruptor (catalogo.REVISION_PAGADA) cambia todos los textos de la revisión de marca."""
+        if TARIFAS.exists():
+            texto_tarifas = TARIFAS.read_text(encoding="utf-8")
+            revision = json.loads(texto_tarifas)["servicios"]["inapi"]["revision_marca"]
+            self.assertEqual(catalogo.REVISION_MARCA, revision["precio"])
+            links = TARIFAS.parent.parent / "docs" / "ventas" / "mercado-pago-links.md"
+            self.assertIn(catalogo.REVISION_PAGO, texto_tarifas + (links.read_text(encoding="utf-8") if links.exists() else ""))
+        gratis = re.compile(r"(?<!autotest sanitario )gratis", re.I)   # el autotest sí es gratis (pie de página)
+        original = catalogo.REVISION_PAGADA
+        try:
+            for pagada in (False, True):
+                catalogo.REVISION_PAGADA = pagada
+                marcas = _texto_visible(self.c.get("/marcas").get_data(as_text=True))
+                portada = _texto_visible(self.c.get("/").get_data(as_text=True))
+                reserva = _texto_visible(self.c.get("/pagar/reserva").get_data(as_text=True))
+                with self.subTest(pagada=pagada):
+                    if pagada:
+                        self.assertEqual(gratis.findall(marcas), [])
+                        self.assertEqual(gratis.findall(reserva), [])
+                        self.assertNotRegex(portada, r"(?i)marca gratis|revisamos gratis|revisión gratis")
+                        self.assertIn("$14.990", marcas)
+                        self.assertIn("dentro de 30 días", marcas)
+                        self.assertIn("antes de las 15:00", marcas)
+                    else:
+                        self.assertIn("Revisar gratis", marcas)
+                        self.assertNotIn("$14.990", marcas + portada + reserva)
+                    for texto in (marcas, portada):
+                        self.assertNotRegex(texto, r"(?i)devoluci|reembols")
+        finally:
+            catalogo.REVISION_PAGADA = original
 
 if __name__ == "__main__":
     unittest.main()
