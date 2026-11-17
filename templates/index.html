@@ -34,9 +34,9 @@
     .cookie-actions { display: flex; gap: 10px; justify-content: flex-end; }
     @media (max-width: 600px) { .cookie-banner { left: 12px; right: 12px; bottom: 12px; max-width: none; } }
   </style>
-  <link rel="preload" href="{{ url_for('static', filename='fonts/Fustat-800-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="{{ url_for('static', filename='fonts/fonts.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="preload" href="{{ url_for('static', filename='fonts/Fustat-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{{ static_v('fonts/fonts.css') }}">
+  <link rel="stylesheet" href="{{ static_v('style.css') }}">
 </head>
 <body>
 

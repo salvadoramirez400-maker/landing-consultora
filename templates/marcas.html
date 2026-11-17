@@ -20,9 +20,9 @@
     };
     try { if (localStorage.getItem('ccc-cookies') === 'si') window.cccPixel(); } catch (e) {}
   </script>
-  <link rel="preload" href="{{ url_for('static', filename='fonts/Fustat-800-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="{{ url_for('static', filename='fonts/fonts.css') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="preload" href="{{ url_for('static', filename='fonts/Fustat-latin.woff2') }}" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="{{ static_v('fonts/fonts.css') }}">
+  <link rel="stylesheet" href="{{ static_v('style.css') }}">
   <style>
     /* Estilos propios de /marcas, inline porque style.css se cachea un año sin versión */
     .cookie-banner { position: fixed; left: 24px; bottom: 24px; z-index: 1000; max-width: 420px; padding: 18px 20px; display: flex; flex-direction: column; gap: 14px; background: var(--white); color: var(--gray-700); border: 1px solid var(--gray-100); border-radius: var(--r-md); box-shadow: var(--shadow-lg); font-family: var(--font-body); font-size: 14px; line-height: 1.5; }

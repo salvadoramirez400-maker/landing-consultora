@@ -1,4 +1,5 @@
 import calendar
+import hashlib
 import os
 from datetime import date, datetime
 from pathlib import Path
@@ -14,6 +15,29 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-key-change-in-productio
 
 _STATIC_DIR = Path(app.static_folder)
 _WEBP_WIDTHS = (400, 800, 1200)
+_VERSIONES: dict[str, str] = {}
+
+
+def static_v(filename: str) -> str:
+    """URL de un archivo de /static con ?v=<hash del contenido>.
+
+    Traefik cachea /static un año como «immutable»: sin la versión en la URL, un cambio en
+    style.css no le llega a quien ya visitó el sitio. Si el archivo no existe, va sin versión.
+    """
+    version = _VERSIONES.get(filename)
+    if version is None:
+        try:
+            version = hashlib.sha256((_STATIC_DIR / filename).read_bytes()).hexdigest()[:10]
+        except OSError:
+            version = ""
+        if not app.debug:
+            _VERSIONES[filename] = version
+    if version:
+        return url_for("static", filename=filename, v=version)
+    return url_for("static", filename=filename)
+
+
+app.jinja_env.globals["static_v"] = static_v
 
 
 @app.template_filter("video_poster")
