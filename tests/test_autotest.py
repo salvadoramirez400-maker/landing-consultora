@@ -113,6 +113,13 @@ class Reglas(unittest.TestCase):
         self.assertEqual(len(r.comuna), autotest.COMUNA_MAX)
         self.assertTrue(r.comuna.startswith("Las Condes x"))
 
+    def test_comuna_con_mayusculas(self):
+        casos = {"providencia": "Providencia", "SAN JOSÉ DE MAIPO": "San José de Maipo", "ñuñoa": "Ñuñoa",
+                 "  la   florida ": "La Florida", "McKinley": "McKinley"}
+        for entrada, esperado in casos.items():
+            with self.subTest(entrada=entrada):
+                self.assertEqual(autotest._comuna(entrada), esperado)
+
 
 class Whatsapp(unittest.TestCase):
     def test_todos_los_textos_activan_a_andrea(self):

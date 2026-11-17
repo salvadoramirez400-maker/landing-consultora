@@ -82,6 +82,18 @@ class Respuestas:
     comuna: str = ""
 
 
+_MINUSCULAS = {"de", "del", "la", "las", "los", "el", "y"}
+
+
+def _comuna(texto: str) -> str:
+    """Espacios limpios y, si viene toda en minúsculas o mayúsculas, «San José de Maipo»."""
+    comuna = " ".join(texto.split())[:COMUNA_MAX]
+    if comuna and (comuna.islower() or comuna.isupper()):
+        palabras = comuna.lower().split(" ")
+        comuna = " ".join(w if (i and w in _MINUSCULAS) else w[:1].upper() + w[1:] for i, w in enumerate(palabras))
+    return comuna
+
+
 def leer(args) -> tuple[Respuestas | None, list[str]]:
     """Respuestas desde request.args (o un dict con getlist). Devuelve (respuestas, errores)."""
     def lista(nombre, validas):
@@ -93,7 +105,7 @@ def leer(args) -> tuple[Respuestas | None, list[str]]:
     equipos = lista("eq", EQUIPOS)
     recintos = args.get("recintos", "")
     recepcion = args.get("recepcion", "")
-    comuna = " ".join(args.get("comuna", "").split())[:COMUNA_MAX]
+    comuna = _comuna(args.get("comuna", ""))
 
     errores = []
     if tipo not in TIPOS:
