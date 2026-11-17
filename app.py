@@ -48,6 +48,55 @@ def clp(monto: int) -> str:
     return "$" + f"{monto:,}".replace(",", ".")
 
 
+# --- Datos fijos del sitio (marca, contacto) ---
+SITIO_URL = os.environ.get("SITIO_URL", "https://consultoriaclinica.cl").rstrip("/")
+MARCA = "Consultoría Clínica Chile"
+TAGLINE = "Expertos en desarrollo de establecimientos de salud, arquitectura sanitaria y habilitación clínica."
+DESCRIPCION = ("Te ayudamos con la Resolución Sanitaria de tu clínica o centro de salud ante la SEREMI y con el "
+               "registro de tu marca en INAPI. 100 % online, en todo Chile.")
+INSTAGRAM = "https://www.instagram.com/consultoriaclinica_/"
+
+
+def _wa_pagina(linea: str, con_cambio: bool = False) -> dict:
+    """WhatsApp del menú, el pie y el botón flotante de una página («rs» o «marcas»).
+
+    Con `con_cambio`, el botón flotante pasa al texto de marcas mientras se ve la sección de marcas.
+    """
+    texto = catalogo.WA_MARCAS if linea == "marcas" else catalogo.WA_RS
+    datos = {"href": catalogo.wa_link(texto), "linea": linea}
+    if con_cambio:
+        datos["href_marcas"] = catalogo.wa_link(catalogo.WA_MARCAS)
+    return datos
+
+
+@app.context_processor
+def _contexto_sitio() -> dict:
+    """Valores comunes. Una ruta puede reemplazarlos pasando la misma clave a render_template."""
+    return {
+        "sitio": {
+            "marca": MARCA,
+            "url": SITIO_URL,
+            "tagline": TAGLINE,
+            "descripcion": DESCRIPCION,
+            "whatsapp_visible": catalogo.WHATSAPP_VISIBLE,
+            "instagram": INSTAGRAM,
+            "instagram_usuario": "@consultoriaclinica_",
+            "anio": datetime.now(ZoneInfo("America/Santiago")).year,
+        },
+        "wa_pagina": _wa_pagina("rs"),
+        "pixel": True,
+    }
+
+
+def _config() -> dict:
+    """site_config desde la base (logo). Si la base falla, la página pública igual se muestra."""
+    try:
+        return db.load_config()
+    except Exception:
+        app.logger.exception("No se pudo leer site_config; se usan los valores por defecto")
+        return dict(db.DEFAULT_CONFIG)
+
+
 @app.template_filter("video_poster")
 def video_poster(filename: str) -> str:
     """Devuelve la URL del poster -<name>-poster.webp si existe, o "".
@@ -220,7 +269,7 @@ def pago(destino):
 
 @app.route("/privacidad")
 def privacidad():
-    return render_template("privacy.html", config=db.load_config(), content=db.load_content())
+    return render_template("privacy.html", config=_config())
 
 
 @app.route("/contacto", methods=["POST"])
