@@ -180,21 +180,26 @@ class PaginasPublicas(unittest.TestCase):
         for ruta, codigo in esperado.items():
             with self.subTest(ruta=ruta):
                 self.assertEqual(self.c.get(ruta).status_code, codigo)
-        self.assertTrue(self.c.get("/reserva").headers["Location"].startswith("https://mpago.la/"))
-        self.assertEqual(self.c.get("/diagnostico").headers["Location"], "https://mpago.la/28ZgKho")  # $79.990
+        # Reserva y diagnóstico pasan por el formulario (el pedido queda registrado); el link fijo es el respaldo.
+        self.assertEqual(self.c.get("/reserva").headers["Location"], "/pagar/reserva")
+        self.assertEqual(self.c.get("/diagnostico").headers["Location"], "/pagar/diagnostico")
+        self.assertEqual(sitio._PAGOS["diagnostico"], "https://mpago.la/28ZgKho")  # $79.990
 
     def test_links_cortos_de_pago(self):
         for nombre, destino in sitio._PAGOS.items():
             with self.subTest(nombre=nombre):
                 r = self.c.get("/" + nombre)
                 self.assertEqual(r.status_code, 302)
-                self.assertEqual(r.headers["Location"], destino)
+                # Con formulario → /pagar/<producto> (queda registrado el pedido); sin él → directo a Mercado Pago.
+                con_formulario = nombre in sitio._productos_pago()
+                self.assertEqual(r.headers["Location"], f"/pagar/{nombre}" if con_formulario else destino)
                 self.assertRegex(destino, r"^https://mpago\.la/[0-9A-Za-z]+$")
         self.assertEqual(len(set(sitio._PAGOS.values())), len(sitio._PAGOS))
         # /presentar: Completo de 1 clase + tasa de presentación (tarifas.json), decisión de Salvador del 17-nov-2026.
         if TARIFAS.exists():
             tasas = json.loads(TARIFAS.read_text(encoding="utf-8"))["servicios"]["inapi"]["tasas_inapi"]
             self.assertEqual(sitio._PAGOS["presentar"], tasas["link_presentar_hoy_completo_1_clase"])
+        self.assertEqual(sitio._productos_pago()["presentar"]["monto"], catalogo.PRESENTAR_MARCA)
         # /revision solo existe cuando la revisión de marca es pagada (junto con el bot de marcas v3).
         self.assertEqual("revision" in sitio._PAGOS, catalogo.REVISION_PAGADA)
         if not catalogo.REVISION_PAGADA:

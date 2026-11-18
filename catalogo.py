@@ -298,6 +298,10 @@ SERVICIOS = (
 # Reserva de marca (tarifas.json → servicios.inapi.reserva): estudio formal y solicitud lista; se descuenta completa
 # del plan y hay 30 días para completar el saldo. Se paga con tarjeta en /pagar/reserva (app.py).
 RESERVA_MARCA = 49990
+# Registro Completo de 1 clase + tasa de presentación de INAPI (tarifas.json → tasas_inapi.presentar_hoy_completo_1_clase).
+# Cambia cada mes con la UTM (nov-2026: $72.440; dic-2026: $72.802): actualizar con el link nuevo de /presentar.
+PRESENTAR_MARCA = 220430
+WA_PRESENTAR_PAGADO = "Hola, quiero registrar mi marca. Ya pagué el registro en la página web y envío el comprobante."
 WA_RESERVA_PAGADA = "Hola, pagué la reserva del registro de marca en la página web y envío el comprobante."
 
 # La guía «Ruta RS» quedó retirada el 17-nov-2026 (no se vende nada que enseñe a hacer el trámite).

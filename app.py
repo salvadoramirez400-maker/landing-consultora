@@ -482,6 +482,10 @@ if catalogo.REVISION_PAGADA:   # la revisión pagada parte junto con el bot de m
 
 def _ruta_de_pago(nombre: str):
     def pago():
+        # Los productos con formulario pasan por /pagar/<producto>: así el pedido queda registrado (nombre, WhatsApp,
+        # marca) y Mercado Pago confirma el pago por el webhook. El resto sigue directo al link fijo.
+        if nombre in _productos_pago():
+            return redirect(f"/pagar/{nombre}", code=302)
         return redirect(_PAGOS[nombre], code=302)
     return pago
 
@@ -524,6 +528,20 @@ def _productos_pago() -> dict:
             "enlace_paso": ("/marcas/datos", "Completar los datos del titular"),
             "aviso": catalogo.rev("aviso_reserva"),
         },
+    }
+    productos["presentar"] = {
+        "clave": "presentar", "nombre": "Registro de marca · presentar hoy", "monto": catalogo.PRESENTAR_MARCA,
+        "linea": "marcas", "titulo": "Registro de marca, 1 clase · Consultoría Clínica Chile",
+        "resumen": "Registro Completo de 1 clase con la tasa de presentación de INAPI incluida. Si pagas antes de "
+                   "las 15:00 de un día hábil, presentamos tu solicitud ese mismo día.",
+        "campos": "marca", "etiqueta_marca": "Nombre de la marca que quieres registrar",
+        "volver": "/marcas#planes", "wa": catalogo.WA_PRESENTAR_PAGADO, "evento": "presentar-marca",
+        "boton_gracias": "Avisar por WhatsApp",
+        "pasos": ["Avísanos por WhatsApp con el botón de abajo.",
+                  "Completa los datos del titular de la marca: con eso preparamos tu solicitud.",
+                  "Si el pago llegó antes de las 15:00 de un día hábil, la presentamos ese mismo día; si no, el día "
+                  "hábil siguiente. Te avisamos en cada etapa."],
+        "enlace_paso": ("/marcas/datos", "Completar los datos del titular"),
     }
     if catalogo.REVISION_PAGADA:   # la revisión pagada parte junto con el bot de marcas v3 (catalogo.py)
         productos["revision"] = {

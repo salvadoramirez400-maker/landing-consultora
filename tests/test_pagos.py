@@ -231,6 +231,30 @@ class Pagos(unittest.TestCase):
         self.assertIn("Marca: Café Aurora", texto)
         self.assertIn('data-linea="marcas"', html)
 
+    def test_presentar_hoy_con_formulario(self):
+        """Los links cortos pasan por el registro: /presentar → /pagar/presentar → pedido → Mercado Pago."""
+        self.assertEqual(self.c.get("/presentar").headers["Location"], "/pagar/presentar")
+        html = self.c.get("/pagar/presentar").get_data(as_text=True)
+        self.assertIn("Nombre de la marca que quieres registrar", html)
+        self.assertIn("$220.430", html)
+        r = self.c.post("/pagar/presentar", data=self.RESERVA)
+        self.assertEqual((r.status_code, r.headers["Location"]), (303, sitio._PAGOS["presentar"]))
+        p = sitio.db.pedidos[-1]
+        self.assertEqual((p["producto"], p["monto"], p["marca"]), ("Registro de marca · presentar hoy", 220430, "Café Aurora"))
+        creados = []
+        self._con_mercado_pago()
+        mercadopago.crear_preferencia = lambda **k: creados.append(k) or {"id": "pref-4", "url": "https://www.mercadopago.cl/x"}
+        self.c.post("/pagar/presentar", data=self.RESERVA)
+        self.assertEqual((creados[0]["monto"], creados[0]["producto"]), (220430, "presentar"))
+        p = sitio.db.pedidos[-1]
+        mercadopago.consultar_pago = lambda pago_id: {"id": "999", "estado": "pagado", "ficha": p["ficha"], "monto": 220430}
+        html = self.c.get(f"/pago/gracias?pedido={p['ficha']}&payment_id=999").get_data(as_text=True)
+        self.assertIn("Tu pago quedó confirmado", html)
+        enlace = unescape(re.search(r'href="(https://wa\.me/[^"]+)"[^>]*data-wa="pago-gracias"', html).group(1))
+        texto = parse_qs(urlparse(enlace).query)["text"][0]
+        self.assertEqual(catalogo.revisar_texto(texto, "marcas"), [])
+        self.assertIn("Marca: Café Aurora", texto)
+
     @unittest.skipUnless(catalogo.REVISION_PAGADA, "la revisión de marca todavía es gratis")
     def test_revision_con_tarjeta(self):
         """/pagar/revision: $14.990, pide la marca, crea el cobro y vuelve con el texto que activa el bot de marcas."""
