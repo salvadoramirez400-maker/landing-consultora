@@ -56,7 +56,7 @@
   <section class="mk-sec" id="planes">
     <div class="mk-wrap">
       <h2 class="reveal">Elige tu plan</h2>
-      <p class="mk-lead reveal">En los planes Completo y PRO partes con la reserva de $49.990 (tarjeta, cuotas o transferencia) y pagas el saldo para presentar. Las tasas de INAPI van aparte.</p>
+      <p class="mk-lead reveal">En los planes Completo y PRO puedes abonar $49.990 para iniciar el trámite (tarjeta, cuotas o transferencia) o pagar el total, y completas el saldo para presentar. La tasa de INAPI va aparte.</p>
       <div class="mk-planes reveal" data-escalonar>
         {%- for p in planes %}
         <div class="mk-plan foco{% if p.recomendado %} top{% endif %}" data-inclinar>
@@ -79,8 +79,9 @@
       </div>
       <p class="mk-tasas">Tasas de INAPI aparte: 1 UTM por clase al presentar ($72.440) y 2 UTM por clase al aceptar ($144.880), más la publicación en el Diario Oficial. Clase adicional: $49.990. Te avisamos el monto exacto en cada etapa.</p>
       <div class="mk-reserva reveal">
-        <p><b>¿Prefieres partir de a poco? Reserva tu marca con $49.990.</b> Hacemos el estudio formal y dejamos tu solicitud lista; se descuenta completa del plan y tienes 30 días para completar el saldo.</p>
-        <a class="btn btn-outline-navy" href="/pagar/reserva" data-pago="reserva-marca" data-valor="49990" data-linea-pago="marcas">{{ icono_tarjeta(18) }}<span>Reservar con tarjeta</span></a>
+        <p><b>¿Prefieres partir con un abono? Abona $49.990 para iniciar el trámite.</b> Hacemos el estudio formal y dejamos tu solicitud lista. Tu registro en 1 clase: honorarios CCC $147.990 + tasa de INAPI (1 UTM) $72.440 = total $220.430. Con el abono, el saldo para presentar es $170.440 y tienes 30 días para completarlo. También puedes pagar el total ahora.</p>
+        <a class="btn btn-outline-navy" href="/pagar/reserva" data-pago="abono-marca" data-valor="49990" data-linea-pago="marcas">{{ icono_tarjeta(18) }}<span>Abonar con tarjeta</span></a>
+        <a class="btn btn-primary" href="/pagar/presentar" data-pago="presentar-marca" data-valor="220430" data-linea-pago="marcas">{{ icono_tarjeta(18) }}<span>Pagar el total</span></a>
       </div>
       <div class="mk-garantia reveal">
         <div class="mk-sello" aria-hidden="true">®</div>
@@ -94,8 +95,8 @@
       <h2 class="reveal">Cómo funciona</h2>
       <p class="mk-lead reveal">Unos 5 meses de principio a fin si nadie se opone. Tú no tienes que estar revisando INAPI: te avisamos nosotros.</p>
       <div class="mk-pasos" data-linea-tiempo>
-        <div class="mk-paso"><b>{{ rev("paso_etiqueta") }}</b><h3>Revisamos tu marca</h3><p>{{ rev("paso_texto") }}</p></div>
-        <div class="mk-paso"><b>Paso 2</b><h3>Eliges tu plan</h3><p>Pagas o reservas con $49.990 y completas una ficha corta. Con Hazlo Tú te acompañamos para que la presentes tú.</p></div>
+        <div class="mk-paso"><b>{{ rev("paso_etiqueta") }}</b><h3>Evaluamos tu marca</h3><p>{{ rev("paso_texto") }}</p></div>
+        <div class="mk-paso"><b>Paso 2</b><h3>Eliges tu plan</h3><p>Abonas $49.990 o pagas el total, y completas una ficha corta. Con Hazlo Tú te acompañamos para que la presentes tú.</p></div>
         <div class="mk-paso"><b>Paso 3</b><h3>Presentamos</h3><p>Con los planes Completo y PRO, si pagas antes de las 15:00, presentamos tu solicitud en INAPI ese mismo día hábil.</p></div>
         <div class="mk-paso"><b>Paso 4</b><h3>Tu marca registrada</h3><p>Te avisamos en cada etapa hasta que tienes el registro.</p></div>
       </div>

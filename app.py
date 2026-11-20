@@ -360,9 +360,9 @@ def marcas():
         faq=catalogo.faq_marcas(),
         wa_revisar=catalogo.WA_MARCAS,
         wa_pagina=_wa_pagina("marcas"),
-        anuncio={"id": "reserva-2026-11", "etiqueta": "Reserva tu marca",
-                 "texto": "Con $49.990 dejamos tu solicitud lista y se descuenta completa del plan.",
-                 "corto": "Reserva tu marca con $49.990",
+        anuncio={"id": "abono-2026-11", "etiqueta": "Abona para partir",
+                 "texto": "Abona $49.990 para iniciar el trámite: dejamos tu solicitud lista y se descuenta del total.",
+                 "corto": "Abona $49.990 y partimos",
                  "href": "#planes", "linea": ""},
         teaser=_teaser("marcas"),
         og_imagen="img/og-marcas.jpg",
@@ -459,7 +459,7 @@ def api_marcas_titular_procesado(titular_id):
 # Fuente y montos: consultoria-clinica-chile/docs/ventas/mercado-pago-links.md. Cada uno se verificó el 17-nov-2026:
 # la página de pago muestra el monto anotado. /presentar cambia cada mes con la UTM: aquí se cambia su destino.
 _PAGOS = {
-    "reserva": "https://mpago.la/1vm2Q8g",            # reserva de marca, $49.990
+    "reserva": "https://mpago.la/1vm2Q8g",            # abono para iniciar el trámite de marca, $49.990 (también /abono)
     "diagnostico": "https://mpago.la/28ZgKho",        # diagnóstico sanitario express, $79.990 (antes mpago.la/1FLwLEL, $49.990)
     "kit": "https://mpago.la/1PmthvM",                # Kit Documental, $169.990
     "preauditoria": "https://mpago.la/1HUE5Qe",       # Pre-auditoría Remota, $149.990
@@ -476,8 +476,17 @@ _PAGOS = {
     # Salvador, 17-nov-2026 («soluciona ambos»). En diciembre la UTM es $72.802: link nuevo y monto nuevo.
     "presentar": "https://mpago.la/2hgTYGw",          # Registro de marca, 1 clase, $220.430
 }
-if catalogo.REVISION_PAGADA:   # la revisión pagada parte junto con el bot de marcas v3 (catalogo.py)
-    _PAGOS["revision"] = catalogo.REVISION_PAGO   # Revisión de marca, $14.990
+
+
+@app.route("/abono")
+def pago_abono():
+    return redirect("/pagar/reserva", code=302)
+
+
+@app.route("/revision")
+def revision_retirada():
+    """La revisión de marca de $14.990 se retiró el 20-nov-2026: los links viejos llevan a /marcas."""
+    return redirect("/marcas", code=302)
 
 
 def _ruta_de_pago(nombre: str):
@@ -514,17 +523,21 @@ def _productos_pago() -> dict:
                       f"Te entregamos el diagnóstico en {diag.plazo[0].lower()}{diag.plazo[1:]}"],
         },
         "reserva": {
-            "clave": "reserva", "nombre": "Reserva de marca", "monto": catalogo.RESERVA_MARCA, "linea": "marcas",
-            "titulo": "Reserva de registro de marca · Consultoría Clínica Chile",
-            "resumen": "Hacemos el estudio formal y dejamos tu solicitud lista. Se descuenta completa del plan y "
-                       "tienes 30 días para completar el saldo.",
-            "campos": "marca", "etiqueta_marca": "Nombre de la marca que quieres reservar",
-            "volver": "/marcas#planes", "wa": catalogo.WA_RESERVA_PAGADA, "evento": "reserva-marca",
+            "clave": "reserva", "nombre": "Abono para iniciar el trámite de marca", "monto": catalogo.RESERVA_MARCA,
+            "nombre_pedido": "Reserva de marca",   # lo que guarda el pedido y reconoce el Centro CCC: no cambiar
+            "linea": "marcas",
+            "titulo": "Abono para iniciar el registro de marca · Consultoría Clínica Chile",
+            "resumen": "Hacemos el estudio formal y dejamos tu solicitud lista. "
+                       f"Honorarios CCC {clp(catalogo.HONORARIOS_MARCA)} + tasa de INAPI (1 UTM) "
+                       f"{clp(catalogo.TASA_INAPI_MARCA)} = total {clp(catalogo.PRESENTAR_MARCA)}. Con este abono el saldo "
+                       f"para presentar es {clp(catalogo.SALDO_MARCA)}; tienes 30 días para completarlo.",
+            "campos": "marca", "etiqueta_marca": "Nombre de la marca que quieres registrar",
+            "volver": "/marcas#planes", "wa": catalogo.WA_RESERVA_PAGADA, "evento": "abono-marca",
             "boton_gracias": "Avisar por WhatsApp",
             "pasos": ["Avísanos por WhatsApp con el botón de abajo.",
                       "Completa los datos del titular de la marca: con eso preparamos la solicitud y el poder simple.",
                       "Hacemos el estudio formal (clases y riesgo) y dejamos tu solicitud lista. Tienes 30 días para "
-                      "completar el saldo del plan; la reserva sola no presenta la marca."],
+                      "completar el saldo; el abono solo no presenta la marca."],
             "enlace_paso": ("/marcas/datos", "Completar los datos del titular"),
             "aviso": catalogo.rev("aviso_reserva"),
         },
@@ -532,7 +545,8 @@ def _productos_pago() -> dict:
     productos["presentar"] = {
         "clave": "presentar", "nombre": "Registro de marca · presentar hoy", "monto": catalogo.PRESENTAR_MARCA,
         "linea": "marcas", "titulo": "Registro de marca, 1 clase · Consultoría Clínica Chile",
-        "resumen": "Registro Completo de 1 clase con la tasa de presentación de INAPI incluida. Si pagas antes de "
+        "resumen": f"Registro Completo de 1 clase: honorarios CCC {clp(catalogo.HONORARIOS_MARCA)} + tasa de INAPI "
+                   f"(1 UTM) {clp(catalogo.TASA_INAPI_MARCA)} = total {clp(catalogo.PRESENTAR_MARCA)}. Si pagas antes de "
                    "las 15:00 de un día hábil, presentamos tu solicitud ese mismo día.",
         "campos": "marca", "etiqueta_marca": "Nombre de la marca que quieres registrar",
         "volver": "/marcas#planes", "wa": catalogo.WA_PRESENTAR_PAGADO, "evento": "presentar-marca",
@@ -543,20 +557,6 @@ def _productos_pago() -> dict:
                   "hábil siguiente. Te avisamos en cada etapa."],
         "enlace_paso": ("/marcas/datos", "Completar los datos del titular"),
     }
-    if catalogo.REVISION_PAGADA:   # la revisión pagada parte junto con el bot de marcas v3 (catalogo.py)
-        productos["revision"] = {
-            "clave": "revision", "nombre": "Revisión de marca", "monto": catalogo.REVISION_MARCA, "linea": "marcas",
-            "titulo": "Revisión de marca · Consultoría Clínica Chile",
-            "resumen": "Recibes el informe de tu marca el mismo día hábil si pagas antes de las 15:00. "
-                       "Se descuenta del plan si registras dentro de 30 días.",
-            "campos": "marca", "etiqueta_marca": "Nombre de la marca que quieres revisar",
-            "volver": "/marcas", "wa": catalogo.WA_REVISION_PAGADA, "evento": "revision-marca",
-            "boton_gracias": "Avisar por WhatsApp",
-            "pasos": ["Avísanos por WhatsApp con el botón de abajo.",
-                      "Cuéntanos qué vendes o vas a vender con esa marca.",
-                      "Recibes el informe de tu marca el mismo día hábil si pagaste antes de las 15:00; si no, el día "
-                      "hábil siguiente. Lo que pagaste se descuenta del plan si registras dentro de 30 días."],
-        }
     return productos
 
 
@@ -636,7 +636,7 @@ def pagar(producto):
     ficha = secrets.token_urlsafe(12)
     guardado = True
     try:
-        db.insert_pedido(ficha, prod["nombre"], prod["monto"], f["nombre"], f["telefono"], f["tipo"], f["comuna"], f["marca"])
+        db.insert_pedido(ficha, prod.get("nombre_pedido", prod["nombre"]), prod["monto"], f["nombre"], f["telefono"], f["tipo"], f["comuna"], f["marca"])
     except Exception:   # si la base falla, no se pierde la venta: igual sigue al pago
         guardado = False
         app.logger.exception("No se pudo guardar el pedido")
@@ -666,7 +666,7 @@ def pago_gracias():
     except Exception:
         app.logger.exception("No se pudo leer el pedido")
     productos = _productos_pago()
-    prod = next((v for v in productos.values() if pedido and v["nombre"] == pedido["producto"]), productos["diagnostico"])
+    prod = next((v for v in productos.values() if pedido and v.get("nombre_pedido", v["nombre"]) == pedido["producto"]), productos["diagnostico"])
     return render_template("pago_gracias.html", config=_config(), pedido=pedido, prod=prod,
                            estado=(pedido or {}).get("estado", "desconocido"), wa_pagina=_wa_pagina(prod["linea"]),
                            wa=catalogo.wa_link(_wa_pago(pedido, prod)))

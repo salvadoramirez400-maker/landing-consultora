@@ -81,11 +81,12 @@ WA_RS_FORMULARIO = "Hola, vengo de la página web. Quiero información sobre la 
 WA_OTROS = "Hola, vengo de la página web. Quiero asesoría para mi centro de salud."
 WA_MARCAS = "Hola, quiero revisar mi marca"
 
-# --- Revisión de marca: gratis hoy, $14.990 con el bot de marcas v3 ---
+# --- Revisión de marca: DESDE EL 20-NOV-2026 YA NO SE VENDE (ni se ofrece gratis): el sitio lleva a registrar la marca ---
+# (el primer texto de cada par es el vigente; el segundo era la revisión pagada de $14.990 y queda sin uso.)
 # tarifas.json → servicios.inapi.revision_marca. Web y bot cambian juntos: poner REVISION_PAGADA = True SOLO cuando
 # «CCC - general» avise que el bot de marcas v3 está activo en SendPulse. Con eso cambian todos los textos de abajo
 # y aparece consultoriaclinica.cl/revision (app.py). Los anuncios de Meta se cambian aparte.
-REVISION_PAGADA = True
+REVISION_PAGADA = False   # 20-nov-2026 (Salvador): ya no se vende la revisión de $14.990; /revision lleva a /marcas
 REVISION_MARCA = 14990
 REVISION_PAGO = "https://mpago.la/2fVhWTT"   # verificado el 17-nov-2026: la página de pago muestra $14.990
 _REV_PRECIO = "$" + f"{REVISION_MARCA:,}".replace(",", ".")
@@ -93,39 +94,36 @@ _REV_DESCUENTO = "se descuenta del plan si registras dentro de 30 días"
 
 # clave → (texto con la revisión gratis, texto con la revisión pagada)
 REVISION_TEXTOS = {
-    "boton": ("Revisar gratis", "Revisar mi marca"),
-    "boton_largo": ("Revisar mi marca gratis", "Revisar mi marca"),
-    "enlace": ("Revisa tu marca gratis por WhatsApp", "Revisa tu marca por WhatsApp"),
-    "pregunta": ("¿Revisamos gratis si tu marca está disponible?", "¿Revisamos si tu marca está disponible?"),
-    "incluye": ("Revisión gratis de disponibilidad, por WhatsApp",
+    "boton": ("Registrar mi marca", "Revisar mi marca"),
+    "boton_largo": ("Registrar mi marca", "Revisar mi marca"),
+    "enlace": ("Registra tu marca por WhatsApp", "Revisa tu marca por WhatsApp"),
+    "pregunta": ("¿Cómo se llama la marca que quieres registrar?", "¿Revisamos si tu marca está disponible?"),
+    "incluye": ("Evaluación de disponibilidad de tu marca, por WhatsApp",
                 f"Revisión de tu marca con informe ({_REV_PRECIO}, descontable del plan)"),
-    "descripcion": ("Revisamos gratis si el nombre de tu marca está disponible y lo registramos en INAPI por ti.",
+    "descripcion": ("Evaluamos si el nombre de tu marca está disponible y la registramos en INAPI por ti.",
                     f"Revisamos si el nombre de tu marca está disponible ({_REV_PRECIO}, descontable del plan) y lo "
                     "registramos en INAPI por ti."),
-    "og": ("Revisión gratis de tu marca y registro en INAPI desde $79.990.",
+    "og": ("Registro de tu marca en INAPI desde $79.990, con aviso en cada etapa.",
            f"Revisión de tu marca por {_REV_PRECIO}, descontable del plan, y registro en INAPI desde $79.990."),
-    "insignia": ("Revisión gratis en menos de 24 horas hábiles", "Informe de tu marca el mismo día hábil"),
-    "heroe": ("Revisamos gratis si tu marca está disponible y la registramos en INAPI por ti. Sin papeleo, en simple "
+    "insignia": ("Registro en INAPI con aviso en cada etapa", "Informe de tu marca el mismo día hábil"),
+    "heroe": ("Te decimos si tu marca está disponible y la registramos en INAPI por ti. Sin papeleo, en simple "
               "y con aviso en cada etapa.",
               f"Revisamos si tu marca está disponible y la registramos en INAPI por ti. La revisión cuesta "
               f"{_REV_PRECIO} y {_REV_DESCUENTO}."),
-    "paso_etiqueta": ("Paso 1 · Gratis", f"Paso 1 · {_REV_PRECIO}"),
+    "paso_etiqueta": ("Paso 1", f"Paso 1 · {_REV_PRECIO}"),
     "paso_texto": ("Te decimos si está disponible y en qué clases conviene registrarla.",
                    "Recibes el informe de tu marca el mismo día hábil si pagas antes de las 15:00. "
                    f"Lo que pagas {_REV_DESCUENTO}."),
-    "cierre": ("Escríbelo y te decimos gratis si está disponible.",
+    "cierre": ("Escríbelo y te decimos si está disponible.",
                f"Escríbelo y revisamos si está disponible. La revisión cuesta {_REV_PRECIO} y {_REV_DESCUENTO}."),
-    "puerta": ("Revisamos gratis si tu marca está disponible y la registramos por ti.",
+    "puerta": ("Evaluamos si tu marca está disponible y la registramos por ti.",
                "Revisamos si tu marca está disponible y la registramos por ti."),
-    "seccion": ("Revisamos gratis si tu nombre está disponible y lo registramos por ti, para cualquier rubro.",
+    "seccion": ("Evaluamos si tu nombre está disponible y lo registramos por ti, para cualquier rubro.",
                 "Revisamos si tu nombre está disponible y lo registramos por ti, para cualquier rubro."),
-    "seccion_paso": ("Revisamos gratis tu marca y te decimos en qué clases conviene registrarla.",
+    "seccion_paso": ("Evaluamos tu marca y te decimos en qué clases conviene registrarla.",
                      f"Revisamos tu marca por {_REV_PRECIO}: lo que pagas {_REV_DESCUENTO}."),
-    "aviso_reserva": ("¿Todavía no revisamos tu marca? Pide primero la revisión gratis: te decimos si está disponible "
-                      "antes de que pagues.",
-                      f"¿Todavía no revisamos tu marca? Pide primero la revisión ({_REV_PRECIO}, descontable del "
-                      "plan): sabes si está disponible antes de reservar."),
-    "faq_clases": ("Te la decimos en la revisión gratis.", "Te la decimos en la revisión de tu marca."),
+    "aviso_reserva": ("", ""),
+    "faq_clases": ("Te la decimos al evaluar tu marca.", "Te la decimos en la revisión de tu marca."),
     # Enlace al pago con tarjeta de la revisión (/pagar/revision, app.py). Vacío mientras sea gratis.
     "pago_enlace": ("", "o pagar la revisión con tarjeta ahora"),
 }
@@ -295,14 +293,19 @@ SERVICIOS = (
     ),
 )
 
-# Reserva de marca (tarifas.json → servicios.inapi.reserva): estudio formal y solicitud lista; se descuenta completa
-# del plan y hay 30 días para completar el saldo. Se paga con tarjeta en /pagar/reserva (app.py).
+# Abono para iniciar el trámite (tarifas.json → servicios.inapi.reserva; desde el 20-nov-2026 ya no se dice «reserva»):
+# estudio formal y solicitud lista; se descuenta completo y hay 30 días para completar el saldo. Se paga con tarjeta en
+# /pagar/reserva (también /reserva y /abono; la clave interna sigue siendo «reserva» y el pedido «Reserva de marca»,
+# que es lo que reconoce el Centro CCC). Toda oferta, cobro o saldo va con desglose: honorarios + tasa = total.
 RESERVA_MARCA = 49990
+HONORARIOS_MARCA = 147990   # Registro Completo (tarifas.json)
+TASA_INAPI_MARCA = 72440    # 1 UTM, presentación (nov-2026). La 2.ª tasa (2 UTM al aceptarse) no va en el desglose.
+SALDO_MARCA = 170440        # total - abono
 # Registro Completo de 1 clase + tasa de presentación de INAPI (tarifas.json → tasas_inapi.presentar_hoy_completo_1_clase).
 # Cambia cada mes con la UTM (nov-2026: $72.440; dic-2026: $72.802): actualizar con el link nuevo de /presentar.
-PRESENTAR_MARCA = 220430
+PRESENTAR_MARCA = HONORARIOS_MARCA + TASA_INAPI_MARCA   # $220.430 con la UTM de nov-2026
 WA_PRESENTAR_PAGADO = "Hola, quiero registrar mi marca. Ya pagué el registro en la página web y envío el comprobante."
-WA_RESERVA_PAGADA = "Hola, pagué la reserva del registro de marca en la página web y envío el comprobante."
+WA_RESERVA_PAGADA = "Hola, pagué el abono del registro de marca en la página web y envío el comprobante."
 
 # La guía «Ruta RS» quedó retirada el 17-nov-2026 (no se vende nada que enseñe a hacer el trámite).
 # Productos en preparación: NO se muestran. Precios aprobados el 17-nov-2026 (tarifas.json → servicios.*);
@@ -558,14 +561,15 @@ FAQ_MARCAS = (
      "El tuyo, sí. El de otra persona, solo con su consentimiento (Ley 19.039, art. 20). Si la marca lleva el "
      "apellido de un socio, conviene dejarlo por escrito."),
     ("¿En qué clase registro mi marca?",
-     "Depende de lo que vendes, y elegirla bien define qué protege tu marca. Te la decimos en la "
-     "revisión gratis."),
+     "Depende de lo que vendes, y elegirla bien define qué protege tu marca. Te la decimos al "
+     "evaluar tu marca."),
     ("¿Qué pasa si INAPI la rechaza?",
      "Con los planes Completo y PRO aplica la garantía de reintento: la presentamos de nuevo sin cobrarte "
      "honorarios. Las tasas de INAPI del reintento las paga el titular. El plan Hazlo Tú no incluye el reintento."),
-    ("¿Puedo reservar mi marca sin pagar todo?",
-     "Sí. Con $49.990 reservas tu marca: hacemos el estudio formal y dejamos la solicitud lista. Ese monto se "
-     "descuenta completo del plan y tienes 30 días para completar el saldo."),
+    ("¿Puedo partir con un abono?",
+     "Sí. Con $49.990 iniciamos el trámite: hacemos el estudio formal y dejamos tu solicitud lista. Tu registro en "
+     "1 clase: honorarios CCC $147.990 + tasa de INAPI (1 UTM) $72.440 = total $220.430. Con el abono, el saldo "
+     "para presentar es $170.440 y tienes 30 días para completarlo. También puedes pagar el total ahora."),
     ("¿Ustedes son parte de INAPI?",
      "No. Somos una consultora privada: preparamos y presentamos tu solicitud ante INAPI y hacemos el seguimiento "
      "por ti."),
