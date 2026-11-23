@@ -94,6 +94,7 @@ _FUENTES_CSS = _fuentes_css()
 def _contexto_sitio() -> dict:
     """Valores comunes. Una ruta puede reemplazarlos pasando la misma clave a render_template."""
     return {
+        "black": catalogo.black(),
         "sitio": {
             "marca": MARCA,
             "url": SITIO_URL,
@@ -224,7 +225,7 @@ def _jsonld_marcas() -> dict:
          "serviceType": "Registro de marca comercial", "url": f"{SITIO_URL}/marcas",
          "provider": {"@id": f"{SITIO_URL}/#organizacion"}, "areaServed": {"@type": "Country", "name": "Chile"},
          "offers": [{"@type": "Offer", "name": p.nombre, "price": p.precio, "priceCurrency": "CLP"}
-                    for p in catalogo.PLANES_MARCA]},
+                    for p in catalogo.planes_marca()]},
         _faq_schema(catalogo.faq_marcas(), f"{SITIO_URL}/marcas#preguntas"),
     ]}
 
@@ -325,6 +326,18 @@ def _teaser(linea: str) -> dict:
     return {"mensaje": "Hola. ¿En qué te ayudamos?", "opciones": [rs, marcas]}
 
 
+def _anuncio_black(desde_portada: bool = False) -> dict | None:
+    """Banda superior de Black Friday (portada y /marcas) mientras la promoción está vigente."""
+    b = catalogo.black()
+    if not b:
+        return None
+    return {"id": b["id"], "etiqueta": "Black Friday",
+            "texto": f"Registro de marca Completo a {clp(b['honorarios'])} (habitual {clp(b['habitual'])}) hasta el "
+                     f"{b['termina']}. Tasas de INAPI aparte.",
+            "corto": f"Registro de marca a {clp(b['honorarios'])} hasta el 30-nov",
+            "href": "/marcas#planes" if desde_portada else "#planes", "linea": ""}
+
+
 @app.route("/")
 def index():
     """Portada. Los textos viven en catalogo.py y templates/index.html, no en la base (site_content)."""
@@ -341,7 +354,7 @@ def index():
         wa_otros=catalogo.wa_link(catalogo.WA_OTROS),
         wa_pagina=_wa_pagina("rs", con_cambio=True),
         sumario=catalogo.servicio("sumario"),
-        anuncio={"id": "diagnostico-2026-11b", "etiqueta": "Diagnóstico express",
+        anuncio=_anuncio_black(desde_portada=True) or {"id": "diagnostico-2026-11b", "etiqueta": "Diagnóstico express",
                  "texto": "En 3 a 5 horas hábiles sabes qué autorizaciones necesita tu local.",
                  "corto": "Tu diagnóstico en 3 a 5 horas hábiles",
                  "href": catalogo.servicio("diagnostico-express").whatsapp_url, "linea": "rs"},
@@ -355,12 +368,14 @@ def marcas():
     return render_template(
         "marcas.html",
         config=_config(),
-        planes=catalogo.PLANES_MARCA,
+        planes=catalogo.planes_marca(),
         marca=catalogo.servicio("registro-marca"),
         faq=catalogo.faq_marcas(),
         wa_revisar=catalogo.WA_MARCAS,
+        desglose={"honorarios": catalogo.honorarios_marca(), "tasa": catalogo.TASA_INAPI_MARCA,
+                  "total": catalogo.presentar_marca(), "saldo": catalogo.saldo_marca(), "abono": catalogo.RESERVA_MARCA},
         wa_pagina=_wa_pagina("marcas"),
-        anuncio={"id": "abono-2026-11", "etiqueta": "Abona para partir",
+        anuncio=_anuncio_black() or {"id": "abono-2026-11", "etiqueta": "Abona para partir",
                  "texto": "Abona $49.990 para iniciar el trámite: dejamos tu solicitud lista y se descuenta del total.",
                  "corto": "Abona $49.990 y partimos",
                  "href": "#planes", "linea": ""},
@@ -475,7 +490,24 @@ _PAGOS = {
     # Registro Completo de 1 clase + tasa de presentación de INAPI, con la UTM de noviembre de 2026 ($72.440).
     # Salvador, 17-nov-2026 («soluciona ambos»). En diciembre la UTM es $72.802: link nuevo y monto nuevo.
     "presentar": "https://mpago.la/2hgTYGw",          # Registro de marca, 1 clase, $220.430
+    # Black Friday 2026 (23 al 30-nov): Completo $109.990 + tasa $72.440. Links creados por la API de Mercado Pago el
+    # 23-nov-2026, vencen solos el 1-dic a las 00:00 (referencias CCC-MARCA-PRESENTAR-BLACK y CCC-MARCA-SALDO-BLACK).
+    "presentar-black": "https://www.mercadopago.cl/checkout/v1/redirect?pref_id=174805633-25daa3e9-958b-44b8-987a-01b7fd6b82aa",   # $182.430
+    "saldo-black": "https://www.mercadopago.cl/checkout/v1/redirect?pref_id=174805633-a6fbae19-3b1b-4f35-af36-4ada484fcfc4",       # $132.440
 }
+
+
+def _pago_fijo(nombre: str) -> str:
+    """Link de pago fijo de un producto. En Black Friday, el total de la marca usa el link con el precio Black."""
+    if nombre == "presentar" and catalogo.black_activo():
+        return _PAGOS["presentar-black"]
+    return _PAGOS[nombre]
+
+
+@app.route("/black")
+def black_friday():
+    """Link corto de la campaña: lleva a los planes de /marcas (con o sin promoción vigente)."""
+    return redirect("/marcas#planes", code=302)
 
 
 @app.route("/abono")
@@ -495,7 +527,9 @@ def _ruta_de_pago(nombre: str):
         # marca) y Mercado Pago confirma el pago por el webhook. El resto sigue directo al link fijo.
         if nombre in _productos_pago():
             return redirect(f"/pagar/{nombre}", code=302)
-        return redirect(_PAGOS[nombre], code=302)
+        if nombre.endswith("-black") and not catalogo.black_activo():
+            return redirect("/marcas#planes", code=302)   # la promoción terminó: el link viejo lleva a los planes
+        return redirect(_pago_fijo(nombre), code=302)
     return pago
 
 
@@ -528,9 +562,9 @@ def _productos_pago() -> dict:
             "linea": "marcas",
             "titulo": "Abono para iniciar el registro de marca · Consultoría Clínica Chile",
             "resumen": "Hacemos el estudio formal y dejamos tu solicitud lista. "
-                       f"Honorarios CCC {clp(catalogo.HONORARIOS_MARCA)} + tasa de INAPI (1 UTM) "
-                       f"{clp(catalogo.TASA_INAPI_MARCA)} = total {clp(catalogo.PRESENTAR_MARCA)}. Con este abono el saldo "
-                       f"para presentar es {clp(catalogo.SALDO_MARCA)}; tienes 30 días para completarlo.",
+                       f"Honorarios CCC {clp(catalogo.honorarios_marca())} + tasa de INAPI (1 UTM) "
+                       f"{clp(catalogo.TASA_INAPI_MARCA)} = total {clp(catalogo.presentar_marca())}. Con este abono el saldo "
+                       f"para presentar es {clp(catalogo.saldo_marca())}; tienes 30 días para completarlo.",
             "campos": "marca", "etiqueta_marca": "Nombre de la marca que quieres registrar",
             "volver": "/marcas#planes", "wa": catalogo.WA_RESERVA_PAGADA, "evento": "abono-marca",
             "boton_gracias": "Avisar por WhatsApp",
@@ -543,10 +577,10 @@ def _productos_pago() -> dict:
         },
     }
     productos["presentar"] = {
-        "clave": "presentar", "nombre": "Registro de marca · presentar hoy", "monto": catalogo.PRESENTAR_MARCA,
+        "clave": "presentar", "nombre": "Registro de marca · presentar hoy", "monto": catalogo.presentar_marca(),
         "linea": "marcas", "titulo": "Registro de marca, 1 clase · Consultoría Clínica Chile",
-        "resumen": f"Registro Completo de 1 clase: honorarios CCC {clp(catalogo.HONORARIOS_MARCA)} + tasa de INAPI "
-                   f"(1 UTM) {clp(catalogo.TASA_INAPI_MARCA)} = total {clp(catalogo.PRESENTAR_MARCA)}. Si pagas antes de "
+        "resumen": f"Registro Completo de 1 clase: honorarios CCC {clp(catalogo.honorarios_marca())} + tasa de INAPI "
+                   f"(1 UTM) {clp(catalogo.TASA_INAPI_MARCA)} = total {clp(catalogo.presentar_marca())}. Si pagas antes de "
                    "las 15:00 de un día hábil, presentamos tu solicitud ese mismo día.",
         "campos": "marca", "etiqueta_marca": "Nombre de la marca que quieres registrar",
         "volver": "/marcas#planes", "wa": catalogo.WA_PRESENTAR_PAGADO, "evento": "presentar-marca",
@@ -648,7 +682,7 @@ def pagar(producto):
             return redirect(pref["url"], code=303)
         except Exception:
             app.logger.exception("Mercado Pago no creó el cobro: se usa el link de pago fijo")
-    return redirect(_PAGOS[producto], code=303)
+    return redirect(_pago_fijo(producto), code=303)
 
 
 @app.route("/pago/gracias")

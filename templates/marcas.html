@@ -28,7 +28,11 @@
     {#- Símbolos ® flotando: decorativos. -#}
     <div class="mk-flotan" aria-hidden="true"><i>®</i><i>®</i><i>™</i><i>®</i></div>
     <div class="mk-wrap">
+      {% if black -%}
+      <a class="mk-black-chip entra" style="--i:0" href="#planes"><b>BLACK FRIDAY</b> Registro Completo a {{ black.honorarios|clp }} · hasta el {{ black.termina }}</a>
+      {%- else -%}
       <span class="mk-badge entra" style="--i:0">{{ rev("insignia") }}</span>
+      {%- endif %}
       <h1><span class="w" style="--i:1">Si</span> <span class="w" style="--i:2">tu</span> <span class="w" style="--i:3">marca</span> <span class="w" style="--i:4">no</span> <span class="w" style="--i:5">está</span> <span class="w" style="--i:6">registrada,</span> <em><span class="w" style="--i:8">no</span> <span class="w" style="--i:9">es</span> <span class="w" style="--i:10">tuya.</span></em></h1>
       <p class="mk-sub entra" style="--i:9">{{ rev("heroe") }}</p>
       <form class="mk-buscador entra" style="--i:11" data-revisar data-texto="{{ wa_revisar }}" data-whatsapp="{{ ''|wa }}">
@@ -55,6 +59,20 @@
 
   <section class="mk-sec" id="planes">
     <div class="mk-wrap">
+      {% if black -%}
+      <div class="mk-black reveal" data-black-hasta="{{ black.hasta_iso }}">
+        <div class="mk-black-texto">
+          <span class="mk-black-etq">BLACK FRIDAY · {{ black.descuento }}% MENOS</span>
+          <h2>Registro Completo a {{ black.honorarios|clp }}</h2>
+          <p>Precio habitual {{ black.habitual|clp }}. Termina el {{ black.termina }} a las 23:59.</p>
+        </div>
+        <div class="mk-black-reloj" aria-label="Tiempo que queda de la promoción">
+          <div><b data-black="d">–</b><span>días</span></div>
+          <div><b data-black="h">–</b><span>horas</span></div>
+          <div><b data-black="m">–</b><span>min</span></div>
+        </div>
+      </div>
+      {%- endif %}
       <h2 class="reveal">Elige tu plan</h2>
       <p class="mk-lead reveal">En los planes Completo y PRO puedes abonar $49.990 para iniciar el trámite (tarjeta, cuotas o transferencia) o pagar el total, y completas el saldo para presentar. La tasa de INAPI va aparte.</p>
       <div class="mk-planes reveal" data-escalonar>
@@ -65,6 +83,9 @@
           {%- endif %}
           <h3>{{ p.nombre }}</h3>
           <p class="mk-lema">{{ p.lema }}</p>
+          {%- if p.precio_tachado %}
+          <div class="mk-antes"><s>{{ p.precio_tachado|clp }}</s><span>BLACK FRIDAY · −{{ black.descuento if black else '' }}%</span></div>
+          {%- endif %}
           <div class="mk-precio">{{ p.precio|clp }}<small>+ TASAS DE INAPI</small></div>
           <ul>
             {%- for item in p.incluye %}
@@ -77,11 +98,12 @@
         </div>
         {%- endfor %}
       </div>
+      {% if black %}<p class="mk-tasas mk-legal-black">{{ black.legal }} Los planes PRO y Hazlo Tú mantienen su precio.</p>{% endif %}
       <p class="mk-tasas">Tasas de INAPI aparte: 1 UTM por clase al presentar ($72.440) y 2 UTM por clase al aceptar ($144.880), más la publicación en el Diario Oficial. Clase adicional: $49.990. Te avisamos el monto exacto en cada etapa.</p>
       <div class="mk-reserva reveal">
-        <p><b>¿Prefieres partir con un abono? Abona $49.990 para iniciar el trámite.</b> Hacemos el estudio formal y dejamos tu solicitud lista. Tu registro en 1 clase: honorarios CCC $147.990 + tasa de INAPI (1 UTM) $72.440 = total $220.430. Con el abono, el saldo para presentar es $170.440 y tienes 30 días para completarlo. También puedes pagar el total ahora.</p>
+        <p><b>¿Prefieres partir con un abono? Abona $49.990 para iniciar el trámite.</b> Hacemos el estudio formal y dejamos tu solicitud lista. Tu registro en 1 clase: honorarios CCC {{ desglose.honorarios|clp }} + tasa de INAPI (1 UTM) {{ desglose.tasa|clp }} = total {{ desglose.total|clp }}. Con el abono, el saldo para presentar es {{ desglose.saldo|clp }} y tienes 30 días para completarlo. También puedes pagar el total ahora.{% if black %} {{ black.legal }}{% endif %}</p>
         <a class="btn btn-outline-navy" href="/pagar/reserva" data-pago="abono-marca" data-valor="49990" data-linea-pago="marcas">{{ icono_tarjeta(18) }}<span>Abonar con tarjeta</span></a>
-        <a class="btn btn-primary" href="/pagar/presentar" data-pago="presentar-marca" data-valor="220430" data-linea-pago="marcas">{{ icono_tarjeta(18) }}<span>Pagar el total</span></a>
+        <a class="btn btn-primary" href="/pagar/presentar" data-pago="presentar-marca" data-valor="{{ desglose.total }}" data-linea-pago="marcas">{{ icono_tarjeta(18) }}<span>Pagar el total</span></a>
       </div>
       <div class="mk-garantia reveal">
         <div class="mk-sello" aria-hidden="true">®</div>
@@ -142,6 +164,23 @@
       <p class="mk-fuentes">Tasas según inapi.cl, al valor de la UTM de noviembre de 2026 ($72.440). Multa: Ley 19.039, art. 28 (25 a 1.000 UTM). Volumen de solicitudes: INAPI, enero a julio de 2026.</p>
     </div>
   </section>
+{% endblock %}
+
+{% block scripts %}
+{%- if black %}
+<script>
+(function () {
+  var caja = document.querySelector('[data-black-hasta]'); if (!caja) return;
+  var fin = new Date(caja.getAttribute('data-black-hasta')).getTime();
+  function pinta() {
+    var q = Math.max(0, fin - Date.now()), d = Math.floor(q / 864e5), h = Math.floor(q % 864e5 / 36e5), m = Math.floor(q % 36e5 / 6e4);
+    var v = { d: d, h: h, m: m };
+    Object.keys(v).forEach(function (k) { var e = caja.querySelector('[data-black="' + k + '"]'); if (e) e.textContent = v[k]; });
+  }
+  pinta(); setInterval(pinta, 30000);
+})();
+</script>
+{%- endif %}
 {% endblock %}
 
 {% block modal %}

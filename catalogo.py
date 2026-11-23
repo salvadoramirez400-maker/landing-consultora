@@ -24,6 +24,7 @@ Para sumar un producto nuevo (guía de RS, pre-auditoría remota, visita inspect
 """
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 from dataclasses import dataclass, replace
 from urllib.parse import quote
 
@@ -304,6 +305,67 @@ SALDO_MARCA = 170440        # total - abono
 # Registro Completo de 1 clase + tasa de presentación de INAPI (tarifas.json → tasas_inapi.presentar_hoy_completo_1_clase).
 # Cambia cada mes con la UTM (nov-2026: $72.440; dic-2026: $72.802): actualizar con el link nuevo de /presentar.
 PRESENTAR_MARCA = HONORARIOS_MARCA + TASA_INAPI_MARCA   # $220.430 con la UTM de nov-2026
+# --- Black Friday 2026 (Salvador, 23-nov-2026; tarifas.json → servicios.inapi.promocion_black) ---
+# Solo el Registro Completo: $109.990 en vez de $147.990, del 23-nov 00:00 al 30-nov 23:59 (hora de Chile).
+# Se enciende y se apaga solo por fecha: el 1-dic a las 00:00 todo vuelve al precio habitual sin tocar nada.
+# Siempre se muestra el precio habitual, el porcentaje sobre ese precio y la fecha de término (Ley 19.496).
+_CHILE = timezone(timedelta(hours=-3))   # horario de verano de Chile, vigente durante toda la promoción
+BLACK = {
+    "id": "black-2026",
+    "desde": datetime(2026, 11, 23, 0, 0, tzinfo=_CHILE),
+    "hasta": datetime(2026, 12, 1, 0, 0, tzinfo=_CHILE),   # exclusivo: vale hasta el 30-nov a las 23:59
+    "honorarios": 109990,
+    "termina": "30 de noviembre",
+    "legal": "Promoción válida del 23 al 30 de noviembre de 2026 para el Registro Completo. Precio habitual: "
+             "$147.990. Tasas de INAPI aparte.",
+}
+AHORA_FIJO: datetime | None = None   # solo para las pruebas
+
+
+def ahora() -> datetime:
+    return AHORA_FIJO or datetime.now(_CHILE)
+
+
+def black_activo() -> bool:
+    return BLACK["desde"] <= ahora() < BLACK["hasta"]
+
+
+def honorarios_marca() -> int:
+    """Honorarios del Registro Completo hoy: precio Black dentro de la promoción, habitual fuera."""
+    return BLACK["honorarios"] if black_activo() else HONORARIOS_MARCA
+
+
+def presentar_marca() -> int:
+    return honorarios_marca() + TASA_INAPI_MARCA
+
+
+def saldo_marca() -> int:
+    return presentar_marca() - RESERVA_MARCA
+
+
+def black() -> dict | None:
+    """Datos de la promoción para las plantillas, o None si no está vigente."""
+    if not black_activo():
+        return None
+    return {**BLACK, "habitual": HONORARIOS_MARCA,
+            "descuento": round((1 - BLACK["honorarios"] / HONORARIOS_MARCA) * 100),
+            "hasta_iso": BLACK["hasta"].isoformat()}
+
+
+def _pesos(n: int) -> str:
+    return "$" + f"{n:,}".replace(",", ".")
+
+
+def _con_black(texto: str) -> str:
+    """Cambia en un texto los montos habituales del Completo por los de la promoción, si está vigente."""
+    if not black_activo():
+        return texto
+    for viejo, nuevo in ((PRESENTAR_MARCA, presentar_marca()), (SALDO_MARCA, saldo_marca()),
+                         (HONORARIOS_MARCA, honorarios_marca())):
+        texto = texto.replace(_pesos(viejo), _pesos(nuevo))
+    return texto
+
+
 WA_PRESENTAR_PAGADO = "Hola, quiero registrar mi marca. Ya pagué el registro en la página web y envío el comprobante."
 WA_RESERVA_PAGADA = "Hola, pagué el abono del registro de marca en la página web y envío el comprobante."
 
@@ -409,8 +471,14 @@ BORRADORES = (
 
 
 def _al_dia(s: Servicio) -> Servicio:
-    """El registro de marca con los textos de la revisión que correspondan (gratis o pagada)."""
-    if s.id != "registro-marca" or not REVISION_PAGADA:
+    """El registro de marca con el precio vigente (Black Friday) y los textos de la revisión que correspondan."""
+    if s.id != "registro-marca":
+        return s
+    if black_activo():
+        s = replace(s, precio=honorarios_marca(),
+                    precio_nota=f"Black Friday hasta el {BLACK['termina']}: Registro Completo (habitual "
+                                f"{_pesos(HONORARIOS_MARCA)}). Tasas de INAPI aparte.")
+    if not REVISION_PAGADA:
         return s
     viejo = REVISION_TEXTOS["incluye"][0]
     return replace(s, cta=rev("boton_largo"), incluye=tuple(rev("incluye") if i == viejo else i for i in s.incluye))
@@ -426,9 +494,12 @@ def servicio(id_: str) -> Servicio:
 
 
 def faq_marcas() -> tuple:
-    """FAQ de /marcas con la frase de la revisión que corresponda."""
+    """FAQ de /marcas con la frase de la revisión que corresponda y los montos vigentes (Black Friday)."""
     viejo = REVISION_TEXTOS["faq_clases"][0]
-    return tuple((p, r.replace(viejo, rev("faq_clases"))) for p, r in FAQ_MARCAS)
+    faq = tuple((p, _con_black(r.replace(viejo, rev("faq_clases")))) for p, r in FAQ_MARCAS)
+    if black_activo():
+        faq = tuple((p, r + (" " + BLACK["legal"] if "honorarios CCC" in r else "")) for p, r in faq)
+    return faq
 
 
 # --- Planes de registro de marca (página /marcas; tarifas.json → servicios.inapi.planes) ---
@@ -502,6 +573,14 @@ PLANES_MARCA = (
 
 
 # --- Preguntas frecuentes (se muestran y van al schema FAQPage con el mismo texto) ---
+def planes_marca() -> tuple:
+    """Planes de /marcas con el precio vigente: en Black Friday el Completo lleva el habitual tachado."""
+    if not black_activo():
+        return PLANES_MARCA
+    return tuple(replace(p, precio=BLACK["honorarios"], precio_tachado=HONORARIOS_MARCA) if p.id == "completo" else p
+                 for p in PLANES_MARCA)
+
+
 FAQ_PORTADA = (
     ("¿Cuánto cuesta la Resolución Sanitaria?",
      "Depende del tipo de establecimiento y de cuántos boxes, sillones o salas tiene. Por eso partimos con el "

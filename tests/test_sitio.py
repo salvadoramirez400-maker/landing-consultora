@@ -62,6 +62,9 @@ sys.modules["db"] = _db_simulada()
 import app as sitio  # noqa: E402
 import catalogo  # noqa: E402
 
+# Las pruebas de precios habituales corren con una fecha fuera de la promoción; tests/test_black.py prueba la promoción.
+catalogo.AHORA_FIJO = catalogo.BLACK["hasta"]
+
 TARIFAS = Path(os.environ.get("TARIFAS_JSON", RAIZ.parent / "consultoria-clinica-chile" / "datos" / "tarifas.json"))
 
 
@@ -187,6 +190,8 @@ class PaginasPublicas(unittest.TestCase):
 
     def test_links_cortos_de_pago(self):
         for nombre, destino in sitio._PAGOS.items():
+            if nombre.endswith("-black"):   # links de la promoción (API de Mercado Pago): los prueba tests/test_black.py
+                continue
             with self.subTest(nombre=nombre):
                 r = self.c.get("/" + nombre)
                 self.assertEqual(r.status_code, 302)
